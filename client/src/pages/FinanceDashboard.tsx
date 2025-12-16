@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import api from '../api/client';
+import api from '../apiClient';
 
 const COLORS = {
   primary: '#1a1a2e',

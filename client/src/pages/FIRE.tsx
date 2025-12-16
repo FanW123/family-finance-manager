@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../api/client';
+import api from '../apiClient';
 import { format } from 'date-fns';
 import { FIRE_CATEGORIES, FIRE_GROUPS } from './Expenses';
 import { Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
