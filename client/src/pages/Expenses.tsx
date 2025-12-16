@@ -66,6 +66,7 @@ interface BudgetAnalysis {
   remaining: number;
   percentage: number;
   overBudget: boolean;
+  hasNoBudget?: boolean;  // Indicates if no budget was set for this category
 }
 
 export default function Expenses() {
@@ -76,6 +77,8 @@ export default function Expenses() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showBudgetForm, setShowBudgetForm] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
+  const [editingBudgetCategory, setEditingBudgetCategory] = useState<string | null>(null);
+  const [editingBudgetAmount, setEditingBudgetAmount] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -191,6 +194,51 @@ export default function Expenses() {
     } catch (error) {
       console.error('Error adding budget:', error);
       alert('添加预算失败');
+    }
+  };
+
+  const handleStartEditBudget = (category: string, currentBudget: number) => {
+    setEditingBudgetCategory(category);
+    setEditingBudgetAmount(currentBudget.toString());
+  };
+
+  const handleSaveBudget = async (category: string) => {
+    const amount = parseFloat(editingBudgetAmount);
+    if (isNaN(amount) || amount < 0) {
+      alert('请输入有效的预算金额');
+      return;
+    }
+
+    try {
+      await api.post('/expenses/budgets', {
+        category,
+        monthly_limit: amount,
+      });
+      setEditingBudgetCategory(null);
+      setEditingBudgetAmount('');
+      loadBudgetAnalysis();
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      alert('更新预算失败');
+    }
+  };
+
+  const handleCancelEditBudget = () => {
+    setEditingBudgetCategory(null);
+    setEditingBudgetAmount('');
+  };
+
+  const handleDeleteBudget = async (category: string) => {
+    if (!confirm(`确定要删除 "${getCategoryLabel(category)}" 的预算吗？`)) {
+      return;
+    }
+
+    try {
+      await api.post('/expenses/budgets/delete', { category });
+      loadBudgetAnalysis();
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      alert('删除预算失败');
     }
   };
 
@@ -501,26 +549,101 @@ export default function Expenses() {
                 <div
                   key={item.category}
                   className={`p-4 rounded-lg ${
-                    item.overBudget ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                    item.overBudget 
+                      ? 'bg-red-50 border border-red-200' 
+                      : item.hasNoBudget 
+                        ? 'bg-yellow-50 border border-yellow-200' 
+                        : 'bg-gray-50'
                   }`}
                 >
                   <div className="flex justify-between items-center">
-                    <div>
-                      <div className="font-semibold text-gray-900">{getCategoryLabel(item.category)}</div>
-                      <div className="text-sm text-gray-600">
-                        预算: ¥{item.budget.toLocaleString('zh-CN')} | 
-                        已用: ¥{item.spent.toLocaleString('zh-CN')} | 
-                        剩余: ¥{item.remaining.toLocaleString('zh-CN')} | 
-                        使用率: {item.percentage.toFixed(1)}%
-                      </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 mb-2">{getCategoryLabel(item.category)}</div>
+                      {editingBudgetCategory === item.category ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">预算:</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={editingBudgetAmount}
+                            onChange={(e) => setEditingBudgetAmount(e.target.value)}
+                            className="w-32 border border-gray-300 rounded-md px-2 py-1 text-sm"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSaveBudget(item.category);
+                              } else if (e.key === 'Escape') {
+                                handleCancelEditBudget();
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={() => handleSaveBudget(item.category)}
+                            className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                          >
+                            保存
+                          </button>
+                          <button
+                            onClick={handleCancelEditBudget}
+                            className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
+                          >
+                            取消
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-600">
+                          预算: 
+                          <span 
+                            className="font-semibold text-indigo-600 cursor-pointer hover:text-indigo-800 ml-1"
+                            onClick={() => handleStartEditBudget(item.category, item.budget)}
+                            title="点击编辑预算"
+                          >
+                            ¥{item.budget.toLocaleString('zh-CN')}
+                          </span>
+                          {' | '}
+                          已用: ¥{item.spent.toLocaleString('zh-CN')} | 
+                          剩余: ¥{item.remaining.toLocaleString('zh-CN')} | 
+                          使用率: {item.percentage.toFixed(1)}%
+                        </div>
+                      )}
                     </div>
-                    {item.overBudget && (
-                      <span className="text-red-600 font-semibold">超预算!</span>
+                    {editingBudgetCategory !== item.category && (
+                      <div className="flex items-center gap-2">
+                        {item.overBudget && (
+                          <span className="text-red-600 font-semibold">超预算!</span>
+                        )}
+                        {item.hasNoBudget && (
+                          <span className="text-yellow-600 font-semibold">未设置预算</span>
+                        )}
+                        {item.budget > 0 && (
+                          <>
+                            <button
+                              onClick={() => handleStartEditBudget(item.category, item.budget)}
+                              className="text-sm text-indigo-600 hover:text-indigo-800 px-2 py-1"
+                              title="编辑预算"
+                            >
+                              编辑
+                            </button>
+                            <button
+                              onClick={() => handleDeleteBudget(item.category)}
+                              className="text-sm text-red-600 hover:text-red-800 px-2 py-1"
+                              title="删除预算"
+                            >
+                              删除
+                            </button>
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
-                  {item.overBudget && (
+                  {item.overBudget && editingBudgetCategory !== item.category && (
                     <div className="mt-2 text-sm text-red-600">
                       💡 建议：可以考虑削减 {getCategoryLabel(item.category)} 的支出
+                    </div>
+                  )}
+                  {item.hasNoBudget && editingBudgetCategory !== item.category && (
+                    <div className="mt-2 text-sm text-yellow-600">
+                      💡 提示：此类别有支出但未设置预算，建议设置预算以便更好地跟踪
                     </div>
                   )}
                 </div>

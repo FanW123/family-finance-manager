@@ -1,7 +1,7 @@
 {
-  "name": "family-finance-manager",
+  "name": "firepath",
   "version": "1.0.0",
-  "description": "Family Finance Management Web App",
+  "description": "FirePath - Your Path to Financial Independence and Early Retirement",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && npm run dev",

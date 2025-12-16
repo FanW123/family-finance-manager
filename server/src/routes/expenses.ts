@@ -145,6 +145,24 @@ router.post('/budgets', (req, res) => {
   res.json({ message: 'Budget saved successfully' });
 });
 
+// Delete budget - use POST with body to handle special characters
+router.post('/budgets/delete', (req, res) => {
+  const { category } = req.body;
+
+  if (!category) {
+    return res.status(400).json({ error: 'Category is required' });
+  }
+
+  const del = db.prepare('DELETE FROM budgets WHERE category = ?');
+  const result = del.run(category);
+
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Budget not found' });
+  }
+
+  res.json({ message: 'Budget deleted successfully' });
+});
+
 // Get budget analysis
 router.get('/budget-analysis', (req, res) => {
   const { month, year } = req.query;
@@ -184,7 +202,8 @@ router.get('/budget-analysis', (req, res) => {
       spent,
       remaining,
       percentage: Math.round(percentage * 100) / 100,
-      overBudget: spent > budget.monthly_limit
+      overBudget: spent > budget.monthly_limit,
+      hasNoBudget: false
     };
   });
 
@@ -197,7 +216,8 @@ router.get('/budget-analysis', (req, res) => {
         spent: expense.spent,
         remaining: -expense.spent,
         percentage: 0,
-        overBudget: false
+        overBudget: false,  // Not over budget since no budget was set
+        hasNoBudget: true   // Flag to indicate no budget was set for this category
       });
     }
   });

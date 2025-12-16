@@ -5,4 +5,8 @@ build/
 *.db
 *.sqlite
 .DS_Store
+.vercel
+*.log
+client/dist/
+server/finance.db
 

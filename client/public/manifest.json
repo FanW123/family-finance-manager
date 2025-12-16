@@ -1,0 +1,30 @@
+{
+  "name": "FirePath - 自由之路",
+  "short_name": "FirePath",
+  "description": "专为 FIRE 目标设计的财务管理和追踪应用",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a14",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "添加支出",
+      "short_name": "添加",
+      "description": "快速添加新的支出记录",
+      "url": "/?action=add-expense",
+      "icons": [{ "src": "/vite.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}
+
