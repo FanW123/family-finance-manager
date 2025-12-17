@@ -306,7 +306,7 @@ const FinanceDashboard = () => {
       amount: investment.amount.toString(),
       price: investment.price ? investment.price.toString() : '',
       quantity: investment.quantity ? investment.quantity.toString() : '',
-      date: investment.date,
+      date: investment.date || new Date().toISOString().split('T')[0],
     });
   };
 
@@ -1841,67 +1841,8 @@ const FinanceDashboard = () => {
               </div>
             </div>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '1.5rem',
-              marginBottom: '2rem'
-            }}>
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>总资产</div>
-                <div style={{ fontSize: '2rem', fontWeight: '700' }}>¥{totalPortfolio.toLocaleString()}</div>
-              </div>
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                border: `2px solid ${COLORS.stocks}`
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>股票</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.stocks }}>
-                  ¥{portfolio.stocks.toLocaleString()}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                  {currentAllocation.stocks.toFixed(1)}%
-                </div>
-              </div>
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                border: `2px solid ${COLORS.bonds}`
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>债券</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.bonds }}>
-                  ¥{portfolio.bonds.toLocaleString()}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                  {currentAllocation.bonds.toFixed(1)}%
-                </div>
-              </div>
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                border: `2px solid ${COLORS.cash}`
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>现金</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.cash }}>
-                  ¥{portfolio.cash.toLocaleString()}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                  {currentAllocation.cash.toFixed(1)}%
-                </div>
-              </div>
-            </div>
+            {/* Note: 添加投资表单和投资列表应该在这里 */}
+            {/* 投资组合汇总卡片移到页面最后 */}
 
             <div style={{
               background: COLORS.card,
@@ -1950,6 +1891,7 @@ const FinanceDashboard = () => {
                 background: COLORS.card,
                 borderRadius: '1rem',
                 padding: '2rem',
+                marginBottom: '2rem',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
               }}>
                 <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>当前 vs 目标配置</h3>
@@ -1968,6 +1910,73 @@ const FinanceDashboard = () => {
                 </ResponsiveContainer>
               </div>
             )}
+
+            {/* Portfolio Summary - Moved to bottom */}
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              padding: '2rem',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+            }}>
+              <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>投资组合汇总</h3>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '1.5rem'
+              }}>
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  border: `2px solid ${COLORS.secondary}`
+                }}>
+                  <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>总资产</div>
+                  <div style={{ fontSize: '2rem', fontWeight: '700' }}>¥{totalPortfolio.toLocaleString()}</div>
+                </div>
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  border: `2px solid ${COLORS.stocks}`
+                }}>
+                  <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>股票</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.stocks }}>
+                    ¥{portfolio.stocks.toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                    {currentAllocation.stocks.toFixed(1)}%
+                  </div>
+                </div>
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  border: `2px solid ${COLORS.bonds}`
+                }}>
+                  <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>债券</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.bonds }}>
+                    ¥{portfolio.bonds.toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                    {currentAllocation.bonds.toFixed(1)}%
+                  </div>
+                </div>
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  border: `2px solid ${COLORS.cash}`
+                }}>
+                  <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>现金</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.cash }}>
+                    ¥{portfolio.cash.toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                    {currentAllocation.cash.toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
