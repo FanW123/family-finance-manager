@@ -540,12 +540,15 @@ const FinanceDashboard = () => {
 
   // Calculate portfolio metrics
   const portfolio = investments.reduce((acc, inv) => {
-    const amount = (inv.quantity || 0) * (inv.price || 0);
+    // For cash, use amount directly; for stocks/bonds/crypto, calculate from quantity * price
+    const amount = inv.type === 'cash' 
+      ? (inv.amount || 0)
+      : ((inv.quantity || 0) * (inv.price || 0));
     acc[inv.type] = (acc[inv.type] || 0) + amount;
     return acc;
-  }, { stocks: 0, bonds: 0, cash: 0 } as Record<string, number>);
+  }, { stocks: 0, bonds: 0, cash: 0, crypto: 0 } as Record<string, number>);
 
-  const totalPortfolio = portfolio.stocks + portfolio.bonds + portfolio.cash;
+  const totalPortfolio = portfolio.stocks + portfolio.bonds + portfolio.cash + (portfolio.crypto || 0);
   
   const currentAllocation = {
     stocks: totalPortfolio > 0 ? (portfolio.stocks / totalPortfolio * 100) : 0,
