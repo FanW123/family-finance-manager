@@ -2435,17 +2435,17 @@ const FinanceDashboard = () => {
 
               {investments.length > 0 && (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
                     <thead>
                       <tr style={{ borderBottom: `2px solid ${COLORS.accent}` }}>
-                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>日期</th>
-                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>类型</th>
-                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>代码</th>
-                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>账户</th>
-                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>股数</th>
-                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>当前价格</th>
-                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>总金额</th>
-                        <th style={{ padding: '1rem', textAlign: 'center', color: COLORS.textMuted, fontSize: '0.9rem' }}>操作</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem', minWidth: '110px' }}>日期</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem', minWidth: '80px' }}>类型</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem', minWidth: '90px' }}>代码</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem', minWidth: '120px' }}>账户</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem', minWidth: '90px' }}>股数</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem', minWidth: '100px' }}>当前价格</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem', minWidth: '120px' }}>总金额</th>
+                        <th style={{ padding: '1rem', textAlign: 'center', color: COLORS.textMuted, fontSize: '0.9rem', minWidth: '150px' }}>操作</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2505,19 +2505,21 @@ const FinanceDashboard = () => {
                                   }}
                                 />
                               </td>
-                              <td style={{ padding: '1rem' }}>
+                              <td style={{ padding: '1rem', minWidth: '120px' }}>
                                 <input
                                   type="text"
                                   value={editingInvestment.account || ''}
                                   onChange={(e) => setEditingInvestment({ ...editingInvestment, account: e.target.value })}
-                                  placeholder="账户"
+                                  placeholder="账户名"
                                   style={{
                                     width: '100%',
+                                    minWidth: '100px',
                                     padding: '0.5rem',
                                     background: COLORS.accent,
                                     border: `1px solid ${COLORS.secondary}`,
                                     borderRadius: '0.3rem',
                                     color: COLORS.text,
+                                    fontSize: '0.9rem',
                                     fontFamily: 'inherit'
                                   }}
                                 />
