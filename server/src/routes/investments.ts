@@ -66,22 +66,22 @@ router.get('/allocation', async (req, res) => {
 
 // Add investment
 router.post('/', (req, res) => {
-  const { type, symbol, name, amount, price, quantity, date } = req.body;
+  const { type, symbol, name, amount, price, quantity, account, date } = req.body;
 
   if (!type || !name || amount === undefined || !date) {
     return res.status(400).json({ error: 'Type, name, amount, and date are required' });
   }
 
-  if (!['stocks', 'bonds', 'cash'].includes(type)) {
-    return res.status(400).json({ error: 'Type must be stocks, bonds, or cash' });
+  if (!['stocks', 'bonds', 'cash', 'crypto'].includes(type)) {
+    return res.status(400).json({ error: 'Type must be stocks, bonds, cash, or crypto' });
   }
 
   const insert = db.prepare(`
-    INSERT INTO investments (type, symbol, name, amount, price, quantity, date)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO investments (type, symbol, name, amount, price, quantity, account, date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  const result = insert.run(type, symbol || null, name, amount, price || null, quantity || null, date);
+  const result = insert.run(type, symbol || null, name, amount, price || null, quantity || null, account || null, date);
   res.json({ id: result.lastInsertRowid, message: 'Investment added successfully' });
 });
 
@@ -114,15 +114,15 @@ router.put('/target-allocation', (req, res) => {
 // Update investment
 router.put('/:id', (req, res) => {
   const { id } = req.params;
-  const { type, symbol, name, amount, price, quantity, date } = req.body;
+  const { type, symbol, name, amount, price, quantity, account, date } = req.body;
 
   const update = db.prepare(`
     UPDATE investments
-    SET type = ?, symbol = ?, name = ?, amount = ?, price = ?, quantity = ?, date = ?, updated_at = CURRENT_TIMESTAMP
+    SET type = ?, symbol = ?, name = ?, amount = ?, price = ?, quantity = ?, account = ?, date = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
 
-  const result = update.run(type, symbol, name, amount, price, quantity, date, id);
+  const result = update.run(type, symbol, name, amount, price, quantity, account, date, id);
 
   if (result.changes === 0) {
     return res.status(404).json({ error: 'Investment not found' });

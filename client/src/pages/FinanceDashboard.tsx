@@ -86,12 +86,13 @@ interface Expense {
 
 interface Investment {
   id: number;
-  type: 'stocks' | 'bonds' | 'cash';
+  type: 'stocks' | 'bonds' | 'cash' | 'crypto';
   amount: number;
   symbol?: string | null;
   name: string;
   price?: number | null;
   quantity?: number | null;
+  account?: string | null; // 新增账户字段
   date: string;
 }
 
@@ -126,6 +127,7 @@ const FinanceDashboard = () => {
     amount: '',
     price: '',
     quantity: '',
+    account: '', // 新增账户字段
     date: new Date().toISOString().split('T')[0],
   });
   const [editingInvestment, setEditingInvestment] = useState({
@@ -135,6 +137,7 @@ const FinanceDashboard = () => {
     amount: '',
     price: '',
     quantity: '',
+    account: '', // 添加账户字段
     date: '',
   });
   const [showCashCalculator, setShowCashCalculator] = useState(false);
@@ -323,6 +326,7 @@ const FinanceDashboard = () => {
         amount: amount,
         price: price,
         quantity: quantity,
+        account: newInvestment.account || null, // 添加账户字段
         date: newInvestment.date,
       });
       setNewInvestment({
@@ -332,6 +336,7 @@ const FinanceDashboard = () => {
         amount: '',
         price: '',
         quantity: '',
+        account: '', // 重置账户字段
         date: new Date().toISOString().split('T')[0],
       });
       setShowAddInvestment(false);
@@ -351,6 +356,7 @@ const FinanceDashboard = () => {
       amount: investment.amount.toString(),
       price: investment.price ? investment.price.toString() : '',
       quantity: investment.quantity ? investment.quantity.toString() : '',
+      account: investment.account || '', // 添加账户字段
       date: investment.date || new Date().toISOString().split('T')[0],
     });
   };
@@ -364,6 +370,7 @@ const FinanceDashboard = () => {
       amount: '',
       price: '',
       quantity: '',
+      account: '', // 添加账户字段
       date: '',
     });
   };
@@ -376,6 +383,7 @@ const FinanceDashboard = () => {
         price: editingInvestment.price ? parseFloat(editingInvestment.price) : null,
         quantity: editingInvestment.quantity ? parseFloat(editingInvestment.quantity) : null,
         symbol: editingInvestment.symbol || null,
+        account: editingInvestment.account || null, // 添加账户字段
       });
       setEditingInvestmentId(null);
       loadData();
@@ -2346,6 +2354,27 @@ const FinanceDashboard = () => {
                         />
                       </div>
                       <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                          账户 <span style={{ color: COLORS.textMuted, fontSize: '0.8rem' }}>(选填)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newInvestment.account}
+                          onChange={(e) => setNewInvestment({ ...newInvestment, account: e.target.value })}
+                          placeholder="如：Fidelity"
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            background: COLORS.card,
+                            border: `1px solid ${COLORS.secondary}`,
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                      </div>
+                      <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>日期</label>
                         <input
                           type="date"
@@ -2412,6 +2441,7 @@ const FinanceDashboard = () => {
                         <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>日期</th>
                         <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>类型</th>
                         <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>代码</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>账户</th>
                         <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>股数</th>
                         <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>当前价格</th>
                         <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>总金额</th>
@@ -2464,6 +2494,23 @@ const FinanceDashboard = () => {
                                   value={editingInvestment.symbol}
                                   onChange={(e) => setEditingInvestment({ ...editingInvestment, symbol: e.target.value.toUpperCase() })}
                                   placeholder="代码"
+                                  style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    background: COLORS.accent,
+                                    border: `1px solid ${COLORS.secondary}`,
+                                    borderRadius: '0.3rem',
+                                    color: COLORS.text,
+                                    fontFamily: 'inherit'
+                                  }}
+                                />
+                              </td>
+                              <td style={{ padding: '1rem' }}>
+                                <input
+                                  type="text"
+                                  value={editingInvestment.account || ''}
+                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, account: e.target.value })}
+                                  placeholder="账户"
                                   style={{
                                     width: '100%',
                                     padding: '0.5rem',
@@ -2555,6 +2602,9 @@ const FinanceDashboard = () => {
                               <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{investment.date}</td>
                               <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{getTypeLabel(investment.type)}</td>
                               <td style={{ padding: '1rem', fontSize: '0.9rem', fontWeight: '600' }}>{investment.symbol || '-'}</td>
+                              <td style={{ padding: '1rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                                {investment.account || '-'}
+                              </td>
                               <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right' }}>
                                 {(investment.quantity || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
