@@ -85,7 +85,50 @@ router.post('/', (req, res) => {
   res.json({ id: result.lastInsertRowid, message: 'Investment added successfully' });
 });
 
-// Update target allocation (must be before /:id route to avoid route conflict)
+// Get target allocation (must be before /:id route to avoid route conflict)
+router.get('/target-allocation', (req, res) => {
+  const targetAllocation = db.prepare('SELECT type, percentage FROM target_allocation').all() as Array<{
+    type: string;
+    percentage: number;
+  }>;
+
+  // Convert array to object format { stocks: 60, bonds: 30, cash: 10 }
+  const result = targetAllocation.reduce((acc: any, item) => {
+    acc[item.type] = item.percentage;
+    return acc;
+  }, {});
+
+  res.json(result);
+});
+
+// Update target allocation
+router.post('/target-allocation', (req, res) => {
+  const { stocks, bonds, cash } = req.body;
+
+  // Validate
+  if (stocks === undefined || bonds === undefined || cash === undefined) {
+    return res.status(400).json({ error: 'stocks, bonds, and cash are required' });
+  }
+
+  const total = stocks + bonds + cash;
+  if (Math.abs(total - 100) > 0.01) {
+    return res.status(400).json({ error: 'Total allocation must equal 100%' });
+  }
+
+  const update = db.prepare(`
+    UPDATE target_allocation
+    SET percentage = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE type = ?
+  `);
+
+  update.run(stocks, 'stocks');
+  update.run(bonds, 'bonds');
+  update.run(cash, 'cash');
+
+  res.json({ message: 'Target allocation updated successfully' });
+});
+
+// Legacy PUT endpoint for backward compatibility
 router.put('/target-allocation', (req, res) => {
   const { allocations } = req.body;
 

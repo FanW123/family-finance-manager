@@ -563,14 +563,21 @@ const FinanceDashboard = () => {
   const fireNumber = retirementExpenses * 12 * fireMultiplier;
 
   // Calculate portfolio metrics
+  // Calculate portfolio from investments (excluding cash)
   const portfolio = investments.reduce((acc, inv) => {
-    // For cash, use amount directly; for stocks/bonds/crypto, calculate from quantity * price
-    const amount = inv.type === 'cash' 
-      ? (inv.amount || 0)
-      : ((inv.quantity || 0) * (inv.price || 0));
+    // Skip cash - we'll calculate it from localStorage instead
+    if (inv.type === 'cash') return acc;
+    
+    // For stocks/bonds/crypto, calculate from quantity * price
+    const amount = (inv.quantity || 0) * (inv.price || 0);
     acc[inv.type] = (acc[inv.type] || 0) + amount;
     return acc;
   }, { stocks: 0, bonds: 0, cash: 0, crypto: 0 } as Record<string, number>);
+
+  // Calculate cash directly from localStorage
+  portfolio.cash = cashAccounts.reduce((sum: number, acc: any) => {
+    return sum + (parseFloat(acc.amount) || 0);
+  }, 0);
 
   const totalPortfolio = portfolio.stocks + portfolio.bonds + portfolio.cash + (portfolio.crypto || 0);
   
@@ -1969,33 +1976,17 @@ const FinanceDashboard = () => {
                 >
                   <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>🧮 现金账户计算器</h3>
                   
-                  {(() => {
-                    const calculatedTotal = cashAccounts.reduce((sum: number, acc: any) => sum + (parseFloat(acc.amount) || 0), 0);
-                    const savedCash = investments.find(inv => inv.type === 'cash');
-                    const savedTotal = savedCash ? savedCash.amount : 0;
-                    const isDifferent = Math.abs(calculatedTotal - savedTotal) > 0.01;
-                    
-                    if (isDifferent) {
-                      return (
-                        <div style={{
-                          background: `${COLORS.warning}20`,
-                          border: `1px solid ${COLORS.warning}`,
-                          borderRadius: '0.5rem',
-                          padding: '1rem',
-                          marginBottom: '1.5rem',
-                          fontSize: '0.85rem'
-                        }}>
-                          <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: COLORS.warning }}>⚠️ 数据不同步</div>
-                          <div style={{ color: COLORS.text }}>
-                            已保存: ¥{savedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<br/>
-                            计算器: ¥{calculatedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<br/>
-                            <span style={{ color: COLORS.textMuted, fontSize: '0.8rem' }}>请修改账户后点击"保存"更新</span>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
+                  <div style={{
+                    background: `${COLORS.success}20`,
+                    border: `1px solid ${COLORS.success}`,
+                    borderRadius: '0.5rem',
+                    padding: '1rem',
+                    marginBottom: '1.5rem',
+                    fontSize: '0.85rem',
+                    color: COLORS.text
+                  }}>
+                    💡 <strong>提示：</strong>修改账户金额会自动保存并实时更新现金卡片
+                  </div>
                   
                   {cashAccounts.map((account: any, index: number) => (
                     <div key={index} style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
