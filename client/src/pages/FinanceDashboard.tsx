@@ -2065,7 +2065,18 @@ const FinanceDashboard = () => {
                   }}>
                     <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>总计</div>
                     <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.cash }}>
-                      ¥{cashAccounts.reduce((sum, acc) => sum + (parseFloat(acc.amount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ¥{(() => {
+                        const total = cashAccounts.reduce((sum: number, acc: any) => {
+                          const amount = parseFloat(acc.amount) || 0;
+                          console.log(`Account: ${acc.name}, Amount: ${acc.amount}, Parsed: ${amount}`);
+                          return sum + amount;
+                        }, 0);
+                        console.log(`Total cash: ${total}`);
+                        return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                      })()}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
+                      {cashAccounts.length} 个账户
                     </div>
                   </div>
 
@@ -2089,7 +2100,13 @@ const FinanceDashboard = () => {
                     </button>
                     <button
                       onClick={async () => {
-                        const totalCash = cashAccounts.reduce((sum, acc) => sum + (parseFloat(acc.amount) || 0), 0);
+                        const totalCash = cashAccounts.reduce((sum: number, acc: any) => {
+                          const amount = parseFloat(acc.amount) || 0;
+                          console.log(`Saving - Account: ${acc.name}, Amount: ${acc.amount}, Parsed: ${amount}`);
+                          return sum + amount;
+                        }, 0);
+                        
+                        console.log(`Total to save: ${totalCash}, Accounts:`, cashAccounts);
                         
                         if (totalCash === 0) {
                           alert('请输入现金金额');
