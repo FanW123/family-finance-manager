@@ -141,9 +141,18 @@ const FinanceDashboard = () => {
     date: '',
   });
   const [showCashCalculator, setShowCashCalculator] = useState(false);
-  const [cashAccounts, setCashAccounts] = useState([
-    { name: '账户1', amount: '' }
-  ]);
+  const [cashAccounts, setCashAccounts] = useState(() => {
+    // 从 localStorage 恢复现金账户数据
+    const savedAccounts = localStorage.getItem('cashAccounts');
+    if (savedAccounts) {
+      try {
+        return JSON.parse(savedAccounts);
+      } catch (e) {
+        console.error('Failed to parse saved cash accounts:', e);
+      }
+    }
+    return [{ id: 1, name: '', amount: '' }];
+  });
 
   // Load data from API
   useEffect(() => {
@@ -1962,6 +1971,8 @@ const FinanceDashboard = () => {
                           const newAccounts = [...cashAccounts];
                           newAccounts[index].name = e.target.value;
                           setCashAccounts(newAccounts);
+                          // 实时保存到 localStorage
+                          localStorage.setItem('cashAccounts', JSON.stringify(newAccounts));
                         }}
                         placeholder="账户名称"
                         style={{
@@ -1982,6 +1993,8 @@ const FinanceDashboard = () => {
                           const newAccounts = [...cashAccounts];
                           newAccounts[index].amount = e.target.value;
                           setCashAccounts(newAccounts);
+                          // 实时保存到 localStorage
+                          localStorage.setItem('cashAccounts', JSON.stringify(newAccounts));
                         }}
                         placeholder="金额"
                         step="0.01"
@@ -2001,6 +2014,8 @@ const FinanceDashboard = () => {
                           onClick={() => {
                             const newAccounts = cashAccounts.filter((_, i) => i !== index);
                             setCashAccounts(newAccounts);
+                            // 立即保存到 localStorage
+                            localStorage.setItem('cashAccounts', JSON.stringify(newAccounts));
                           }}
                           style={{
                             background: 'none',
@@ -2019,7 +2034,12 @@ const FinanceDashboard = () => {
                   ))}
 
                   <button
-                    onClick={() => setCashAccounts([...cashAccounts, { name: `账户${cashAccounts.length + 1}`, amount: '' }])}
+                    onClick={() => {
+                      const newAccounts = [...cashAccounts, { id: Date.now(), name: `账户${cashAccounts.length + 1}`, amount: '' }];
+                      setCashAccounts(newAccounts);
+                      // 立即保存到 localStorage
+                      localStorage.setItem('cashAccounts', JSON.stringify(newAccounts));
+                    }}
                     style={{
                       background: 'none',
                       color: COLORS.success,
@@ -2110,6 +2130,9 @@ const FinanceDashboard = () => {
                           console.log('Reloading data...');
                           await loadData();
                           console.log('Data reloaded successfully');
+                          
+                          // 保存现金账户到 localStorage
+                          localStorage.setItem('cashAccounts', JSON.stringify(cashAccounts));
                           
                           setShowCashCalculator(false);
                           alert(`现金总额已更新为 ¥${totalCash.toLocaleString()}！`);
