@@ -110,10 +110,41 @@ const FinanceDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [viewMode, setViewMode] = useState<'current' | 'trends'>('current');
+  
+  // Investment management states
+  const [showAddInvestment, setShowAddInvestment] = useState(false);
+  const [editingInvestmentId, setEditingInvestmentId] = useState<number | null>(null);
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
+  const [lastPriceUpdate, setLastPriceUpdate] = useState<string | null>(null);
+  const [newInvestment, setNewInvestment] = useState({
+    type: 'stocks',
+    symbol: '',
+    name: '',
+    amount: '',
+    price: '',
+    quantity: '',
+    date: new Date().toISOString().split('T')[0],
+  });
+  const [editingInvestment, setEditingInvestment] = useState({
+    type: '',
+    symbol: '',
+    name: '',
+    amount: '',
+    price: '',
+    quantity: '',
+    date: '',
+  });
 
   // Load data from API
   useEffect(() => {
     loadData();
+    checkAndRefreshPrices();
+    
+    // Load last update time
+    const lastUpdate = localStorage.getItem('lastPriceUpdate');
+    if (lastUpdate) {
+      setLastPriceUpdate(lastUpdate);
+    }
   }, [selectedMonth, selectedYear]);
 
   const loadData = async () => {
@@ -183,6 +214,145 @@ const FinanceDashboard = () => {
       console.error('Error deleting expense:', error);
       alert('删除失败');
     }
+  };
+
+  // Investment management functions
+  const checkAndRefreshPrices = async () => {
+    const lastUpdate = localStorage.getItem('lastPriceUpdate');
+    if (!lastUpdate) {
+      return;
+    }
+
+    const lastUpdateTime = new Date(lastUpdate);
+    const now = new Date();
+    const hoursDiff = (now.getTime() - lastUpdateTime.getTime()) / (1000 * 60 * 60);
+
+    if (hoursDiff >= 24) {
+      await refreshStockPrices();
+    }
+  };
+
+  const refreshStockPrices = async () => {
+    setRefreshingPrices(true);
+    try {
+      const stocksWithSymbols = investments.filter(inv => inv.type === 'stocks' && inv.symbol);
+      
+      for (const stock of stocksWithSymbols) {
+        try {
+          const res = await api.get(`/rebalancing/market-data/${stock.symbol}`);
+          if (res.data && res.data.price) {
+            await api.put(`/investments/${stock.id}`, {
+              type: stock.type,
+              symbol: stock.symbol,
+              name: stock.name,
+              price: res.data.price,
+              quantity: stock.quantity,
+              amount: res.data.price * (stock.quantity || 0),
+              date: stock.date,
+            });
+          }
+        } catch (error) {
+          console.error(`Error updating price for ${stock.symbol}:`, error);
+        }
+      }
+
+      const now = new Date().toISOString();
+      localStorage.setItem('lastPriceUpdate', now);
+      setLastPriceUpdate(now);
+
+      await loadData();
+      alert('价格已更新！');
+    } catch (error) {
+      console.error('Error refreshing prices:', error);
+      alert('更新价格失败，请检查API配置');
+    } finally {
+      setRefreshingPrices(false);
+    }
+  };
+
+  const handleAddInvestment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/investments', {
+        ...newInvestment,
+        amount: parseFloat(newInvestment.amount),
+        price: newInvestment.price ? parseFloat(newInvestment.price) : null,
+        quantity: newInvestment.quantity ? parseFloat(newInvestment.quantity) : null,
+        symbol: newInvestment.symbol || null,
+      });
+      setNewInvestment({
+        type: 'stocks',
+        symbol: '',
+        name: '',
+        amount: '',
+        price: '',
+        quantity: '',
+        date: new Date().toISOString().split('T')[0],
+      });
+      setShowAddInvestment(false);
+      loadData();
+    } catch (error) {
+      console.error('Error adding investment:', error);
+      alert('添加投资失败');
+    }
+  };
+
+  const handleStartEditInvestment = (investment: Investment) => {
+    setEditingInvestmentId(investment.id);
+    setEditingInvestment({
+      type: investment.type,
+      symbol: investment.symbol || '',
+      name: investment.name,
+      amount: investment.amount.toString(),
+      price: investment.price ? investment.price.toString() : '',
+      quantity: investment.quantity ? investment.quantity.toString() : '',
+      date: investment.date,
+    });
+  };
+
+  const handleCancelEditInvestment = () => {
+    setEditingInvestmentId(null);
+    setEditingInvestment({
+      type: '',
+      symbol: '',
+      name: '',
+      amount: '',
+      price: '',
+      quantity: '',
+      date: '',
+    });
+  };
+
+  const handleSaveEditInvestment = async (id: number) => {
+    try {
+      await api.put(`/investments/${id}`, {
+        ...editingInvestment,
+        amount: parseFloat(editingInvestment.amount),
+        price: editingInvestment.price ? parseFloat(editingInvestment.price) : null,
+        quantity: editingInvestment.quantity ? parseFloat(editingInvestment.quantity) : null,
+        symbol: editingInvestment.symbol || null,
+      });
+      setEditingInvestmentId(null);
+      loadData();
+    } catch (error) {
+      console.error('Error updating investment:', error);
+      alert('更新失败');
+    }
+  };
+
+  const handleDeleteInvestment = async (id: number) => {
+    if (!confirm('确定要删除这条投资记录吗？')) return;
+    try {
+      await api.delete(`/investments/${id}`);
+      loadData();
+    } catch (error) {
+      console.error('Error deleting investment:', error);
+      alert('删除失败');
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    return type === 'stocks' ? '股票' : type === 'bonds' ? '债券' : '现金';
   };
 
   const updateTargetAllocation = async (type: 'stocks' | 'bonds' | 'cash', value: number) => {
@@ -1625,10 +1795,50 @@ const FinanceDashboard = () => {
               marginBottom: '2rem',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
             }}>
-              <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>投资组合</h3>
-              <p style={{ color: COLORS.textMuted }}>
-                投资组合数据将从后端自动加载
-              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.3rem' }}>投资组合</h3>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {lastPriceUpdate && (
+                    <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                      上次更新: {new Date(lastPriceUpdate).toLocaleString('zh-CN')}
+                    </span>
+                  )}
+                  <button
+                    onClick={refreshStockPrices}
+                    disabled={refreshingPrices}
+                    style={{
+                      background: refreshingPrices ? COLORS.accent : COLORS.success,
+                      color: COLORS.text,
+                      border: 'none',
+                      padding: '0.6rem 1.2rem',
+                      borderRadius: '0.5rem',
+                      cursor: refreshingPrices ? 'not-allowed' : 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      fontFamily: 'inherit',
+                      opacity: refreshingPrices ? 0.6 : 1
+                    }}
+                  >
+                    {refreshingPrices ? '更新中...' : '🔄 刷新价格'}
+                  </button>
+                  <button
+                    onClick={() => setShowAddInvestment(true)}
+                    style={{
+                      background: COLORS.highlight,
+                      color: COLORS.text,
+                      border: 'none',
+                      padding: '0.6rem 1.2rem',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    + 添加投资
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div style={{
