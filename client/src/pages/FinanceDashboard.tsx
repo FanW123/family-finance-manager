@@ -275,6 +275,10 @@ const FinanceDashboard = () => {
           console.error(`更新 ${stock.symbol} 价格失败:`, error);
           if (error.response?.status === 503) {
             apiKeyMissing = true;
+          } else if (error.response?.status === 404) {
+            console.warn(`${stock.symbol}: 股票代码未找到，可能不是有效的股票代码`);
+          } else if (error.response?.status === 429) {
+            console.warn(`${stock.symbol}: API 速率限制，请稍后再试`);
           }
           failCount++;
         }
@@ -289,9 +293,9 @@ const FinanceDashboard = () => {
       if (apiKeyMissing) {
         alert(`⚠️ Alpha Vantage API Key 未配置\n\n自动价格更新需要 API Key。\n\n临时方案：可以点击"编辑"按钮手动更新价格。\n\n获取免费 API Key：\nhttps://www.alphavantage.co/support/#api-key\n\n然后在服务器的 .env 文件中设置：\nALPHA_VANTAGE_API_KEY=your_key`);
       } else if (failCount > 0) {
-        alert(`价格更新完成！\n成功: ${successCount} 只\n失败: ${failCount} 只\n\n请检查浏览器控制台查看详细信息`);
+        alert(`价格更新完成！\n✅ 成功: ${successCount} 只\n❌ 失败: ${failCount} 只\n\n失败原因可能：\n1. 股票代码无效（如 VRT、ONDS）\n2. 加密货币（DOGE、SHIB）不支持\n3. API 速率限制\n\n💡 建议：\n- 点击"编辑"按钮手动更新价格\n- 或检查浏览器控制台查看详细错误`);
       } else {
-        alert(`价格更新完成！成功更新 ${successCount} 只股票`);
+        alert(`✅ 价格更新完成！成功更新 ${successCount} 只股票`);
       }
     } catch (error) {
       console.error('更新价格时出错:', error);
