@@ -240,22 +240,43 @@ const FinanceDashboard = () => {
     try {
       const stocksWithSymbols = investments.filter(inv => inv.type === 'stocks' && inv.symbol);
       
+      if (stocksWithSymbols.length === 0) {
+        alert('没有找到需要更新价格的股票（需要有股票代码）');
+        setRefreshingPrices(false);
+        return;
+      }
+
+      console.log(`准备更新 ${stocksWithSymbols.length} 只股票的价格...`);
+      let successCount = 0;
+      let failCount = 0;
+      let apiKeyMissing = false;
+      
       for (const stock of stocksWithSymbols) {
         try {
+          console.log(`正在获取 ${stock.symbol} 的价格...`);
           const res = await api.get(`/rebalancing/market-data/${stock.symbol}`);
           if (res.data && res.data.price) {
             await api.put(`/investments/${stock.id}`, {
               type: stock.type,
               symbol: stock.symbol,
-              name: stock.name,
+              name: stock.name || stock.symbol,
               price: res.data.price,
               quantity: stock.quantity,
               amount: res.data.price * (stock.quantity || 0),
               date: stock.date,
             });
+            console.log(`${stock.symbol} 价格已更新: ¥${res.data.price}`);
+            successCount++;
+          } else {
+            console.warn(`${stock.symbol} 未返回价格数据`);
+            failCount++;
           }
-        } catch (error) {
-          console.error(`Error updating price for ${stock.symbol}:`, error);
+        } catch (error: any) {
+          console.error(`更新 ${stock.symbol} 价格失败:`, error);
+          if (error.response?.status === 503) {
+            apiKeyMissing = true;
+          }
+          failCount++;
         }
       }
 
@@ -264,10 +285,17 @@ const FinanceDashboard = () => {
       setLastPriceUpdate(now);
 
       await loadData();
-      alert('价格已更新！');
+      
+      if (apiKeyMissing) {
+        alert(`⚠️ Alpha Vantage API Key 未配置\n\n自动价格更新需要 API Key。\n\n临时方案：可以点击"编辑"按钮手动更新价格。\n\n获取免费 API Key：\nhttps://www.alphavantage.co/support/#api-key\n\n然后在服务器的 .env 文件中设置：\nALPHA_VANTAGE_API_KEY=your_key`);
+      } else if (failCount > 0) {
+        alert(`价格更新完成！\n成功: ${successCount} 只\n失败: ${failCount} 只\n\n请检查浏览器控制台查看详细信息`);
+      } else {
+        alert(`价格更新完成！成功更新 ${successCount} 只股票`);
+      }
     } catch (error) {
-      console.error('Error refreshing prices:', error);
-      alert('更新价格失败，请检查API配置');
+      console.error('更新价格时出错:', error);
+      alert('更新价格失败，请检查API配置或网络连接');
     } finally {
       setRefreshingPrices(false);
     }
@@ -276,12 +304,18 @@ const FinanceDashboard = () => {
   const handleAddInvestment = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const quantity = parseFloat(newInvestment.quantity);
+      const price = parseFloat(newInvestment.price);
+      const amount = quantity * price;
+      
       await api.post('/investments', {
-        ...newInvestment,
-        amount: parseFloat(newInvestment.amount),
-        price: newInvestment.price ? parseFloat(newInvestment.price) : null,
-        quantity: newInvestment.quantity ? parseFloat(newInvestment.quantity) : null,
+        type: newInvestment.type,
         symbol: newInvestment.symbol || null,
+        name: newInvestment.symbol || '', // Use symbol as name
+        amount: amount,
+        price: price,
+        quantity: quantity,
+        date: newInvestment.date,
       });
       setNewInvestment({
         type: 'stocks',
@@ -498,7 +532,8 @@ const FinanceDashboard = () => {
 
   // Calculate portfolio metrics
   const portfolio = investments.reduce((acc, inv) => {
-    acc[inv.type] = (acc[inv.type] || 0) + inv.amount;
+    const amount = (inv.quantity || 0) * (inv.price || 0);
+    acc[inv.type] = (acc[inv.type] || 0) + amount;
     return acc;
   }, { stocks: 0, bonds: 0, cash: 0 } as Record<string, number>);
 
@@ -1791,483 +1826,12 @@ const FinanceDashboard = () => {
         {/* Portfolio Tab */}
         {activeTab === 'portfolio' && (
           <div>
+            {/* Portfolio Summary - Moved to top */}
             <div style={{
               background: COLORS.card,
               borderRadius: '1rem',
               padding: '2rem',
               marginBottom: '2rem',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.3rem' }}>投资组合</h3>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                  {lastPriceUpdate && (
-                    <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                      上次更新: {new Date(lastPriceUpdate).toLocaleString('zh-CN')}
-                    </span>
-                  )}
-                  <button
-                    onClick={refreshStockPrices}
-                    disabled={refreshingPrices}
-                    style={{
-                      background: refreshingPrices ? COLORS.accent : COLORS.success,
-                      color: COLORS.text,
-                      border: 'none',
-                      padding: '0.6rem 1.2rem',
-                      borderRadius: '0.5rem',
-                      cursor: refreshingPrices ? 'not-allowed' : 'pointer',
-                      fontSize: '0.9rem',
-                      fontWeight: '600',
-                      fontFamily: 'inherit',
-                      opacity: refreshingPrices ? 0.6 : 1
-                    }}
-                  >
-                    {refreshingPrices ? '更新中...' : '🔄 刷新价格'}
-                  </button>
-                  <button
-                    onClick={() => setShowAddInvestment(true)}
-                    style={{
-                      background: COLORS.highlight,
-                      color: COLORS.text,
-                      border: 'none',
-                      padding: '0.6rem 1.2rem',
-                      borderRadius: '0.5rem',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem',
-                      fontWeight: '600',
-                      fontFamily: 'inherit'
-                    }}
-                  >
-                    + 添加投资
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Add Investment Form */}
-            {showAddInvestment && (
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '2rem',
-                marginBottom: '2rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.2rem' }}>添加投资</h3>
-                <form onSubmit={handleAddInvestment} style={{ display: 'grid', gap: '1rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>类型</label>
-                      <select
-                        value={newInvestment.type}
-                        onChange={(e) => setNewInvestment({ ...newInvestment, type: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: COLORS.accent,
-                          border: `1px solid ${COLORS.secondary}`,
-                          borderRadius: '0.5rem',
-                          color: COLORS.text,
-                          fontSize: '0.9rem',
-                          fontFamily: 'inherit'
-                        }}
-                      >
-                        <option value="stocks">股票</option>
-                        <option value="bonds">债券</option>
-                        <option value="cash">现金</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>名称</label>
-                      <input
-                        type="text"
-                        value={newInvestment.name}
-                        onChange={(e) => setNewInvestment({ ...newInvestment, name: e.target.value })}
-                        required
-                        placeholder="投资名称"
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: COLORS.accent,
-                          border: `1px solid ${COLORS.secondary}`,
-                          borderRadius: '0.5rem',
-                          color: COLORS.text,
-                          fontSize: '0.9rem',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>代码（可选）</label>
-                      <input
-                        type="text"
-                        value={newInvestment.symbol}
-                        onChange={(e) => setNewInvestment({ ...newInvestment, symbol: e.target.value.toUpperCase() })}
-                        placeholder="如：AAPL"
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: COLORS.accent,
-                          border: `1px solid ${COLORS.secondary}`,
-                          borderRadius: '0.5rem',
-                          color: COLORS.text,
-                          fontSize: '0.9rem',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>金额</label>
-                      <input
-                        type="number"
-                        value={newInvestment.amount}
-                        onChange={(e) => setNewInvestment({ ...newInvestment, amount: e.target.value })}
-                        required
-                        step="0.01"
-                        placeholder="投资金额"
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: COLORS.accent,
-                          border: `1px solid ${COLORS.secondary}`,
-                          borderRadius: '0.5rem',
-                          color: COLORS.text,
-                          fontSize: '0.9rem',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>日期</label>
-                      <input
-                        type="date"
-                        value={newInvestment.date}
-                        onChange={(e) => setNewInvestment({ ...newInvestment, date: e.target.value })}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: COLORS.accent,
-                          border: `1px solid ${COLORS.secondary}`,
-                          borderRadius: '0.5rem',
-                          color: COLORS.text,
-                          fontSize: '0.9rem',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddInvestment(false)}
-                      style={{
-                        background: COLORS.accent,
-                        color: COLORS.text,
-                        border: `1px solid ${COLORS.secondary}`,
-                        padding: '0.6rem 1.2rem',
-                        borderRadius: '0.5rem',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        fontFamily: 'inherit'
-                      }}
-                    >
-                      取消
-                    </button>
-                    <button
-                      type="submit"
-                      style={{
-                        background: COLORS.success,
-                        color: COLORS.text,
-                        border: 'none',
-                        padding: '0.6rem 1.2rem',
-                        borderRadius: '0.5rem',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        fontFamily: 'inherit'
-                      }}
-                    >
-                      添加
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Investment List */}
-            {investments.length > 0 && (
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '2rem',
-                marginBottom: '2rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                overflowX: 'auto'
-              }}>
-                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.2rem' }}>投资明细</h3>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
-                    <thead>
-                      <tr style={{ borderBottom: `2px solid ${COLORS.accent}` }}>
-                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>日期</th>
-                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>类型</th>
-                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>名称</th>
-                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>代码</th>
-                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>金额</th>
-                        <th style={{ padding: '1rem', textAlign: 'center', color: COLORS.textMuted, fontSize: '0.9rem' }}>操作</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {investments.map((investment) => (
-                        <tr key={investment.id} style={{ borderBottom: `1px solid ${COLORS.accent}` }}>
-                          {editingInvestmentId === investment.id ? (
-                            <>
-                              <td style={{ padding: '1rem' }}>
-                                <input
-                                  type="date"
-                                  value={editingInvestment.date}
-                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, date: e.target.value })}
-                                  style={{
-                                    width: '100%',
-                                    padding: '0.5rem',
-                                    background: COLORS.accent,
-                                    border: `1px solid ${COLORS.secondary}`,
-                                    borderRadius: '0.3rem',
-                                    color: COLORS.text,
-                                    fontFamily: 'inherit'
-                                  }}
-                                />
-                              </td>
-                              <td style={{ padding: '1rem' }}>
-                                <select
-                                  value={editingInvestment.type}
-                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, type: e.target.value })}
-                                  style={{
-                                    width: '100%',
-                                    padding: '0.5rem',
-                                    background: COLORS.accent,
-                                    border: `1px solid ${COLORS.secondary}`,
-                                    borderRadius: '0.3rem',
-                                    color: COLORS.text,
-                                    fontFamily: 'inherit'
-                                  }}
-                                >
-                                  <option value="stocks">股票</option>
-                                  <option value="bonds">债券</option>
-                                  <option value="cash">现金</option>
-                                </select>
-                              </td>
-                              <td style={{ padding: '1rem' }}>
-                                <input
-                                  type="text"
-                                  value={editingInvestment.name}
-                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, name: e.target.value })}
-                                  style={{
-                                    width: '100%',
-                                    padding: '0.5rem',
-                                    background: COLORS.accent,
-                                    border: `1px solid ${COLORS.secondary}`,
-                                    borderRadius: '0.3rem',
-                                    color: COLORS.text,
-                                    fontFamily: 'inherit'
-                                  }}
-                                />
-                              </td>
-                              <td style={{ padding: '1rem' }}>
-                                <input
-                                  type="text"
-                                  value={editingInvestment.symbol}
-                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, symbol: e.target.value.toUpperCase() })}
-                                  placeholder="代码"
-                                  style={{
-                                    width: '100%',
-                                    padding: '0.5rem',
-                                    background: COLORS.accent,
-                                    border: `1px solid ${COLORS.secondary}`,
-                                    borderRadius: '0.3rem',
-                                    color: COLORS.text,
-                                    fontFamily: 'inherit'
-                                  }}
-                                />
-                              </td>
-                              <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                <input
-                                  type="number"
-                                  value={editingInvestment.amount}
-                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, amount: e.target.value })}
-                                  step="0.01"
-                                  style={{
-                                    width: '100%',
-                                    padding: '0.5rem',
-                                    background: COLORS.accent,
-                                    border: `1px solid ${COLORS.secondary}`,
-                                    borderRadius: '0.3rem',
-                                    color: COLORS.text,
-                                    textAlign: 'right',
-                                    fontFamily: 'inherit'
-                                  }}
-                                />
-                              </td>
-                              <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                <button
-                                  onClick={() => handleSaveEditInvestment(investment.id)}
-                                  style={{
-                                    background: COLORS.success,
-                                    color: COLORS.text,
-                                    border: 'none',
-                                    padding: '0.4rem 0.8rem',
-                                    borderRadius: '0.3rem',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    marginRight: '0.5rem',
-                                    fontFamily: 'inherit'
-                                  }}
-                                >
-                                  保存
-                                </button>
-                                <button
-                                  onClick={handleCancelEditInvestment}
-                                  style={{
-                                    background: 'none',
-                                    color: COLORS.textMuted,
-                                    border: `1px solid ${COLORS.textMuted}`,
-                                    padding: '0.4rem 0.8rem',
-                                    borderRadius: '0.3rem',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontFamily: 'inherit'
-                                  }}
-                                >
-                                  取消
-                                </button>
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{investment.date}</td>
-                              <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{getTypeLabel(investment.type)}</td>
-                              <td style={{ padding: '1rem', fontSize: '0.9rem', fontWeight: '600' }}>{investment.name}</td>
-                              <td style={{ padding: '1rem', fontSize: '0.9rem', color: COLORS.textMuted }}>{investment.symbol || '-'}</td>
-                              <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right', fontWeight: '700' }}>
-                                ¥{investment.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </td>
-                              <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                <button
-                                  onClick={() => handleStartEditInvestment(investment)}
-                                  style={{
-                                    background: 'none',
-                                    color: COLORS.success,
-                                    border: `1px solid ${COLORS.success}`,
-                                    padding: '0.4rem 0.8rem',
-                                    borderRadius: '0.3rem',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    marginRight: '0.5rem',
-                                    fontFamily: 'inherit'
-                                  }}
-                                >
-                                  编辑
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteInvestment(investment.id)}
-                                  style={{
-                                    background: 'none',
-                                    color: COLORS.highlight,
-                                    border: `1px solid ${COLORS.highlight}`,
-                                    padding: '0.4rem 0.8rem',
-                                    borderRadius: '0.3rem',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontFamily: 'inherit'
-                                  }}
-                                >
-                                  删除
-                                </button>
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            <div style={{
-              background: COLORS.card,
-              borderRadius: '1rem',
-              padding: '2rem',
-              marginBottom: '2rem',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-            }}>
-              <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>目标配置 (%)</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                {(['stocks', 'bonds', 'cash'] as const).map(type => (
-                  <div key={type}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
-                      {type === 'stocks' ? '股票' : type === 'bonds' ? '债券' : '现金'}
-                    </label>
-                    <input
-                      type="number"
-                      value={targetAllocation[type]}
-                      onChange={(e) => updateTargetAllocation(type, parseFloat(e.target.value))}
-                      min="0"
-                      max="100"
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '1rem',
-                        fontFamily: 'inherit'
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: '1rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
-                总计: {(targetAllocation.stocks + targetAllocation.bonds + targetAllocation.cash).toFixed(0)}% 
-                {(targetAllocation.stocks + targetAllocation.bonds + targetAllocation.cash) !== 100 && (
-                  <span style={{ color: COLORS.warning, marginLeft: '0.5rem' }}>⚠ 应为100%</span>
-                )}
-              </div>
-            </div>
-
-            {totalPortfolio > 0 && (
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '2rem',
-                marginBottom: '2rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>当前 vs 目标配置</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={portfolioChartData}>
-                    <XAxis dataKey="name" stroke={COLORS.textMuted} />
-                    <YAxis stroke={COLORS.textMuted} />
-                    <Tooltip 
-                      contentStyle={{ background: COLORS.accent, border: 'none', borderRadius: '0.5rem' }}
-                      formatter={(value) => `¥${value.toLocaleString()}`}
-                    />
-                    <Legend />
-                    <Bar dataKey="current" fill={COLORS.highlight} name="当前" />
-                    <Bar dataKey="target" fill={COLORS.success} name="目标" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            {/* Portfolio Summary - Moved to bottom */}
-            <div style={{
-              background: COLORS.card,
-              borderRadius: '1rem',
-              padding: '2rem',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
             }}>
               <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>投资组合汇总</h3>
@@ -2328,6 +1892,487 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              padding: '2rem',
+              marginBottom: '2rem',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+            }}>
+              <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>目标配置 (%)</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                {(['stocks', 'bonds', 'cash'] as const).map(type => (
+                  <div key={type}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                      {type === 'stocks' ? '股票' : type === 'bonds' ? '债券' : '现金'}
+                    </label>
+                    <input
+                      type="number"
+                      value={targetAllocation[type]}
+                      onChange={(e) => updateTargetAllocation(type, parseFloat(e.target.value))}
+                      min="0"
+                      max="100"
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '1rem',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: '1rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                总计: {(targetAllocation.stocks + targetAllocation.bonds + targetAllocation.cash).toFixed(0)}% 
+                {(targetAllocation.stocks + targetAllocation.bonds + targetAllocation.cash) !== 100 && (
+                  <span style={{ color: COLORS.warning, marginLeft: '0.5rem' }}>⚠ 应为100%</span>
+                )}
+              </div>
+            </div>
+
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              padding: '2rem',
+              marginBottom: '2rem',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+            }}>
+              <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>当前 vs 目标配置</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={portfolioChartData}>
+                  <XAxis dataKey="name" stroke={COLORS.textMuted} />
+                  <YAxis stroke={COLORS.textMuted} />
+                  <Tooltip 
+                    contentStyle={{ background: COLORS.accent, border: 'none', borderRadius: '0.5rem' }}
+                    formatter={(value) => `¥${value.toLocaleString()}`}
+                  />
+                  <Legend />
+                  <Bar dataKey="current" fill={COLORS.highlight} name="当前" />
+                  <Bar dataKey="target" fill={COLORS.success} name="目标" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Investment List - Moved after chart */}
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              padding: '2rem',
+              marginBottom: '2rem',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              overflowX: 'auto'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem' }}>投资明细</h3>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {lastPriceUpdate && (
+                    <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                      上次更新: {new Date(lastPriceUpdate).toLocaleString('zh-CN')}
+                    </span>
+                  )}
+                  <button
+                    onClick={refreshStockPrices}
+                    disabled={refreshingPrices}
+                    style={{
+                      background: refreshingPrices ? COLORS.accent : COLORS.success,
+                      color: COLORS.text,
+                      border: 'none',
+                      padding: '0.6rem 1.2rem',
+                      borderRadius: '0.5rem',
+                      cursor: refreshingPrices ? 'not-allowed' : 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      fontFamily: 'inherit',
+                      opacity: refreshingPrices ? 0.6 : 1
+                    }}
+                  >
+                    {refreshingPrices ? '更新中...' : '🔄 刷新价格'}
+                  </button>
+                  <button
+                    onClick={() => setShowAddInvestment(true)}
+                    style={{
+                      background: COLORS.highlight,
+                      color: COLORS.text,
+                      border: 'none',
+                      padding: '0.6rem 1.2rem',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    + 添加投资
+                  </button>
+                </div>
+              </div>
+
+              {/* Add Investment Form */}
+              {showAddInvestment && (
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  marginBottom: '1.5rem',
+                  border: `1px solid ${COLORS.secondary}`
+                }}>
+                  <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1.1rem' }}>添加新投资</h4>
+                  <form onSubmit={handleAddInvestment} style={{ display: 'grid', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>类型</label>
+                        <select
+                          value={newInvestment.type}
+                          onChange={(e) => setNewInvestment({ ...newInvestment, type: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            background: COLORS.card,
+                            border: `1px solid ${COLORS.secondary}`,
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit'
+                          }}
+                        >
+                          <option value="stocks">股票</option>
+                          <option value="bonds">债券</option>
+                          <option value="cash">现金</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>代码</label>
+                        <input
+                          type="text"
+                          value={newInvestment.symbol}
+                          onChange={(e) => setNewInvestment({ ...newInvestment, symbol: e.target.value.toUpperCase() })}
+                          required
+                          placeholder="如：AAPL"
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            background: COLORS.card,
+                            border: `1px solid ${COLORS.secondary}`,
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>股数</label>
+                        <input
+                          type="number"
+                          value={newInvestment.quantity}
+                          onChange={(e) => setNewInvestment({ ...newInvestment, quantity: e.target.value })}
+                          required
+                          step="0.01"
+                          placeholder="持有股数"
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            background: COLORS.card,
+                            border: `1px solid ${COLORS.secondary}`,
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>当前价格</label>
+                        <input
+                          type="number"
+                          value={newInvestment.price}
+                          onChange={(e) => setNewInvestment({ ...newInvestment, price: e.target.value })}
+                          required
+                          step="0.01"
+                          placeholder="每股价格"
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            background: COLORS.card,
+                            border: `1px solid ${COLORS.secondary}`,
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>日期</label>
+                        <input
+                          type="date"
+                          value={newInvestment.date}
+                          onChange={(e) => setNewInvestment({ ...newInvestment, date: e.target.value })}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            background: COLORS.card,
+                            border: `1px solid ${COLORS.secondary}`,
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddInvestment(false)}
+                        style={{
+                          background: 'none',
+                          color: COLORS.textMuted,
+                          border: `1px solid ${COLORS.textMuted}`,
+                          padding: '0.6rem 1.2rem',
+                          borderRadius: '0.5rem',
+                          cursor: 'pointer',
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        取消
+                      </button>
+                      <button
+                        type="submit"
+                        style={{
+                          background: COLORS.success,
+                          color: COLORS.text,
+                          border: 'none',
+                          padding: '0.6rem 1.2rem',
+                          borderRadius: '0.5rem',
+                          cursor: 'pointer',
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        添加
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {investments.length > 0 && (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+                    <thead>
+                      <tr style={{ borderBottom: `2px solid ${COLORS.accent}` }}>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>日期</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>类型</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>代码</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>股数</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>当前价格</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>总金额</th>
+                        <th style={{ padding: '1rem', textAlign: 'center', color: COLORS.textMuted, fontSize: '0.9rem' }}>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {investments.map((investment) => (
+                        <tr key={investment.id} style={{ borderBottom: `1px solid ${COLORS.accent}` }}>
+                          {editingInvestmentId === investment.id ? (
+                            <>
+                              <td style={{ padding: '1rem' }}>
+                                <input
+                                  type="date"
+                                  value={editingInvestment.date}
+                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, date: e.target.value })}
+                                  style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    background: COLORS.accent,
+                                    border: `1px solid ${COLORS.secondary}`,
+                                    borderRadius: '0.3rem',
+                                    color: COLORS.text,
+                                    fontFamily: 'inherit'
+                                  }}
+                                />
+                              </td>
+                              <td style={{ padding: '1rem' }}>
+                                <select
+                                  value={editingInvestment.type}
+                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, type: e.target.value })}
+                                  style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    background: COLORS.accent,
+                                    border: `1px solid ${COLORS.secondary}`,
+                                    borderRadius: '0.3rem',
+                                    color: COLORS.text,
+                                    fontFamily: 'inherit'
+                                  }}
+                                >
+                                  <option value="stocks">股票</option>
+                                  <option value="bonds">债券</option>
+                                  <option value="cash">现金</option>
+                                </select>
+                              </td>
+                              <td style={{ padding: '1rem' }}>
+                                <input
+                                  type="text"
+                                  value={editingInvestment.symbol}
+                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, symbol: e.target.value.toUpperCase() })}
+                                  placeholder="代码"
+                                  style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    background: COLORS.accent,
+                                    border: `1px solid ${COLORS.secondary}`,
+                                    borderRadius: '0.3rem',
+                                    color: COLORS.text,
+                                    fontFamily: 'inherit'
+                                  }}
+                                />
+                              </td>
+                              <td style={{ padding: '1rem', textAlign: 'right' }}>
+                                <input
+                                  type="number"
+                                  value={editingInvestment.quantity}
+                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, quantity: e.target.value })}
+                                  step="0.01"
+                                  placeholder="股数"
+                                  style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    background: COLORS.accent,
+                                    border: `1px solid ${COLORS.secondary}`,
+                                    borderRadius: '0.3rem',
+                                    color: COLORS.text,
+                                    textAlign: 'right',
+                                    fontFamily: 'inherit'
+                                  }}
+                                />
+                              </td>
+                              <td style={{ padding: '1rem', textAlign: 'right' }}>
+                                <input
+                                  type="number"
+                                  value={editingInvestment.price}
+                                  onChange={(e) => setEditingInvestment({ ...editingInvestment, price: e.target.value })}
+                                  step="0.01"
+                                  placeholder="价格"
+                                  style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    background: COLORS.accent,
+                                    border: `1px solid ${COLORS.secondary}`,
+                                    borderRadius: '0.3rem',
+                                    color: COLORS.text,
+                                    textAlign: 'right',
+                                    fontFamily: 'inherit'
+                                  }}
+                                />
+                              </td>
+                              <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right', fontWeight: '700' }}>
+                                ¥{((parseFloat(editingInvestment.quantity) || 0) * (parseFloat(editingInvestment.price) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                <button
+                                  onClick={() => handleSaveEditInvestment(investment.id)}
+                                  style={{
+                                    background: COLORS.success,
+                                    color: COLORS.text,
+                                    border: 'none',
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '0.3rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    marginRight: '0.5rem',
+                                    fontFamily: 'inherit'
+                                  }}
+                                >
+                                  保存
+                                </button>
+                                <button
+                                  onClick={handleCancelEditInvestment}
+                                  style={{
+                                    background: 'none',
+                                    color: COLORS.textMuted,
+                                    border: `1px solid ${COLORS.textMuted}`,
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '0.3rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontFamily: 'inherit'
+                                  }}
+                                >
+                                  取消
+                                </button>
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{investment.date}</td>
+                              <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{getTypeLabel(investment.type)}</td>
+                              <td style={{ padding: '1rem', fontSize: '0.9rem', fontWeight: '600' }}>{investment.symbol || '-'}</td>
+                              <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right' }}>
+                                {(investment.quantity || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right' }}>
+                                ¥{(investment.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right', fontWeight: '700' }}>
+                                ¥{((investment.quantity || 0) * (investment.price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                <button
+                                  onClick={() => handleStartEditInvestment(investment)}
+                                  style={{
+                                    background: 'none',
+                                    color: COLORS.success,
+                                    border: `1px solid ${COLORS.success}`,
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '0.3rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    marginRight: '0.5rem',
+                                    fontFamily: 'inherit'
+                                  }}
+                                >
+                                  编辑
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteInvestment(investment.id)}
+                                  style={{
+                                    background: 'none',
+                                    color: COLORS.highlight,
+                                    border: `1px solid ${COLORS.highlight}`,
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '0.3rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontFamily: 'inherit'
+                                  }}
+                                >
+                                  删除
+                                </button>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {investments.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '2rem', color: COLORS.textMuted }}>
+                  暂无投资记录，点击"+ 添加投资"开始记录
+                </div>
+              )}
             </div>
           </div>
         )}
