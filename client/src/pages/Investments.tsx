@@ -32,6 +32,9 @@ export default function Investments() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showTargetForm, setShowTargetForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
+  const [lastPriceUpdate, setLastPriceUpdate] = useState<string | null>(null);
 
   const [newInvestment, setNewInvestment] = useState({
     type: 'stocks',
@@ -43,6 +46,16 @@ export default function Investments() {
     date: format(new Date(), 'yyyy-MM-dd'),
   });
 
+  const [editingInvestment, setEditingInvestment] = useState({
+    type: '',
+    symbol: '',
+    name: '',
+    amount: '',
+    price: '',
+    quantity: '',
+    date: '',
+  });
+
   const [targetAllocation, setTargetAllocation] = useState({
     stocks: 60,
     bonds: 30,
@@ -52,7 +65,32 @@ export default function Investments() {
   useEffect(() => {
     loadInvestments();
     loadAllocation();
+    checkAndRefreshPrices();
+    
+    // Load last update time
+    const lastUpdate = localStorage.getItem('lastPriceUpdate');
+    if (lastUpdate) {
+      setLastPriceUpdate(lastUpdate);
+    }
   }, []);
+
+  const checkAndRefreshPrices = async () => {
+    const lastUpdate = localStorage.getItem('lastPriceUpdate');
+    if (!lastUpdate) {
+      // First time, refresh prices
+      await refreshStockPrices();
+      return;
+    }
+
+    const lastUpdateTime = new Date(lastUpdate);
+    const now = new Date();
+    const hoursDiff = (now.getTime() - lastUpdateTime.getTime()) / (1000 * 60 * 60);
+
+    // If more than 24 hours, refresh
+    if (hoursDiff >= 24) {
+      await refreshStockPrices();
+    }
+  };
 
   const loadInvestments = async () => {
     try {
@@ -145,6 +183,90 @@ export default function Investments() {
     }
   };
 
+  const handleStartEdit = (investment: Investment) => {
+    setEditingId(investment.id);
+    setEditingInvestment({
+      type: investment.type,
+      symbol: investment.symbol || '',
+      name: investment.name,
+      amount: investment.amount.toString(),
+      price: investment.price ? investment.price.toString() : '',
+      quantity: investment.quantity ? investment.quantity.toString() : '',
+      date: investment.date,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditingInvestment({
+      type: '',
+      symbol: '',
+      name: '',
+      amount: '',
+      price: '',
+      quantity: '',
+      date: '',
+    });
+  };
+
+  const handleSaveEdit = async (id: number) => {
+    try {
+      await api.put(`/investments/${id}`, {
+        ...editingInvestment,
+        amount: parseFloat(editingInvestment.amount),
+        price: editingInvestment.price ? parseFloat(editingInvestment.price) : null,
+        quantity: editingInvestment.quantity ? parseFloat(editingInvestment.quantity) : null,
+        symbol: editingInvestment.symbol || null,
+      });
+      setEditingId(null);
+      loadInvestments();
+      loadAllocation();
+    } catch (error) {
+      console.error('Error updating investment:', error);
+      alert('更新失败');
+    }
+  };
+
+  const refreshStockPrices = async () => {
+    setRefreshingPrices(true);
+    try {
+      const stocksWithSymbols = investments.filter(inv => inv.type === 'stocks' && inv.symbol);
+      
+      for (const stock of stocksWithSymbols) {
+        try {
+          const res = await api.get(`/rebalancing/market-data/${stock.symbol}`);
+          if (res.data && res.data.price) {
+            await api.put(`/investments/${stock.id}`, {
+              type: stock.type,
+              symbol: stock.symbol,
+              name: stock.name,
+              price: res.data.price,
+              quantity: stock.quantity,
+              amount: res.data.price * (stock.quantity || 0),
+              date: stock.date,
+            });
+          }
+        } catch (error) {
+          console.error(`Error updating price for ${stock.symbol}:`, error);
+        }
+      }
+
+      const now = new Date().toISOString();
+      localStorage.setItem('lastPriceUpdate', now);
+      setLastPriceUpdate(now);
+
+      await loadInvestments();
+      await loadAllocation();
+      
+      alert('价格已更新！');
+    } catch (error) {
+      console.error('Error refreshing prices:', error);
+      alert('更新价格失败，请检查API配置');
+    } finally {
+      setRefreshingPrices(false);
+    }
+  };
+
   const allocationData = allocation?.current.map(item => ({
     name: item.type === 'stocks' ? '股票' : item.type === 'bonds' ? '债券' : '现金',
     value: item.percentage,
@@ -159,7 +281,19 @@ export default function Investments() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">投资跟踪</h1>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
+          {lastPriceUpdate && (
+            <span className="text-sm text-gray-500">
+              上次更新: {new Date(lastPriceUpdate).toLocaleString('zh-CN')}
+            </span>
+          )}
+          <button
+            onClick={refreshStockPrices}
+            disabled={refreshingPrices}
+            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+          >
+            {refreshingPrices ? '更新中...' : '🔄 刷新价格'}
+          </button>
           <button
             onClick={() => setShowTargetForm(true)}
             className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
@@ -448,29 +582,101 @@ export default function Investments() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {investments.map((investment) => (
                   <tr key={investment.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {format(new Date(investment.date), 'yyyy-MM-dd')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getTypeLabel(investment.type)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {investment.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {investment.symbol || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ¥{investment.amount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button
-                        onClick={() => handleDeleteInvestment(investment.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        删除
-                      </button>
-                    </td>
+                    {editingId === investment.id ? (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <input
+                            type="date"
+                            value={editingInvestment.date}
+                            onChange={(e) => setEditingInvestment({ ...editingInvestment, date: e.target.value })}
+                            className="border rounded px-2 py-1 w-full"
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <select
+                            value={editingInvestment.type}
+                            onChange={(e) => setEditingInvestment({ ...editingInvestment, type: e.target.value })}
+                            className="border rounded px-2 py-1 w-full"
+                          >
+                            <option value="stocks">股票</option>
+                            <option value="bonds">债券</option>
+                            <option value="cash">现金</option>
+                          </select>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <input
+                            type="text"
+                            value={editingInvestment.name}
+                            onChange={(e) => setEditingInvestment({ ...editingInvestment, name: e.target.value })}
+                            className="border rounded px-2 py-1 w-full"
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <input
+                            type="text"
+                            value={editingInvestment.symbol}
+                            onChange={(e) => setEditingInvestment({ ...editingInvestment, symbol: e.target.value })}
+                            className="border rounded px-2 py-1 w-full"
+                            placeholder="代码"
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <input
+                            type="number"
+                            value={editingInvestment.amount}
+                            onChange={(e) => setEditingInvestment({ ...editingInvestment, amount: e.target.value })}
+                            className="border rounded px-2 py-1 w-full"
+                            step="0.01"
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button
+                            onClick={() => handleSaveEdit(investment.id)}
+                            className="text-green-600 hover:text-green-900 mr-2"
+                          >
+                            保存
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="text-gray-600 hover:text-gray-900"
+                          >
+                            取消
+                          </button>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {format(new Date(investment.date), 'yyyy-MM-dd')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {getTypeLabel(investment.type)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {investment.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {investment.symbol || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          ¥{investment.amount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <button
+                            onClick={() => handleStartEdit(investment)}
+                            className="text-blue-600 hover:text-blue-900 mr-2"
+                          >
+                            编辑
+                          </button>
+                          <button
+                            onClick={() => handleDeleteInvestment(investment.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            删除
+                          </button>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>

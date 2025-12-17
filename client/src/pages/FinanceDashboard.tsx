@@ -1136,11 +1136,11 @@ const FinanceDashboard = () => {
               </label>
               <input
                 type="number"
-                value={monthlyIncome}
+                value={monthlyIncome || ''}
                 onChange={(e) => {
-                  const value = parseFloat(e.target.value) || 0;
-                  setMonthlyIncome(value);
-                  localStorage.setItem('monthlyIncome', value.toString());
+                  const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                  setMonthlyIncome(isNaN(value) ? 0 : value);
+                  localStorage.setItem('monthlyIncome', (isNaN(value) ? 0 : value).toString());
                 }}
                 placeholder="输入月收入..."
                 style={{
