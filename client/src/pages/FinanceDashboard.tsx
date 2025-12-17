@@ -1912,6 +1912,204 @@ const FinanceDashboard = () => {
               </div>
             </div>
 
+            {/* Cash Calculator Modal */}
+            {showCashCalculator && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.7)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000
+              }}
+              onClick={() => setShowCashCalculator(false)}
+              >
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                  maxWidth: '500px',
+                  width: '90%',
+                  maxHeight: '80vh',
+                  overflowY: 'auto',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+                }}
+                onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>🧮 现金账户计算器</h3>
+                  
+                  {cashAccounts.map((account, index) => (
+                    <div key={index} style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        value={account.name}
+                        onChange={(e) => {
+                          const newAccounts = [...cashAccounts];
+                          newAccounts[index].name = e.target.value;
+                          setCashAccounts(newAccounts);
+                        }}
+                        placeholder="账户名称"
+                        style={{
+                          flex: '1',
+                          padding: '0.75rem',
+                          background: COLORS.accent,
+                          border: `1px solid ${COLORS.secondary}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.9rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                      <input
+                        type="number"
+                        value={account.amount}
+                        onChange={(e) => {
+                          const newAccounts = [...cashAccounts];
+                          newAccounts[index].amount = e.target.value;
+                          setCashAccounts(newAccounts);
+                        }}
+                        placeholder="金额"
+                        step="0.01"
+                        style={{
+                          flex: '1',
+                          padding: '0.75rem',
+                          background: COLORS.accent,
+                          border: `1px solid ${COLORS.secondary}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.9rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                      {cashAccounts.length > 1 && (
+                        <button
+                          onClick={() => {
+                            const newAccounts = cashAccounts.filter((_, i) => i !== index);
+                            setCashAccounts(newAccounts);
+                          }}
+                          style={{
+                            background: 'none',
+                            color: COLORS.highlight,
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '1.2rem',
+                            padding: '0.5rem',
+                            fontFamily: 'inherit'
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  <button
+                    onClick={() => setCashAccounts([...cashAccounts, { name: `账户${cashAccounts.length + 1}`, amount: '' }])}
+                    style={{
+                      background: 'none',
+                      color: COLORS.success,
+                      border: `1px dashed ${COLORS.success}`,
+                      padding: '0.75rem',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      width: '100%',
+                      marginBottom: '1.5rem',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    + 添加账户
+                  </button>
+
+                  <div style={{
+                    background: COLORS.accent,
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    marginBottom: '1.5rem',
+                    border: `2px solid ${COLORS.cash}`
+                  }}>
+                    <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>总计</div>
+                    <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.cash }}>
+                      ¥{cashAccounts.reduce((sum, acc) => sum + (parseFloat(acc.amount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button
+                      onClick={() => setShowCashCalculator(false)}
+                      style={{
+                        flex: 1,
+                        background: 'none',
+                        color: COLORS.textMuted,
+                        border: `1px solid ${COLORS.textMuted}`,
+                        padding: '0.75rem',
+                        borderRadius: '0.5rem',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const totalCash = cashAccounts.reduce((sum, acc) => sum + (parseFloat(acc.amount) || 0), 0);
+                        try {
+                          const cashInvestment = investments.find(inv => inv.type === 'cash');
+                          if (cashInvestment) {
+                            await api.put(`/investments/${cashInvestment.id}`, {
+                              type: 'cash',
+                              name: '现金账户总计',
+                              symbol: null,
+                              amount: totalCash,
+                              price: null,
+                              quantity: null,
+                              date: new Date().toISOString().split('T')[0]
+                            });
+                          } else {
+                            await api.post('/investments', {
+                              type: 'cash',
+                              name: '现金账户总计',
+                              symbol: null,
+                              amount: totalCash,
+                              price: null,
+                              quantity: null,
+                              date: new Date().toISOString().split('T')[0]
+                            });
+                          }
+                          await loadData();
+                          setShowCashCalculator(false);
+                          alert('现金总额已更新！');
+                        } catch (error) {
+                          console.error('Error updating cash:', error);
+                          alert('更新失败，请重试');
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        background: COLORS.success,
+                        color: COLORS.text,
+                        border: 'none',
+                        padding: '0.75rem',
+                        borderRadius: '0.5rem',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      保存
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div style={{
               background: COLORS.card,
               borderRadius: '1rem',
