@@ -2059,10 +2059,20 @@ const FinanceDashboard = () => {
                     <button
                       onClick={async () => {
                         const totalCash = cashAccounts.reduce((sum, acc) => sum + (parseFloat(acc.amount) || 0), 0);
+                        
+                        if (totalCash === 0) {
+                          alert('请输入现金金额');
+                          return;
+                        }
+
                         try {
                           const cashInvestment = investments.find(inv => inv.type === 'cash');
+                          console.log('Current cash investment:', cashInvestment);
+                          console.log('Total cash to save:', totalCash);
+
                           if (cashInvestment) {
-                            await api.put(`/investments/${cashInvestment.id}`, {
+                            console.log('Updating existing cash investment...');
+                            const response = await api.put(`/investments/${cashInvestment.id}`, {
                               type: 'cash',
                               name: '现金账户总计',
                               symbol: null,
@@ -2071,8 +2081,10 @@ const FinanceDashboard = () => {
                               quantity: null,
                               date: new Date().toISOString().split('T')[0]
                             });
+                            console.log('Update response:', response.data);
                           } else {
-                            await api.post('/investments', {
+                            console.log('Creating new cash investment...');
+                            const response = await api.post('/investments', {
                               type: 'cash',
                               name: '现金账户总计',
                               symbol: null,
@@ -2081,13 +2093,19 @@ const FinanceDashboard = () => {
                               quantity: null,
                               date: new Date().toISOString().split('T')[0]
                             });
+                            console.log('Create response:', response.data);
                           }
+                          
+                          console.log('Reloading data...');
                           await loadData();
+                          console.log('Data reloaded successfully');
+                          
                           setShowCashCalculator(false);
-                          alert('现金总额已更新！');
-                        } catch (error) {
+                          alert(`现金总额已更新为 ¥${totalCash.toLocaleString()}！`);
+                        } catch (error: any) {
                           console.error('Error updating cash:', error);
-                          alert('更新失败，请重试');
+                          console.error('Error details:', error.response?.data);
+                          alert(`更新失败：${error.response?.data?.error || error.message}`);
                         }
                       }}
                       style={{
