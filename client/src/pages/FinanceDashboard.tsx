@@ -137,6 +137,10 @@ const FinanceDashboard = () => {
     quantity: '',
     date: '',
   });
+  const [showCashCalculator, setShowCashCalculator] = useState(false);
+  const [cashAccounts, setCashAccounts] = useState([
+    { name: '账户1', amount: '' }
+  ]);
 
   // Load data from API
   useEffect(() => {
@@ -1885,9 +1889,19 @@ const FinanceDashboard = () => {
                   background: COLORS.accent,
                   borderRadius: '0.75rem',
                   padding: '1.5rem',
-                  border: `2px solid ${COLORS.cash}`
-                }}>
-                  <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>现金</div>
+                  border: `2px solid ${COLORS.cash}`,
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s',
+                  position: 'relative'
+                }}
+                onClick={() => setShowCashCalculator(true)}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                    现金 
+                    <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem', opacity: 0.7 }}>🧮 点击计算</span>
+                  </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.cash }}>
                     ¥{portfolio.cash.toLocaleString()}
                   </div>
