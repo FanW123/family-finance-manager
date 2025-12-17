@@ -144,14 +144,21 @@ const FinanceDashboard = () => {
   const [cashAccounts, setCashAccounts] = useState(() => {
     // 从 localStorage 恢复现金账户数据
     const savedAccounts = localStorage.getItem('cashAccounts');
+    console.log('Initializing cashAccounts from localStorage:', savedAccounts);
     if (savedAccounts) {
       try {
-        return JSON.parse(savedAccounts);
+        const parsed = JSON.parse(savedAccounts);
+        console.log('Parsed cash accounts:', parsed);
+        // 验证数据有效性
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       } catch (e) {
         console.error('Failed to parse saved cash accounts:', e);
       }
     }
-    return [{ id: 1, name: '', amount: '' }];
+    console.log('Using default empty account');
+    return [{ id: Date.now(), name: '', amount: '' }];
   });
 
   // Load data from API
@@ -1962,7 +1969,35 @@ const FinanceDashboard = () => {
                 >
                   <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>🧮 现金账户计算器</h3>
                   
-                  {cashAccounts.map((account, index) => (
+                  {(() => {
+                    const calculatedTotal = cashAccounts.reduce((sum: number, acc: any) => sum + (parseFloat(acc.amount) || 0), 0);
+                    const savedCash = investments.find(inv => inv.type === 'cash');
+                    const savedTotal = savedCash ? savedCash.amount : 0;
+                    const isDifferent = Math.abs(calculatedTotal - savedTotal) > 0.01;
+                    
+                    if (isDifferent) {
+                      return (
+                        <div style={{
+                          background: `${COLORS.warning}20`,
+                          border: `1px solid ${COLORS.warning}`,
+                          borderRadius: '0.5rem',
+                          padding: '1rem',
+                          marginBottom: '1.5rem',
+                          fontSize: '0.85rem'
+                        }}>
+                          <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: COLORS.warning }}>⚠️ 数据不同步</div>
+                          <div style={{ color: COLORS.text }}>
+                            已保存: ¥{savedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<br/>
+                            计算器: ¥{calculatedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<br/>
+                            <span style={{ color: COLORS.textMuted, fontSize: '0.8rem' }}>请修改账户后点击"保存"更新</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  
+                  {cashAccounts.map((account: any, index: number) => (
                     <div key={index} style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <input
                         type="text"
@@ -2012,7 +2047,7 @@ const FinanceDashboard = () => {
                       {cashAccounts.length > 1 && (
                         <button
                           onClick={() => {
-                            const newAccounts = cashAccounts.filter((_, i) => i !== index);
+                            const newAccounts = cashAccounts.filter((_: any, i: number) => i !== index);
                             setCashAccounts(newAccounts);
                             // 立即保存到 localStorage
                             localStorage.setItem('cashAccounts', JSON.stringify(newAccounts));
@@ -2106,7 +2141,7 @@ const FinanceDashboard = () => {
                           return sum + amount;
                         }, 0);
                         
-                        console.log(`Total to save: ${totalCash}, Accounts:`, cashAccounts);
+                          console.log(`Total to save: ${totalCash}, Accounts:`, cashAccounts);
                         
                         if (totalCash === 0) {
                           alert('请输入现金金额');
@@ -2117,6 +2152,7 @@ const FinanceDashboard = () => {
                           const cashInvestment = investments.find(inv => inv.type === 'cash');
                           console.log('Current cash investment:', cashInvestment);
                           console.log('Total cash to save:', totalCash);
+                          console.log('Current investments state:', investments);
 
                           if (cashInvestment) {
                             console.log('Updating existing cash investment...');
@@ -2127,6 +2163,7 @@ const FinanceDashboard = () => {
                               amount: totalCash,
                               price: null,
                               quantity: null,
+                              account: null,
                               date: new Date().toISOString().split('T')[0]
                             });
                             console.log('Update response:', response.data);
@@ -2139,6 +2176,7 @@ const FinanceDashboard = () => {
                               amount: totalCash,
                               price: null,
                               quantity: null,
+                              account: null,
                               date: new Date().toISOString().split('T')[0]
                             });
                             console.log('Create response:', response.data);
@@ -2147,12 +2185,17 @@ const FinanceDashboard = () => {
                           console.log('Reloading data...');
                           await loadData();
                           console.log('Data reloaded successfully');
+                          console.log('Updated investments state:', investments);
+                          
+                          // 验证数据是否真的更新了
+                          const updatedCashInvestment = investments.find(inv => inv.type === 'cash');
+                          console.log('After reload - cash investment:', updatedCashInvestment);
                           
                           // 保存现金账户到 localStorage
                           localStorage.setItem('cashAccounts', JSON.stringify(cashAccounts));
                           
                           setShowCashCalculator(false);
-                          alert(`现金总额已更新为 ¥${totalCash.toLocaleString()}！`);
+                          alert(`现金总额已更新为 ¥${totalCash.toLocaleString()}！请刷新页面查看更新。`);
                         } catch (error: any) {
                           console.error('Error updating cash:', error);
                           console.error('Error details:', error.response?.data);
