@@ -78,54 +78,52 @@ router.get('/suggestions', async (req, res) => {
   }
 });
 
-// Get market data for stocks (using Alpha Vantage or similar)
+// Get market data for stocks (using Yahoo Finance)
 router.get('/market-data/:symbol', async (req, res) => {
   const { symbol } = req.params;
-  const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
-
-  if (!apiKey) {
-    return res.status(503).json({ 
-      error: 'API key not configured',
-      message: 'Please set ALPHA_VANTAGE_API_KEY in environment variables'
-    });
-  }
 
   try {
-    // Using Alpha Vantage API
-    const response = await axios.get('https://www.alphavantage.co/query', {
+    // Using Yahoo Finance API (no API key required)
+    const response = await axios.get(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`, {
       params: {
-        function: 'GLOBAL_QUOTE',
-        symbol: symbol,
-        apikey: apiKey
+        interval: '1d',
+        range: '1d'
+      },
+      headers: {
+        'User-Agent': 'Mozilla/5.0'
       }
     });
 
-    if (response.data['Error Message']) {
-      return res.status(400).json({ error: response.data['Error Message'] });
-    }
-
-    if (response.data['Note']) {
-      return res.status(429).json({ 
-        error: 'API rate limit exceeded',
-        message: 'Please try again later'
+    const data = response.data;
+    
+    if (data.chart.error) {
+      return res.status(404).json({ 
+        error: 'Symbol not found',
+        message: data.chart.error.description 
       });
     }
 
-    const quote = response.data['Global Quote'];
-    if (!quote) {
-      return res.status(404).json({ error: 'Symbol not found' });
+    const result = data.chart.result[0];
+    const meta = result.meta;
+    const quote = result.indicators.quote[0];
+
+    if (!meta || !meta.regularMarketPrice) {
+      return res.status(404).json({ error: 'No price data available for this symbol' });
     }
 
     res.json({
-      symbol: quote['01. symbol'],
-      price: parseFloat(quote['05. price']),
-      change: parseFloat(quote['09. change']),
-      changePercent: quote['10. change percent'],
-      volume: quote['06. volume'],
-      lastUpdated: quote['07. latest trading day']
+      symbol: meta.symbol,
+      price: meta.regularMarketPrice,
+      change: meta.regularMarketPrice - meta.previousClose,
+      changePercent: ((meta.regularMarketPrice - meta.previousClose) / meta.previousClose * 100).toFixed(2) + '%',
+      volume: meta.regularMarketVolume || 0,
+      lastUpdated: new Date(meta.regularMarketTime * 1000).toISOString()
     });
-  } catch (error) {
-    console.error('Error fetching market data:', error);
+  } catch (error: any) {
+    console.error('Error fetching market data:', error.message);
+    if (error.response?.status === 404) {
+      return res.status(404).json({ error: 'Symbol not found' });
+    }
     res.status(500).json({ error: 'Failed to fetch market data' });
   }
 });
