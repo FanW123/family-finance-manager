@@ -86,69 +86,120 @@ CREATE INDEX IF NOT EXISTS idx_target_allocation_user_id ON target_allocation(us
 
 ## 4. 启用 Row Level Security (RLS) 和用户隔离策略
 
-**重要！** 为了数据安全，需要启用 RLS 并设置用户隔离策略。在 **SQL Editor** 中运行：
+**重要！** 为了数据安全，需要启用 RLS 并设置用户隔离策略。
+
+### 选项 1：单用户应用（推荐 - 当前应用使用此方案）
+
+如果你只是自己用，使用固定的 UUID。在 **SQL Editor** 中运行：
 
 ```sql
+-- 首先生成你的用户 UUID
+SELECT gen_random_uuid();
+-- 复制生成的 UUID，例如: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
 -- Enable RLS on all tables
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE investments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE target_allocation ENABLE ROW LEVEL SECURITY;
 
--- Option 1: 单用户应用 - 使用固定的 user_id
--- 如果你只是自己用，可以创建一个固定的 UUID 并硬编码
--- 生成一个 UUID: SELECT gen_random_uuid();
--- 然后替换下面的 'YOUR-USER-ID-HERE' 为你的 UUID
+-- 替换 'YOUR-USER-ID-HERE' 为你刚才生成的 UUID
+-- Expenses policies
+CREATE POLICY "Users can view own expenses" ON expenses
+  FOR SELECT USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
--- Expenses policies (单用户版本 - 使用固定 UUID)
-CREATE POLICY "Allow all operations on expenses" ON expenses
-  FOR ALL 
-  USING (user_id = 'YOUR-USER-ID-HERE'::uuid) 
-  WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
+CREATE POLICY "Users can insert own expenses" ON expenses
+  FOR INSERT WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
+
+CREATE POLICY "Users can update own expenses" ON expenses
+  FOR UPDATE USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
+
+CREATE POLICY "Users can delete own expenses" ON expenses
+  FOR DELETE USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
 -- Budgets policies
-CREATE POLICY "Allow all operations on budgets" ON budgets
-  FOR ALL 
-  USING (user_id = 'YOUR-USER-ID-HERE'::uuid) 
-  WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
+CREATE POLICY "Users can view own budgets" ON budgets
+  FOR SELECT USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
+
+CREATE POLICY "Users can insert own budgets" ON budgets
+  FOR INSERT WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
+
+CREATE POLICY "Users can update own budgets" ON budgets
+  FOR UPDATE USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
+
+CREATE POLICY "Users can delete own budgets" ON budgets
+  FOR DELETE USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
 -- Investments policies
-CREATE POLICY "Allow all operations on investments" ON investments
-  FOR ALL 
-  USING (user_id = 'YOUR-USER-ID-HERE'::uuid) 
-  WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
+CREATE POLICY "Users can view own investments" ON investments
+  FOR SELECT USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
+
+CREATE POLICY "Users can insert own investments" ON investments
+  FOR INSERT WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
+
+CREATE POLICY "Users can update own investments" ON investments
+  FOR UPDATE USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
+
+CREATE POLICY "Users can delete own investments" ON investments
+  FOR DELETE USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
 -- Target allocation policies
-CREATE POLICY "Allow all operations on target_allocation" ON target_allocation
-  FOR ALL 
-  USING (user_id = 'YOUR-USER-ID-HERE'::uuid) 
-  WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
+CREATE POLICY "Users can view own target_allocation" ON target_allocation
+  FOR SELECT USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
--- Option 2: 多用户应用 - 使用 Supabase Auth
--- 如果你要支持多用户登录，使用以下策略（需要先设置 Authentication）：
-/*
--- Expenses policies (多用户版本 - 使用 auth.uid())
-CREATE POLICY "Users can only see their own expenses" ON expenses
-  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own target_allocation" ON target_allocation
+  FOR INSERT WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
-CREATE POLICY "Users can only insert their own expenses" ON expenses
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own target_allocation" ON target_allocation
+  FOR UPDATE USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
-CREATE POLICY "Users can only update their own expenses" ON expenses
-  FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own target_allocation" ON target_allocation
+  FOR DELETE USING (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
-CREATE POLICY "Users can only delete their own expenses" ON expenses
-  FOR DELETE USING (auth.uid() = user_id);
-
--- 对 budgets, investments, target_allocation 应用相同的策略模式
-*/
+-- Insert default target allocation for your user
+INSERT INTO target_allocation (user_id, type, percentage) 
+VALUES 
+  ('YOUR-USER-ID-HERE'::uuid, 'stocks', 60),
+  ('YOUR-USER-ID-HERE'::uuid, 'bonds', 30),
+  ('YOUR-USER-ID-HERE'::uuid, 'cash', 10)
+ON CONFLICT (user_id, type) DO NOTHING;
 ```
 
 **重要步骤**：
-1. 生成你的用户 UUID：在 SQL Editor 运行 `SELECT gen_random_uuid();`
+1. 运行 `SELECT gen_random_uuid();` 生成 UUID
 2. 复制生成的 UUID
 3. 将上面所有 `'YOUR-USER-ID-HERE'` 替换为你的 UUID
 4. 运行更新后的 SQL
+
+### 选项 2：多用户应用（使用 Supabase Auth）
+
+如果你要支持多用户登录，需要先设置 Authentication，然后使用 `auth.uid()`：
+
+```sql
+-- Enable RLS
+ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE investments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE target_allocation ENABLE ROW LEVEL SECURITY;
+
+-- Expenses policies (使用 auth.uid())
+CREATE POLICY "Users can view own expenses" ON expenses
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own expenses" ON expenses
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own expenses" ON expenses
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own expenses" ON expenses
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- 对 budgets, investments, target_allocation 应用相同的策略模式
+-- （需要修改表结构，将 user_id 改为 REFERENCES auth.users(id)）
+```
+
+**注意**：如果使用选项 2，需要修改表结构，将 `user_id UUID NOT NULL` 改为 `user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`
 
 ## 5. 生成用户 ID (USER_ID)
 
