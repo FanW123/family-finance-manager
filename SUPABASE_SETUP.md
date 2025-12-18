@@ -26,23 +26,23 @@
 在 Supabase Dashboard，进入 **SQL Editor**，运行以下 SQL：
 
 ```sql
--- Enable UUID extension (for user_id)
+-- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Expenses table
+-- Expenses table (with user_id!)
 CREATE TABLE IF NOT EXISTS expenses (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL,
   amount REAL NOT NULL,
   category TEXT NOT NULL,
   description TEXT,
-  date TEXT NOT NULL,
+  date DATE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Budgets table
 CREATE TABLE IF NOT EXISTS budgets (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL,
   category TEXT NOT NULL,
   monthly_limit REAL NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS budgets (
 
 -- Investments table
 CREATE TABLE IF NOT EXISTS investments (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL,
   type TEXT NOT NULL CHECK(type IN ('stocks', 'bonds', 'cash', 'crypto')),
   symbol TEXT,
@@ -62,14 +62,14 @@ CREATE TABLE IF NOT EXISTS investments (
   price REAL,
   quantity REAL,
   account TEXT,
-  date TEXT NOT NULL,
+  date DATE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Target allocation table
 CREATE TABLE IF NOT EXISTS target_allocation (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL,
   type TEXT NOT NULL CHECK(type IN ('stocks', 'bonds', 'cash')),
   percentage REAL NOT NULL CHECK(percentage >= 0 AND percentage <= 100),
