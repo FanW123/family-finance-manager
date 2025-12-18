@@ -21,6 +21,14 @@ export async function getUserFromRequest(req: any): Promise<string | null> {
 
     const token = authHeader.substring(7);
     
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase credentials missing:', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey
+      });
+      return null;
+    }
+    
     // Create a client with the JWT token to verify it
     const supabaseWithToken = createClient(supabaseUrl, supabaseKey, {
       global: {
@@ -33,7 +41,11 @@ export async function getUserFromRequest(req: any): Promise<string | null> {
     const { data: { user }, error } = await supabaseWithToken.auth.getUser();
 
     if (error) {
-      console.error('Error getting user from token:', error);
+      console.error('Error getting user from token:', {
+        message: error.message,
+        status: error.status,
+        name: error.name
+      });
       return null;
     }
 
@@ -42,9 +54,13 @@ export async function getUserFromRequest(req: any): Promise<string | null> {
       return null;
     }
 
+    console.log('User authenticated successfully:', user.id);
     return user.id;
-  } catch (error) {
-    console.error('Error getting user from token:', error);
+  } catch (error: any) {
+    console.error('Error getting user from token:', {
+      message: error.message,
+      stack: error.stack
+    });
     return null;
   }
 }

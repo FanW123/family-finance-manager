@@ -6,12 +6,25 @@ const router = express.Router();
 
 // Middleware to require authentication
 async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-  const userId = await getUserFromRequest(req);
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized. Please log in.' });
+  try {
+    const userId = await getUserFromRequest(req);
+    if (!userId) {
+      console.error('Authentication failed: No userId returned');
+      console.error('Auth header:', req.headers.authorization ? 'Present' : 'Missing');
+      return res.status(401).json({ 
+        error: 'Unauthorized. Please log in.',
+        details: 'Failed to authenticate user. Please check your session.'
+      });
+    }
+    (req as any).userId = userId;
+    next();
+  } catch (error: any) {
+    console.error('Auth middleware error:', error);
+    return res.status(500).json({ 
+      error: 'Authentication error',
+      message: error.message 
+    });
   }
-  (req as any).userId = userId;
-  next();
 }
 
 // Apply auth middleware to all routes
