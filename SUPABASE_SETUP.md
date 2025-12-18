@@ -21,12 +21,18 @@
 
 ## 3. 创建数据库表
 
+**⚠️ 重要：所有表都包含 `user_id` 字段用于数据隔离！**
+
 在 Supabase Dashboard，进入 **SQL Editor**，运行以下 SQL：
 
 ```sql
+-- Enable UUID extension (for user_id)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Expenses table
 CREATE TABLE IF NOT EXISTS expenses (
   id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL,
   amount REAL NOT NULL,
   category TEXT NOT NULL,
   description TEXT,
@@ -37,15 +43,18 @@ CREATE TABLE IF NOT EXISTS expenses (
 -- Budgets table
 CREATE TABLE IF NOT EXISTS budgets (
   id SERIAL PRIMARY KEY,
-  category TEXT NOT NULL UNIQUE,
+  user_id UUID NOT NULL,
+  category TEXT NOT NULL,
   monthly_limit REAL NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, category)
 );
 
 -- Investments table
 CREATE TABLE IF NOT EXISTS investments (
   id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL,
   type TEXT NOT NULL CHECK(type IN ('stocks', 'bonds', 'cash', 'crypto')),
   symbol TEXT,
   name TEXT NOT NULL,
@@ -61,20 +70,23 @@ CREATE TABLE IF NOT EXISTS investments (
 -- Target allocation table
 CREATE TABLE IF NOT EXISTS target_allocation (
   id SERIAL PRIMARY KEY,
-  type TEXT NOT NULL UNIQUE CHECK(type IN ('stocks', 'bonds', 'cash')),
+  user_id UUID NOT NULL,
+  type TEXT NOT NULL CHECK(type IN ('stocks', 'bonds', 'cash')),
   percentage REAL NOT NULL CHECK(percentage >= 0 AND percentage <= 100),
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, type)
 );
 
--- Insert default target allocation
-INSERT INTO target_allocation (type, percentage) 
-VALUES ('stocks', 60), ('bonds', 30), ('cash', 10)
-ON CONFLICT (type) DO NOTHING;
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_expenses_user_id ON expenses(user_id);
+CREATE INDEX IF NOT EXISTS idx_budgets_user_id ON budgets(user_id);
+CREATE INDEX IF NOT EXISTS idx_investments_user_id ON investments(user_id);
+CREATE INDEX IF NOT EXISTS idx_target_allocation_user_id ON target_allocation(user_id);
 ```
 
-## 4. 启用 Row Level Security (RLS)
+## 4. 启用 Row Level Security (RLS) 和用户隔离策略
 
-**重要！** 为了数据安全，需要启用 RLS。在 **SQL Editor** 中运行：
+**重要！** 为了数据安全，需要启用 RLS 并设置用户隔离策略。在 **SQL Editor** 中运行：
 
 ```sql
 -- Enable RLS on all tables
@@ -83,27 +95,60 @@ ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE investments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE target_allocation ENABLE ROW LEVEL SECURITY;
 
--- Create policies to allow all operations (for single-user app)
--- If you plan to add authentication later, modify these policies
+-- Option 1: 单用户应用 - 使用固定的 user_id
+-- 如果你只是自己用，可以创建一个固定的 UUID 并硬编码
+-- 生成一个 UUID: SELECT gen_random_uuid();
+-- 然后替换下面的 'YOUR-USER-ID-HERE' 为你的 UUID
 
--- Expenses policies
+-- Expenses policies (单用户版本 - 使用固定 UUID)
 CREATE POLICY "Allow all operations on expenses" ON expenses
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL 
+  USING (user_id = 'YOUR-USER-ID-HERE'::uuid) 
+  WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
 -- Budgets policies
 CREATE POLICY "Allow all operations on budgets" ON budgets
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL 
+  USING (user_id = 'YOUR-USER-ID-HERE'::uuid) 
+  WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
 -- Investments policies
 CREATE POLICY "Allow all operations on investments" ON investments
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL 
+  USING (user_id = 'YOUR-USER-ID-HERE'::uuid) 
+  WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
 
 -- Target allocation policies
 CREATE POLICY "Allow all operations on target_allocation" ON target_allocation
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL 
+  USING (user_id = 'YOUR-USER-ID-HERE'::uuid) 
+  WITH CHECK (user_id = 'YOUR-USER-ID-HERE'::uuid);
+
+-- Option 2: 多用户应用 - 使用 Supabase Auth
+-- 如果你要支持多用户登录，使用以下策略（需要先设置 Authentication）：
+/*
+-- Expenses policies (多用户版本 - 使用 auth.uid())
+CREATE POLICY "Users can only see their own expenses" ON expenses
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can only insert their own expenses" ON expenses
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can only update their own expenses" ON expenses
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can only delete their own expenses" ON expenses
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- 对 budgets, investments, target_allocation 应用相同的策略模式
+*/
 ```
 
-**注意**: 当前策略允许所有操作（适合单用户应用）。如果将来要添加多用户支持，需要修改这些策略。
+**重要步骤**：
+1. 生成你的用户 UUID：在 SQL Editor 运行 `SELECT gen_random_uuid();`
+2. 复制生成的 UUID
+3. 将上面所有 `'YOUR-USER-ID-HERE'` 替换为你的 UUID
+4. 运行更新后的 SQL
 
 ## 5. 配置环境变量
 

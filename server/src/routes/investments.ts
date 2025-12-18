@@ -1,14 +1,24 @@
 import express from 'express';
-import supabase from '../database.js';
+import supabase, { USER_ID } from '../database.js';
 
 const router = express.Router();
+
+// Helper function to get user_id
+function getUserId(): string {
+  if (!USER_ID) {
+    throw new Error('USER_ID not configured. Please set SUPABASE_USER_ID environment variable.');
+  }
+  return USER_ID;
+}
 
 // Get all investments
 router.get('/', async (req, res) => {
   try {
+    const userId = getUserId();
     const { data, error } = await supabase
       .from('investments')
       .select('*')
+      .eq('user_id', userId)
       .order('date', { ascending: false });
 
     if (error) {
@@ -26,9 +36,11 @@ router.get('/', async (req, res) => {
 // Get investments by type
 router.get('/by-type', async (req, res) => {
   try {
+    const userId = getUserId();
     const { data, error } = await supabase
       .from('investments')
-      .select('type, amount');
+      .select('type, amount')
+      .eq('user_id', userId);
 
     if (error) {
       console.error('Error querying investments by type:', error);
@@ -62,9 +74,11 @@ router.get('/by-type', async (req, res) => {
 // Get current portfolio allocation
 router.get('/allocation', async (req, res) => {
   try {
+    const userId = getUserId();
     const { data, error } = await supabase
       .from('investments')
-      .select('type, amount');
+      .select('type, amount')
+      .eq('user_id', userId);
 
     if (error) {
       console.error('Error querying investments:', error);
@@ -106,7 +120,8 @@ router.get('/allocation', async (req, res) => {
     // Get target allocation
     const { data: targetData, error: targetError } = await supabase
       .from('target_allocation')
-      .select('*');
+      .select('*')
+      .eq('user_id', userId);
 
     if (targetError) {
       console.error('Error querying target allocation:', targetError);
@@ -132,6 +147,7 @@ router.get('/allocation', async (req, res) => {
 // Add investment
 router.post('/', async (req, res) => {
   try {
+    const userId = getUserId();
     const { type, symbol, name, amount, price, quantity, account, date } = req.body;
 
     console.log('Add investment request:', { type, symbol, name, amount, price, quantity, account, date });
@@ -149,6 +165,7 @@ router.post('/', async (req, res) => {
     const { data, error } = await supabase
       .from('investments')
       .insert([{
+        user_id: userId,
         type,
         symbol: symbol || null,
         name,
@@ -183,9 +200,11 @@ router.post('/', async (req, res) => {
 // Get target allocation
 router.get('/target-allocation', async (req, res) => {
   try {
+    const userId = getUserId();
     const { data, error } = await supabase
       .from('target_allocation')
-      .select('type, percentage');
+      .select('type, percentage')
+      .eq('user_id', userId);
 
     if (error) {
       console.error('Error querying target allocation:', error);
@@ -208,6 +227,7 @@ router.get('/target-allocation', async (req, res) => {
 // Update target allocation
 router.post('/target-allocation', async (req, res) => {
   try {
+    const userId = getUserId();
     const { stocks, bonds, cash } = req.body;
 
     // Validate
@@ -221,15 +241,15 @@ router.post('/target-allocation', async (req, res) => {
     }
 
     const allocations = [
-      { type: 'stocks', percentage: stocks },
-      { type: 'bonds', percentage: bonds },
-      { type: 'cash', percentage: cash }
+      { user_id: userId, type: 'stocks', percentage: stocks },
+      { user_id: userId, type: 'bonds', percentage: bonds },
+      { user_id: userId, type: 'cash', percentage: cash }
     ];
 
     const { error } = await supabase
       .from('target_allocation')
       .upsert(allocations, {
-        onConflict: 'type'
+        onConflict: 'user_id,type'
       });
 
     if (error) {
@@ -247,6 +267,7 @@ router.post('/target-allocation', async (req, res) => {
 // Legacy PUT endpoint for backward compatibility
 router.put('/target-allocation', async (req, res) => {
   try {
+    const userId = getUserId();
     const { allocations } = req.body;
 
     if (!Array.isArray(allocations)) {
@@ -258,10 +279,16 @@ router.put('/target-allocation', async (req, res) => {
       return res.status(400).json({ error: 'Total allocation must equal 100%' });
     }
 
+    // Add user_id to each allocation
+    const allocationsWithUserId = allocations.map((alloc: { type: string; percentage: number }) => ({
+      user_id: userId,
+      ...alloc
+    }));
+
     const { error } = await supabase
       .from('target_allocation')
-      .upsert(allocations, {
-        onConflict: 'type'
+      .upsert(allocationsWithUserId, {
+        onConflict: 'user_id,type'
       });
 
     if (error) {
@@ -279,6 +306,7 @@ router.put('/target-allocation', async (req, res) => {
 // Update investment
 router.put('/:id', async (req, res) => {
   try {
+    const userId = getUserId();
     const { id } = req.params;
     const { type, symbol, name, amount, price, quantity, account, date } = req.body;
 
@@ -296,6 +324,7 @@ router.put('/:id', async (req, res) => {
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
+      .eq('user_id', userId) // Ensure user can only update their own investments
       .select()
       .single();
 
@@ -318,12 +347,14 @@ router.put('/:id', async (req, res) => {
 // Delete investment
 router.delete('/:id', async (req, res) => {
   try {
+    const userId = getUserId();
     const { id } = req.params;
 
     const { error } = await supabase
       .from('investments')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', userId); // Ensure user can only delete their own investments
 
     if (error) {
       console.error('Error deleting investment:', error);

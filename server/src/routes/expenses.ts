@@ -1,14 +1,23 @@
 import express from 'express';
-import supabase from '../database.js';
+import supabase, { USER_ID } from '../database.js';
 
 const router = express.Router();
+
+// Helper function to get user_id
+function getUserId(): string {
+  if (!USER_ID) {
+    throw new Error('USER_ID not configured. Please set SUPABASE_USER_ID environment variable.');
+  }
+  return USER_ID;
+}
 
 // Get all expenses
 router.get('/', async (req, res) => {
   try {
+    const userId = getUserId();
     const { month, year, category } = req.query;
     
-    let query = supabase.from('expenses').select('*');
+    let query = supabase.from('expenses').select('*').eq('user_id', userId);
 
     if (month && year) {
       const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -39,6 +48,7 @@ router.get('/', async (req, res) => {
 // Get expenses by month summary
 router.get('/summary', async (req, res) => {
   try {
+    const userId = getUserId();
     const { month, year } = req.query;
     
     if (!month || !year) {
@@ -51,6 +61,7 @@ router.get('/summary', async (req, res) => {
     const { data, error } = await supabase
       .from('expenses')
       .select('category, amount')
+      .eq('user_id', userId)
       .gte('date', startDate)
       .lte('date', endDate);
 
@@ -90,6 +101,7 @@ router.get('/summary', async (req, res) => {
 // Add expense
 router.post('/', async (req, res) => {
   try {
+    const userId = getUserId();
     const { amount, category, description, date } = req.body;
 
     if (!amount || !category || !date) {
@@ -99,6 +111,7 @@ router.post('/', async (req, res) => {
     const { data, error } = await supabase
       .from('expenses')
       .insert([{
+        user_id: userId,
         amount,
         category,
         description: description || '',
@@ -122,6 +135,7 @@ router.post('/', async (req, res) => {
 // Update expense
 router.put('/:id', async (req, res) => {
   try {
+    const userId = getUserId();
     const { id } = req.params;
     const { amount, category, description, date } = req.body;
 
@@ -134,6 +148,7 @@ router.put('/:id', async (req, res) => {
         date
       })
       .eq('id', id)
+      .eq('user_id', userId) // Ensure user can only update their own expenses
       .select()
       .single();
 
@@ -156,12 +171,14 @@ router.put('/:id', async (req, res) => {
 // Delete expense
 router.delete('/:id', async (req, res) => {
   try {
+    const userId = getUserId();
     const { id } = req.params;
 
     const { error } = await supabase
       .from('expenses')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', userId); // Ensure user can only delete their own expenses
 
     if (error) {
       console.error('Error deleting expense:', error);
@@ -178,9 +195,11 @@ router.delete('/:id', async (req, res) => {
 // Budget routes
 router.get('/budgets', async (req, res) => {
   try {
+    const userId = getUserId();
     const { data, error } = await supabase
       .from('budgets')
       .select('*')
+      .eq('user_id', userId)
       .order('category');
 
     if (error) {
@@ -197,6 +216,7 @@ router.get('/budgets', async (req, res) => {
 
 router.post('/budgets', async (req, res) => {
   try {
+    const userId = getUserId();
     const { category, monthly_limit } = req.body;
 
     if (!category || monthly_limit === undefined) {
@@ -206,11 +226,12 @@ router.post('/budgets', async (req, res) => {
     const { error } = await supabase
       .from('budgets')
       .upsert({
+        user_id: userId,
         category,
         monthly_limit,
         updated_at: new Date().toISOString()
       }, {
-        onConflict: 'category'
+        onConflict: 'user_id,category'
       });
 
     if (error) {
@@ -228,6 +249,7 @@ router.post('/budgets', async (req, res) => {
 // Delete budget
 router.post('/budgets/delete', async (req, res) => {
   try {
+    const userId = getUserId();
     const { category } = req.body;
 
     if (!category) {
@@ -237,7 +259,8 @@ router.post('/budgets/delete', async (req, res) => {
     const { error } = await supabase
       .from('budgets')
       .delete()
-      .eq('category', category);
+      .eq('category', category)
+      .eq('user_id', userId);
 
     if (error) {
       console.error('Error deleting budget:', error);
@@ -260,13 +283,15 @@ router.get('/budget-analysis', async (req, res) => {
       return res.status(400).json({ error: 'Month and year are required' });
     }
 
+    const userId = getUserId();
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
 
     // Get budgets
     const { data: budgets, error: budgetsError } = await supabase
       .from('budgets')
-      .select('*');
+      .select('*')
+      .eq('user_id', userId);
 
     if (budgetsError) {
       console.error('Error querying budgets:', budgetsError);
@@ -277,6 +302,7 @@ router.get('/budget-analysis', async (req, res) => {
     const { data: expenses, error: expensesError } = await supabase
       .from('expenses')
       .select('category, amount')
+      .eq('user_id', userId)
       .gte('date', startDate)
       .lte('date', endDate);
 

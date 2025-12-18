@@ -1,16 +1,26 @@
 import express from 'express';
-import supabase from '../database.js';
+import supabase, { USER_ID } from '../database.js';
 import axios from 'axios';
 
 const router = express.Router();
 
+// Helper function to get user_id
+function getUserId(): string {
+  if (!USER_ID) {
+    throw new Error('USER_ID not configured. Please set SUPABASE_USER_ID environment variable.');
+  }
+  return USER_ID;
+}
+
 // Get rebalancing suggestions
 router.get('/suggestions', async (req, res) => {
   try {
+    const userId = getUserId();
     // Get current allocation
     const { data: investmentsData, error: investmentsError } = await supabase
       .from('investments')
-      .select('type, amount');
+      .select('type, amount')
+      .eq('user_id', userId);
 
     if (investmentsError) {
       console.error('Error querying investments:', investmentsError);
@@ -41,7 +51,8 @@ router.get('/suggestions', async (req, res) => {
     // Get target allocation
     const { data: targetData, error: targetError } = await supabase
       .from('target_allocation')
-      .select('*');
+      .select('*')
+      .eq('user_id', userId);
 
     if (targetError) {
       console.error('Error querying target allocation:', targetError);
