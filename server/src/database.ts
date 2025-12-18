@@ -15,13 +15,30 @@ export async function getUserFromRequest(req: any): Promise<string | null> {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('No authorization header found');
       return null;
     }
 
     const token = authHeader.substring(7);
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    // Create a client with the JWT token to verify it
+    const supabaseWithToken = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    });
 
-    if (error || !user) {
+    const { data: { user }, error } = await supabaseWithToken.auth.getUser();
+
+    if (error) {
+      console.error('Error getting user from token:', error);
+      return null;
+    }
+
+    if (!user) {
+      console.log('No user found in token');
       return null;
     }
 
