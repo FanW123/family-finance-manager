@@ -5,7 +5,8 @@
   "installCommand": "npm install --ignore-scripts || npm install --ignore-scripts --no-optional",
   "functions": {
     "api/**/*.ts": {
-      "runtime": "nodejs20.x"
+      "runtime": "nodejs20.x",
+      "includeFiles": "server/src/**"
     }
   },
   "rewrites": [
