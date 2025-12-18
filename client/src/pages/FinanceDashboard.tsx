@@ -335,10 +335,13 @@ const FinanceDashboard = () => {
       const price = parseFloat(newInvestment.price);
       const amount = quantity * price;
       
+      // Ensure name is not empty - use symbol or a default name based on type
+      const name = newInvestment.symbol || `${newInvestment.type === 'stocks' ? '股票' : newInvestment.type === 'bonds' ? '债券' : '现金'}投资`;
+      
       await api.post('/investments', {
         type: newInvestment.type,
         symbol: newInvestment.symbol || null,
-        name: newInvestment.symbol || '', // Use symbol as name
+        name: name, // Ensure name is never empty
         amount: amount,
         price: price,
         quantity: quantity,

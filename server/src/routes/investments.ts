@@ -157,8 +157,8 @@ router.post('/', async (req, res) => {
 
     console.log('Add investment request:', { type, symbol, name, amount, price, quantity, account, date });
 
-    if (!type || !name || amount === undefined || !date) {
-      console.error('Validation failed: missing required fields');
+    if (!type || !name || name.trim() === '' || amount === undefined || !date) {
+      console.error('Validation failed: missing required fields', { type, name, amount, date });
       return res.status(400).json({ error: 'Type, name, amount, and date are required' });
     }
 
