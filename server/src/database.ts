@@ -34,17 +34,21 @@ try {
 }
 
 export function initDatabase() {
-  // Expenses table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS expenses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      amount REAL NOT NULL,
-      category TEXT NOT NULL,
-      description TEXT,
-      date TEXT NOT NULL,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+  try {
+    console.log('Starting database initialization...');
+    
+    // Expenses table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS expenses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount REAL NOT NULL,
+        category TEXT NOT NULL,
+        description TEXT,
+        date TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Expenses table created/verified');
 
   // Budgets table
   db.exec(`
@@ -94,16 +98,26 @@ export function initDatabase() {
     )
   `);
 
-  // Insert default target allocation if not exists
-  const existing = db.prepare('SELECT COUNT(*) as count FROM target_allocation').get() as { count: number };
-  if (existing.count === 0) {
-    const insert = db.prepare('INSERT INTO target_allocation (type, percentage) VALUES (?, ?)');
-    insert.run('stocks', 60);
-    insert.run('bonds', 30);
-    insert.run('cash', 10);
-  }
+    // Insert default target allocation if not exists
+    const existing = db.prepare('SELECT COUNT(*) as count FROM target_allocation').get() as { count: number };
+    if (existing.count === 0) {
+      const insert = db.prepare('INSERT INTO target_allocation (type, percentage) VALUES (?, ?)');
+      insert.run('stocks', 60);
+      insert.run('bonds', 30);
+      insert.run('cash', 10);
+      console.log('Default target allocation inserted');
+    }
 
-  console.log('Database initialized');
+    console.log('Database initialized successfully');
+  } catch (error: any) {
+    console.error('Database initialization error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    throw error;
+  }
 }
 
 export default db;
