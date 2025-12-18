@@ -1,31 +1,35 @@
 import express from 'express';
-import db from '../database.js';
+import supabase from '../database.js';
 
 const router = express.Router();
 
 // Get all expenses
-router.get('/', (req, res) => {
-  const { month, year, category } = req.query;
-  
-  let query = 'SELECT * FROM expenses WHERE 1=1';
-  const params: any[] = [];
-
-  if (month && year) {
-    const monthStr = String(month).padStart(2, '0');
-    query += ' AND strftime(\'%m\', date) = ? AND strftime(\'%Y\', date) = ?';
-    params.push(monthStr, String(year));
-  }
-
-  if (category) {
-    query += ' AND category = ?';
-    params.push(category);
-  }
-
-  query += ' ORDER BY date DESC';
-
+router.get('/', async (req, res) => {
   try {
-    const expenses = db.prepare(query).all(...params);
-    res.json(expenses);
+    const { month, year, category } = req.query;
+    
+    let query = supabase.from('expenses').select('*');
+
+    if (month && year) {
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+      const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+      query = query.gte('date', startDate).lte('date', endDate);
+    }
+
+    if (category) {
+      query = query.eq('category', category as string);
+    }
+
+    query = query.order('date', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error querying expenses:', error);
+      return res.status(500).json({ error: 'Failed to query expenses' });
+    }
+
+    res.json(data || []);
   } catch (error) {
     console.error('Error querying expenses:', error);
     res.status(500).json({ error: 'Failed to query expenses' });
@@ -33,197 +37,298 @@ router.get('/', (req, res) => {
 });
 
 // Get expenses by month summary
-router.get('/summary', (req, res) => {
-  const { month, year } = req.query;
-  
-  if (!month || !year) {
-    return res.status(400).json({ error: 'Month and year are required' });
+router.get('/summary', async (req, res) => {
+  try {
+    const { month, year } = req.query;
+    
+    if (!month || !year) {
+      return res.status(400).json({ error: 'Month and year are required' });
+    }
+
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('category, amount')
+      .gte('date', startDate)
+      .lte('date', endDate);
+
+    if (error) {
+      console.error('Error querying expenses summary:', error);
+      return res.status(500).json({ error: 'Failed to query expenses summary' });
+    }
+
+    // Group by category
+    const summaryMap = new Map<string, { total: number; count: number }>();
+    let total = 0;
+
+    data?.forEach(expense => {
+      const existing = summaryMap.get(expense.category) || { total: 0, count: 0 };
+      summaryMap.set(expense.category, {
+        total: existing.total + expense.amount,
+        count: existing.count + 1
+      });
+      total += expense.amount;
+    });
+
+    const summary = Array.from(summaryMap.entries())
+      .map(([category, stats]) => ({
+        category,
+        total: stats.total,
+        count: stats.count
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    res.json({ summary, total });
+  } catch (error) {
+    console.error('Error querying expenses summary:', error);
+    res.status(500).json({ error: 'Failed to query expenses summary' });
   }
-
-  const monthStr = String(month).padStart(2, '0');
-  const yearStr = String(year);
-  
-  const query = `
-    SELECT 
-      category,
-      SUM(amount) as total,
-      COUNT(*) as count
-    FROM expenses
-    WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?
-    GROUP BY category
-    ORDER BY total DESC
-  `;
-
-  const summary = db.prepare(query).all(monthStr, yearStr);
-
-  const totalQuery = `
-    SELECT SUM(amount) as total
-    FROM expenses
-    WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?
-  `;
-
-  const total = db.prepare(totalQuery).get(monthStr, yearStr) as { total: number | null };
-
-  res.json({
-    summary,
-    total: total.total || 0
-  });
 });
 
 // Add expense
-router.post('/', (req, res) => {
-  const { amount, category, description, date } = req.body;
+router.post('/', async (req, res) => {
+  try {
+    const { amount, category, description, date } = req.body;
 
-  if (!amount || !category || !date) {
-    return res.status(400).json({ error: 'Amount, category, and date are required' });
+    if (!amount || !category || !date) {
+      return res.status(400).json({ error: 'Amount, category, and date are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('expenses')
+      .insert([{
+        amount,
+        category,
+        description: description || '',
+        date
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding expense:', error);
+      return res.status(500).json({ error: 'Failed to add expense' });
+    }
+
+    res.json({ id: data.id, message: 'Expense added successfully' });
+  } catch (error) {
+    console.error('Error adding expense:', error);
+    res.status(500).json({ error: 'Failed to add expense' });
   }
-
-  const insert = db.prepare(`
-    INSERT INTO expenses (amount, category, description, date)
-    VALUES (?, ?, ?, ?)
-  `);
-
-  const result = insert.run(amount, category, description || '', date);
-  res.json({ id: result.lastInsertRowid, message: 'Expense added successfully' });
 });
 
 // Update expense
-router.put('/:id', (req, res) => {
-  const { id } = req.params;
-  const { amount, category, description, date } = req.body;
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, category, description, date } = req.body;
 
-  const update = db.prepare(`
-    UPDATE expenses
-    SET amount = ?, category = ?, description = ?, date = ?
-    WHERE id = ?
-  `);
+    const { data, error } = await supabase
+      .from('expenses')
+      .update({
+        amount,
+        category,
+        description,
+        date
+      })
+      .eq('id', id)
+      .select()
+      .single();
 
-  const result = update.run(amount, category, description, date, id);
-  
-  if (result.changes === 0) {
-    return res.status(404).json({ error: 'Expense not found' });
+    if (error) {
+      console.error('Error updating expense:', error);
+      return res.status(500).json({ error: 'Failed to update expense' });
+    }
+
+    if (!data) {
+      return res.status(404).json({ error: 'Expense not found' });
+    }
+
+    res.json({ message: 'Expense updated successfully' });
+  } catch (error) {
+    console.error('Error updating expense:', error);
+    res.status(500).json({ error: 'Failed to update expense' });
   }
-
-  res.json({ message: 'Expense updated successfully' });
 });
 
 // Delete expense
-router.delete('/:id', (req, res) => {
-  const { id } = req.params;
-  const del = db.prepare('DELETE FROM expenses WHERE id = ?');
-  const result = del.run(id);
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  if (result.changes === 0) {
-    return res.status(404).json({ error: 'Expense not found' });
+    const { error } = await supabase
+      .from('expenses')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting expense:', error);
+      return res.status(500).json({ error: 'Failed to delete expense' });
+    }
+
+    res.json({ message: 'Expense deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    res.status(500).json({ error: 'Failed to delete expense' });
   }
-
-  res.json({ message: 'Expense deleted successfully' });
 });
 
 // Budget routes
-router.get('/budgets', (req, res) => {
-  const budgets = db.prepare('SELECT * FROM budgets ORDER BY category').all();
-  res.json(budgets);
+router.get('/budgets', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('budgets')
+      .select('*')
+      .order('category');
+
+    if (error) {
+      console.error('Error querying budgets:', error);
+      return res.status(500).json({ error: 'Failed to query budgets' });
+    }
+
+    res.json(data || []);
+  } catch (error) {
+    console.error('Error querying budgets:', error);
+    res.status(500).json({ error: 'Failed to query budgets' });
+  }
 });
 
-router.post('/budgets', (req, res) => {
-  const { category, monthly_limit } = req.body;
+router.post('/budgets', async (req, res) => {
+  try {
+    const { category, monthly_limit } = req.body;
 
-  if (!category || monthly_limit === undefined) {
-    return res.status(400).json({ error: 'Category and monthly_limit are required' });
+    if (!category || monthly_limit === undefined) {
+      return res.status(400).json({ error: 'Category and monthly_limit are required' });
+    }
+
+    const { error } = await supabase
+      .from('budgets')
+      .upsert({
+        category,
+        monthly_limit,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'category'
+      });
+
+    if (error) {
+      console.error('Error saving budget:', error);
+      return res.status(500).json({ error: 'Failed to save budget' });
+    }
+
+    res.json({ message: 'Budget saved successfully' });
+  } catch (error) {
+    console.error('Error saving budget:', error);
+    res.status(500).json({ error: 'Failed to save budget' });
   }
-
-  const insert = db.prepare(`
-    INSERT INTO budgets (category, monthly_limit)
-    VALUES (?, ?)
-    ON CONFLICT(category) DO UPDATE SET
-      monthly_limit = excluded.monthly_limit,
-      updated_at = CURRENT_TIMESTAMP
-  `);
-
-  insert.run(category, monthly_limit);
-  res.json({ message: 'Budget saved successfully' });
 });
 
-// Delete budget - use POST with body to handle special characters
-router.post('/budgets/delete', (req, res) => {
-  const { category } = req.body;
+// Delete budget
+router.post('/budgets/delete', async (req, res) => {
+  try {
+    const { category } = req.body;
 
-  if (!category) {
-    return res.status(400).json({ error: 'Category is required' });
+    if (!category) {
+      return res.status(400).json({ error: 'Category is required' });
+    }
+
+    const { error } = await supabase
+      .from('budgets')
+      .delete()
+      .eq('category', category);
+
+    if (error) {
+      console.error('Error deleting budget:', error);
+      return res.status(500).json({ error: 'Failed to delete budget' });
+    }
+
+    res.json({ message: 'Budget deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting budget:', error);
+    res.status(500).json({ error: 'Failed to delete budget' });
   }
-
-  const del = db.prepare('DELETE FROM budgets WHERE category = ?');
-  const result = del.run(category);
-
-  if (result.changes === 0) {
-    return res.status(404).json({ error: 'Budget not found' });
-  }
-
-  res.json({ message: 'Budget deleted successfully' });
 });
 
 // Get budget analysis
-router.get('/budget-analysis', (req, res) => {
-  const { month, year } = req.query;
+router.get('/budget-analysis', async (req, res) => {
+  try {
+    const { month, year } = req.query;
 
-  if (!month || !year) {
-    return res.status(400).json({ error: 'Month and year are required' });
-  }
-
-  const budgets = db.prepare('SELECT * FROM budgets').all() as Array<{
-    category: string;
-    monthly_limit: number;
-  }>;
-
-  const monthStr = String(month).padStart(2, '0');
-  const yearStr = String(year);
-  
-  const expenses = db.prepare(`
-    SELECT category, SUM(amount) as spent
-    FROM expenses
-    WHERE strftime('%m', date) = ? AND strftime('%Y', date) = ?
-    GROUP BY category
-  `).all(monthStr, yearStr) as Array<{
-    category: string;
-    spent: number;
-  }>;
-
-  const expenseMap = new Map(expenses.map(e => [e.category, e.spent]));
-
-  const analysis = budgets.map(budget => {
-    const spent = expenseMap.get(budget.category) || 0;
-    const remaining = budget.monthly_limit - spent;
-    const percentage = (spent / budget.monthly_limit) * 100;
-
-    return {
-      category: budget.category,
-      budget: budget.monthly_limit,
-      spent,
-      remaining,
-      percentage: Math.round(percentage * 100) / 100,
-      overBudget: spent > budget.monthly_limit,
-      hasNoBudget: false
-    };
-  });
-
-  // Add categories that have expenses but no budget
-  expenses.forEach(expense => {
-    if (!budgets.find(b => b.category === expense.category)) {
-      analysis.push({
-        category: expense.category,
-        budget: 0,
-        spent: expense.spent,
-        remaining: -expense.spent,
-        percentage: 0,
-        overBudget: false,  // Not over budget since no budget was set
-        hasNoBudget: true   // Flag to indicate no budget was set for this category
-      });
+    if (!month || !year) {
+      return res.status(400).json({ error: 'Month and year are required' });
     }
-  });
 
-  res.json(analysis);
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+
+    // Get budgets
+    const { data: budgets, error: budgetsError } = await supabase
+      .from('budgets')
+      .select('*');
+
+    if (budgetsError) {
+      console.error('Error querying budgets:', budgetsError);
+      return res.status(500).json({ error: 'Failed to query budgets' });
+    }
+
+    // Get expenses for the month
+    const { data: expenses, error: expensesError } = await supabase
+      .from('expenses')
+      .select('category, amount')
+      .gte('date', startDate)
+      .lte('date', endDate);
+
+    if (expensesError) {
+      console.error('Error querying expenses:', expensesError);
+      return res.status(500).json({ error: 'Failed to query expenses' });
+    }
+
+    // Group expenses by category
+    const expenseMap = new Map<string, number>();
+    expenses?.forEach(expense => {
+      const current = expenseMap.get(expense.category) || 0;
+      expenseMap.set(expense.category, current + expense.amount);
+    });
+
+    // Build analysis
+    const analysis = (budgets || []).map(budget => {
+      const spent = expenseMap.get(budget.category) || 0;
+      const remaining = budget.monthly_limit - spent;
+      const percentage = (spent / budget.monthly_limit) * 100;
+
+      return {
+        category: budget.category,
+        budget: budget.monthly_limit,
+        spent,
+        remaining,
+        percentage: Math.round(percentage * 100) / 100,
+        overBudget: spent > budget.monthly_limit,
+        hasNoBudget: false
+      };
+    });
+
+    // Add categories that have expenses but no budget
+    expenseMap.forEach((spent, category) => {
+      if (!budgets?.find(b => b.category === category)) {
+        analysis.push({
+          category,
+          budget: 0,
+          spent,
+          remaining: -spent,
+          percentage: 0,
+          overBudget: false,
+          hasNoBudget: true
+        });
+      }
+    });
+
+    res.json(analysis);
+  } catch (error) {
+    console.error('Error generating budget analysis:', error);
+    res.status(500).json({ error: 'Failed to generate budget analysis' });
+  }
 });
 
 export default router;
-
