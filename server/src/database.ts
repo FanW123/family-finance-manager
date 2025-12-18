@@ -1,11 +1,37 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const db = new Database(path.join(__dirname, '../finance.db'));
+// For Vercel serverless: use /tmp directory (writable)
+// For local dev: use project directory
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+const dbPath = isVercel 
+  ? '/tmp/finance.db'
+  : path.join(__dirname, '../finance.db');
+
+// Ensure /tmp directory exists in Vercel
+if (isVercel) {
+  try {
+    if (!fs.existsSync('/tmp')) {
+      fs.mkdirSync('/tmp', { recursive: true });
+    }
+  } catch (error) {
+    console.error('Failed to create /tmp directory:', error);
+  }
+}
+
+let db: Database.Database;
+try {
+  db = new Database(dbPath);
+  console.log(`Database initialized at: ${dbPath}`);
+} catch (error) {
+  console.error('Failed to initialize database:', error);
+  throw error;
+}
 
 export function initDatabase() {
   // Expenses table
@@ -35,17 +61,28 @@ export function initDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS investments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      type TEXT NOT NULL CHECK(type IN ('stocks', 'bonds', 'cash')),
+      type TEXT NOT NULL CHECK(type IN ('stocks', 'bonds', 'cash', 'crypto')),
       symbol TEXT,
       name TEXT NOT NULL,
       amount REAL NOT NULL,
       price REAL,
       quantity REAL,
+      account TEXT,
       date TEXT NOT NULL,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
+  
+  // Add account column if it doesn't exist (for existing databases)
+  try {
+    db.exec(`ALTER TABLE investments ADD COLUMN account TEXT`);
+  } catch (error: any) {
+    // Column already exists, ignore error
+    if (!error.message.includes('duplicate column name')) {
+      console.warn('Could not add account column:', error.message);
+    }
+  }
 
   // Target allocation table
   db.exec(`
