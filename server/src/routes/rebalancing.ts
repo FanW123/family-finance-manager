@@ -1,21 +1,26 @@
 import express from 'express';
-import supabase, { USER_ID } from '../database.js';
+import supabase, { getUserFromRequest } from '../database.js';
 import axios from 'axios';
 
 const router = express.Router();
 
-// Helper function to get user_id
-function getUserId(): string {
-  if (!USER_ID) {
-    throw new Error('USER_ID not configured. Please set SUPABASE_USER_ID environment variable.');
+// Middleware to require authentication
+async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const userId = await getUserFromRequest(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized. Please log in.' });
   }
-  return USER_ID;
+  (req as any).userId = userId;
+  next();
 }
+
+// Apply auth middleware to all routes
+router.use(requireAuth);
 
 // Get rebalancing suggestions
 router.get('/suggestions', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     // Get current allocation
     const { data: investmentsData, error: investmentsError } = await supabase
       .from('investments')

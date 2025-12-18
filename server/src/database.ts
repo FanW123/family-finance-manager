@@ -4,20 +4,33 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
 
-// Get user ID from environment variable (for single-user app)
-// For multi-user app, this should come from authentication
-export const USER_ID = process.env.SUPABASE_USER_ID || '';
-
 if (!supabaseUrl || !supabaseKey) {
   console.warn('Supabase credentials not found. Using environment variables.');
 }
 
-if (!USER_ID) {
-  console.warn('⚠️ SUPABASE_USER_ID not set! Data isolation may not work correctly.');
-  console.warn('Please set SUPABASE_USER_ID in your environment variables.');
-}
-
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Helper function to get user from JWT token
+export async function getUserFromRequest(req: any): Promise<string | null> {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+
+    const token = authHeader.substring(7);
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return null;
+    }
+
+    return user.id;
+  } catch (error) {
+    console.error('Error getting user from token:', error);
+    return null;
+  }
+}
 
 export async function initDatabase() {
   try {

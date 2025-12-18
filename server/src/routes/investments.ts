@@ -1,20 +1,25 @@
 import express from 'express';
-import supabase, { USER_ID } from '../database.js';
+import supabase, { getUserFromRequest } from '../database.js';
 
 const router = express.Router();
 
-// Helper function to get user_id
-function getUserId(): string {
-  if (!USER_ID) {
-    throw new Error('USER_ID not configured. Please set SUPABASE_USER_ID environment variable.');
+// Middleware to require authentication
+async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const userId = await getUserFromRequest(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized. Please log in.' });
   }
-  return USER_ID;
+  (req as any).userId = userId;
+  next();
 }
+
+// Apply auth middleware to all routes
+router.use(requireAuth);
 
 // Get all investments
 router.get('/', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { data, error } = await supabase
       .from('investments')
       .select('*')
@@ -36,7 +41,7 @@ router.get('/', async (req, res) => {
 // Get investments by type
 router.get('/by-type', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { data, error } = await supabase
       .from('investments')
       .select('type, amount')
@@ -74,7 +79,7 @@ router.get('/by-type', async (req, res) => {
 // Get current portfolio allocation
 router.get('/allocation', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { data, error } = await supabase
       .from('investments')
       .select('type, amount')
@@ -147,7 +152,7 @@ router.get('/allocation', async (req, res) => {
 // Add investment
 router.post('/', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { type, symbol, name, amount, price, quantity, account, date } = req.body;
 
     console.log('Add investment request:', { type, symbol, name, amount, price, quantity, account, date });
@@ -200,7 +205,7 @@ router.post('/', async (req, res) => {
 // Get target allocation
 router.get('/target-allocation', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { data, error } = await supabase
       .from('target_allocation')
       .select('type, percentage')
@@ -227,7 +232,7 @@ router.get('/target-allocation', async (req, res) => {
 // Update target allocation
 router.post('/target-allocation', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { stocks, bonds, cash } = req.body;
 
     // Validate
@@ -267,7 +272,7 @@ router.post('/target-allocation', async (req, res) => {
 // Legacy PUT endpoint for backward compatibility
 router.put('/target-allocation', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { allocations } = req.body;
 
     if (!Array.isArray(allocations)) {
@@ -306,7 +311,7 @@ router.put('/target-allocation', async (req, res) => {
 // Update investment
 router.put('/:id', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { id } = req.params;
     const { type, symbol, name, amount, price, quantity, account, date } = req.body;
 
@@ -347,7 +352,7 @@ router.put('/:id', async (req, res) => {
 // Delete investment
 router.delete('/:id', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { id } = req.params;
 
     const { error } = await supabase

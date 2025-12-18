@@ -1,20 +1,25 @@
 import express from 'express';
-import supabase, { USER_ID } from '../database.js';
+import supabase, { getUserFromRequest } from '../database.js';
 
 const router = express.Router();
 
-// Helper function to get user_id
-function getUserId(): string {
-  if (!USER_ID) {
-    throw new Error('USER_ID not configured. Please set SUPABASE_USER_ID environment variable.');
+// Middleware to require authentication
+async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const userId = await getUserFromRequest(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized. Please log in.' });
   }
-  return USER_ID;
+  (req as any).userId = userId;
+  next();
 }
+
+// Apply auth middleware to all routes
+router.use(requireAuth);
 
 // Get all expenses
 router.get('/', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { month, year, category } = req.query;
     
     let query = supabase.from('expenses').select('*').eq('user_id', userId);
@@ -48,7 +53,7 @@ router.get('/', async (req, res) => {
 // Get expenses by month summary
 router.get('/summary', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { month, year } = req.query;
     
     if (!month || !year) {
@@ -101,7 +106,7 @@ router.get('/summary', async (req, res) => {
 // Add expense
 router.post('/', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { amount, category, description, date } = req.body;
 
     if (!amount || !category || !date) {
@@ -135,7 +140,7 @@ router.post('/', async (req, res) => {
 // Update expense
 router.put('/:id', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { id } = req.params;
     const { amount, category, description, date } = req.body;
 
@@ -171,7 +176,7 @@ router.put('/:id', async (req, res) => {
 // Delete expense
 router.delete('/:id', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { id } = req.params;
 
     const { error } = await supabase
@@ -195,7 +200,7 @@ router.delete('/:id', async (req, res) => {
 // Budget routes
 router.get('/budgets', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { data, error } = await supabase
       .from('budgets')
       .select('*')
@@ -216,7 +221,7 @@ router.get('/budgets', async (req, res) => {
 
 router.post('/budgets', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { category, monthly_limit } = req.body;
 
     if (!category || monthly_limit === undefined) {
@@ -249,7 +254,7 @@ router.post('/budgets', async (req, res) => {
 // Delete budget
 router.post('/budgets/delete', async (req, res) => {
   try {
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const { category } = req.body;
 
     if (!category) {
@@ -283,7 +288,7 @@ router.get('/budget-analysis', async (req, res) => {
       return res.status(400).json({ error: 'Month and year are required' });
     }
 
-    const userId = getUserId();
+    const userId = (req as any).userId;
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
 

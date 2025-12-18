@@ -1,44 +1,40 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import FinanceDashboard from './pages/FinanceDashboard';
 import InstallPrompt from './components/InstallPrompt';
-import PinLock from './components/PinLock';
+import Auth from './components/Auth';
+import { supabase } from './lib/supabase';
 
 function App() {
-  const [isLocked, setIsLocked] = useState(true);
-  const [isChecking, setIsChecking] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if PIN is set and if app should be locked
-    const pinSet = localStorage.getItem('firepath_pin_set');
-    const isUnlocked = sessionStorage.getItem('firepath_unlocked') === 'true';
-    
-    if (!pinSet) {
-      // No PIN set, show setup screen
-      setIsLocked(true);
-      setIsChecking(false);
-    } else if (isUnlocked) {
-      // Already unlocked in this session
-      setIsLocked(false);
-      setIsChecking(false);
-    } else {
-      // PIN is set, need to unlock
-      setIsLocked(true);
-      setIsChecking(false);
-    }
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleUnlock = () => {
-    sessionStorage.setItem('firepath_unlocked', 'true');
-    setIsLocked(false);
+  const handleAuthSuccess = () => {
+    // User will be set via onAuthStateChange
   };
 
-  const handleLock = () => {
-    sessionStorage.removeItem('firepath_unlocked');
-    setIsLocked(true);
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
   };
 
-  if (isChecking) {
+  if (loading) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -53,14 +49,14 @@ function App() {
     );
   }
 
-  if (isLocked) {
-    return <PinLock onUnlock={handleUnlock} />;
+  if (!user) {
+    return <Auth onAuthSuccess={handleAuthSuccess} />;
   }
 
   return (
     <Router>
       <InstallPrompt />
-      <LockButton onLock={handleLock} />
+      <SignOutButton onSignOut={handleSignOut} />
       <Routes>
         <Route path="/" element={<FinanceDashboard />} />
       </Routes>
@@ -68,32 +64,32 @@ function App() {
   );
 }
 
-function LockButton({ onLock }: { onLock: () => void }) {
+function SignOutButton({ onSignOut }: { onSignOut: () => void }) {
   return (
     <button
-      onClick={onLock}
+      onClick={onSignOut}
       style={{
         position: 'fixed',
         top: '1rem',
         right: '1rem',
         background: 'rgba(26, 26, 46, 0.8)',
         border: '1px solid rgba(233, 69, 96, 0.5)',
-        borderRadius: '50%',
-        width: '3rem',
-        height: '3rem',
+        borderRadius: '0.5rem',
+        padding: '0.5rem 1rem',
         color: '#eee',
-        fontSize: '1.5rem',
+        fontSize: '0.9rem',
         cursor: 'pointer',
         zIndex: 1000,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        gap: '0.5rem',
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease',
+        fontFamily: 'inherit'
       }}
-      title="锁定应用"
+      title="退出登录"
     >
-      🔒
+      🚪 退出
     </button>
   );
 }
