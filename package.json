@@ -1,6 +1,7 @@
 {
   "name": "firepath",
   "version": "1.0.0",
+  "type": "module",
   "description": "FirePath - Your Path to Financial Independence and Early Retirement",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
