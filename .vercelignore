@@ -2,5 +2,6 @@ node_modules
 .git
 .env
 *.log
-server
+server/finance.db
+server/node_modules
 
