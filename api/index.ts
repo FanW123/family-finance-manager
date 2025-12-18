@@ -1,10 +1,10 @@
 // Vercel serverless function wrapper for Express app
-import express from 'express';
-import cors from 'cors';
-import { initDatabase } from '../server/src/database.js';
-import expensesRouter from '../server/src/routes/expenses.js';
-import investmentsRouter from '../server/src/routes/investments.js';
-import rebalancingRouter from '../server/src/routes/rebalancing.js';
+const express = require('express');
+const cors = require('cors');
+const { initDatabase } = require('../server/src/database.js');
+const expensesRouter = require('../server/src/routes/expenses.js');
+const investmentsRouter = require('../server/src/routes/investments.js');
+const rebalancingRouter = require('../server/src/routes/rebalancing.js');
 
 const app = express();
 
@@ -77,5 +77,5 @@ app.get('/health', (req, res) => {
 });
 
 // Export for Vercel serverless function
-export default app;
+module.exports = app;
 
