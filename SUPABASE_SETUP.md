@@ -241,7 +241,7 @@ cat .gitignore | grep .env
 
 ### 问题：环境变量未找到
 **解决**: 
-- 确认 Vercel 环境变量名称正确（`SUPABASE_URL`、`SUPABASE_ANON_KEY` 和 `SUPABASE_USER_ID`）
+- 确认 Vercel 环境变量名称正确（`SUPABASE_URL`、`SUPABASE_ANON_KEY`、`VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY`）
 - 确认已选择正确的环境（Production/Preview/Development）
 - 重新部署项目
 
