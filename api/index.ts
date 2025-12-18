@@ -77,5 +77,5 @@ app.get('/health', (req, res) => {
 });
 
 // Export for Vercel serverless function
-module.exports = app;
+export default app;
 
