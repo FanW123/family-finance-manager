@@ -177,17 +177,42 @@ const FinanceDashboard = () => {
     setLoading(true);
     try {
       // Load expenses
-      const expensesRes = await api.get(`/expenses?month=${selectedMonth}&year=${selectedYear}`);
-      setExpenses(expensesRes.data);
+      try {
+        const expensesRes = await api.get(`/expenses?month=${selectedMonth}&year=${selectedYear}`);
+        setExpenses(expensesRes.data);
+      } catch (error: any) {
+        console.error('Error loading expenses:', error);
+        if (error.response?.status === 401) {
+          alert('登录已过期，请重新登录');
+          window.location.href = '/auth';
+          return;
+        }
+        console.error('Expenses error details:', error.response?.data);
+      }
 
       // Load investments
-      const investmentsRes = await api.get('/investments');
-      setInvestments(investmentsRes.data);
+      try {
+        const investmentsRes = await api.get('/investments');
+        setInvestments(investmentsRes.data);
+      } catch (error: any) {
+        console.error('Error loading investments:', error);
+        if (error.response?.status === 401) {
+          alert('登录已过期，请重新登录');
+          window.location.href = '/auth';
+          return;
+        }
+        console.error('Investments error details:', error.response?.data);
+      }
 
       // Load target allocation
-      const targetRes = await api.get('/investments/target-allocation');
-      if (targetRes.data) {
-        setTargetAllocation(targetRes.data);
+      try {
+        const targetRes = await api.get('/investments/target-allocation');
+        if (targetRes.data) {
+          setTargetAllocation(targetRes.data);
+        }
+      } catch (error: any) {
+        console.error('Error loading target allocation:', error);
+        console.error('Target allocation error details:', error.response?.data);
       }
 
       // Load monthly income from localStorage (or could be from API)
@@ -205,8 +230,9 @@ const FinanceDashboard = () => {
       if (savedYears) {
         setRetirementYears(parseInt(savedYears));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading data:', error);
+      console.error('Error details:', error.response?.data);
     } finally {
       setLoading(false);
     }
@@ -336,12 +362,23 @@ const FinanceDashboard = () => {
       const amount = quantity * price;
       
       // Ensure name is not empty - use symbol or a default name based on type
-      const name = newInvestment.symbol || `${newInvestment.type === 'stocks' ? '股票' : newInvestment.type === 'bonds' ? '债券' : '现金'}投资`;
+      let investmentName = newInvestment.name;
+      if (!investmentName && newInvestment.symbol) {
+        investmentName = newInvestment.symbol;
+      } else if (!investmentName && newInvestment.type === 'stocks') {
+        investmentName = '股票投资';
+      } else if (!investmentName && newInvestment.type === 'bonds') {
+        investmentName = '债券投资';
+      } else if (!investmentName && newInvestment.type === 'crypto') {
+        investmentName = '加密货币投资';
+      } else if (!investmentName && newInvestment.type === 'cash') {
+        investmentName = '现金投资';
+      }
       
       await api.post('/investments', {
         type: newInvestment.type,
         symbol: newInvestment.symbol || null,
-        name: name, // Ensure name is never empty
+        name: investmentName,
         amount: amount,
         price: price,
         quantity: quantity,
@@ -360,9 +397,11 @@ const FinanceDashboard = () => {
       });
       setShowAddInvestment(false);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding investment:', error);
-      alert('添加投资失败');
+      console.error('Error details:', error.response?.data);
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message || '添加投资失败';
+      alert(`添加投资失败: ${errorMsg}`);
     }
   };
 
