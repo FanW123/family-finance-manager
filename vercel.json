@@ -1,14 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "cd client && npm install && npm run build",
-  "outputDirectory": "client/dist",
-  "installCommand": "npm install --ignore-scripts || npm install --ignore-scripts --no-optional",
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs20.x",
-      "includeFiles": "server/src/**"
-    }
-  },
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
   "rewrites": [
     {
       "source": "/api/(.*)",
