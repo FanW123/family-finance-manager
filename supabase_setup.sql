@@ -72,7 +72,15 @@ ALTER TABLE investments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE target_allocation ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
--- 8. 创建 RLS 策略 - Expenses
+-- 8. 删除已存在的策略（如果存在）- Expenses
+-- ============================================
+DROP POLICY IF EXISTS "Users can view own expenses" ON expenses;
+DROP POLICY IF EXISTS "Users can insert own expenses" ON expenses;
+DROP POLICY IF EXISTS "Users can update own expenses" ON expenses;
+DROP POLICY IF EXISTS "Users can delete own expenses" ON expenses;
+
+-- ============================================
+-- 9. 创建 RLS 策略 - Expenses
 -- ============================================
 CREATE POLICY "Users can view own expenses" ON expenses
   FOR SELECT USING (auth.uid() = user_id);
@@ -87,7 +95,15 @@ CREATE POLICY "Users can delete own expenses" ON expenses
   FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================
--- 9. 创建 RLS 策略 - Budgets
+-- 10. 删除已存在的策略（如果存在）- Budgets
+-- ============================================
+DROP POLICY IF EXISTS "Users can view own budgets" ON budgets;
+DROP POLICY IF EXISTS "Users can insert own budgets" ON budgets;
+DROP POLICY IF EXISTS "Users can update own budgets" ON budgets;
+DROP POLICY IF EXISTS "Users can delete own budgets" ON budgets;
+
+-- ============================================
+-- 11. 创建 RLS 策略 - Budgets
 -- ============================================
 CREATE POLICY "Users can view own budgets" ON budgets
   FOR SELECT USING (auth.uid() = user_id);
@@ -102,7 +118,15 @@ CREATE POLICY "Users can delete own budgets" ON budgets
   FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================
--- 10. 创建 RLS 策略 - Investments
+-- 12. 删除已存在的策略（如果存在）- Investments
+-- ============================================
+DROP POLICY IF EXISTS "Users can view own investments" ON investments;
+DROP POLICY IF EXISTS "Users can insert own investments" ON investments;
+DROP POLICY IF EXISTS "Users can update own investments" ON investments;
+DROP POLICY IF EXISTS "Users can delete own investments" ON investments;
+
+-- ============================================
+-- 13. 创建 RLS 策略 - Investments
 -- ============================================
 CREATE POLICY "Users can view own investments" ON investments
   FOR SELECT USING (auth.uid() = user_id);
@@ -117,7 +141,15 @@ CREATE POLICY "Users can delete own investments" ON investments
   FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================
--- 11. 创建 RLS 策略 - Target Allocation
+-- 14. 删除已存在的策略（如果存在）- Target Allocation
+-- ============================================
+DROP POLICY IF EXISTS "Users can view own target_allocation" ON target_allocation;
+DROP POLICY IF EXISTS "Users can insert own target_allocation" ON target_allocation;
+DROP POLICY IF EXISTS "Users can update own target_allocation" ON target_allocation;
+DROP POLICY IF EXISTS "Users can delete own target_allocation" ON target_allocation;
+
+-- ============================================
+-- 15. 创建 RLS 策略 - Target Allocation
 -- ============================================
 CREATE POLICY "Users can view own target_allocation" ON target_allocation
   FOR SELECT USING (auth.uid() = user_id);
