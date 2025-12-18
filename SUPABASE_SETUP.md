@@ -150,15 +150,31 @@ CREATE POLICY "Users can only delete their own expenses" ON expenses
 3. 将上面所有 `'YOUR-USER-ID-HERE'` 替换为你的 UUID
 4. 运行更新后的 SQL
 
-## 5. 配置环境变量
+## 5. 生成用户 ID (USER_ID)
+
+**重要！** 每个用户需要一个唯一的 UUID 来隔离数据。
+
+在 Supabase Dashboard → **SQL Editor** 中运行：
+
+```sql
+-- 生成一个 UUID
+SELECT gen_random_uuid();
+```
+
+**复制生成的 UUID**，例如：`a1b2c3d4-e5f6-7890-abcd-ef1234567890`
+
+这个 UUID 就是你的 `SUPABASE_USER_ID`，用于标识你的数据。
+
+## 6. 配置环境变量
 
 ### Vercel 环境变量
 
 在 Vercel Dashboard：
 1. 进入项目 → **Settings** → **Environment Variables**
 2. 添加以下变量（**注意：没有 VITE_ 前缀**）：
-   - `SUPABASE_URL` = 你的 Project URL
-   - `SUPABASE_ANON_KEY` = 你的 anon public key
+   - `SUPABASE_URL` = 你的 Project URL（例如：`https://xxxxx.supabase.co`）
+   - `SUPABASE_ANON_KEY` = 你的 anon public key（例如：`sb_publishable_...`）
+   - `SUPABASE_USER_ID` = 你刚才生成的 UUID（例如：`a1b2c3d4-e5f6-7890-abcd-ef1234567890`）
 3. 确保选择正确的环境（Production, Preview, Development）
 4. 点击 "Save"
 
@@ -169,14 +185,15 @@ CREATE POLICY "Users can only delete their own expenses" ON expenses
 ```env
 SUPABASE_URL=你的_Project_URL
 SUPABASE_ANON_KEY=你的_anon_key
+SUPABASE_USER_ID=你生成的_UUID
 ```
 
 **注意**: 
 - `.env` 文件已经在 `.gitignore` 中，不会被提交到 Git
-- 后端使用 `SUPABASE_URL` 和 `SUPABASE_ANON_KEY`（不是 `VITE_` 前缀）
+- 后端使用 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 和 `SUPABASE_USER_ID`（不是 `VITE_` 前缀）
 - 前端如果需要直接访问 Supabase，可以使用 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY`
 
-## 6. 部署检查清单
+## 7. 部署检查清单
 
 部署到 Vercel 前：
 
@@ -192,7 +209,7 @@ npm run preview
 cat .gitignore | grep .env
 ```
 
-## 7. 验证部署
+## 8. 验证部署
 
 部署完成后：
 
@@ -206,15 +223,21 @@ cat .gitignore | grep .env
 - ✅ 环境变量是否正确配置
 - ✅ Supabase 项目是否激活
 
-## 8. 常见问题
+## 9. 常见问题
 
 ### 问题：401 Unauthorized
 **解决**: 检查 RLS 策略是否正确设置，确保有允许操作的策略。
 
 ### 问题：环境变量未找到
 **解决**: 
-- 确认 Vercel 环境变量名称正确（`SUPABASE_URL` 和 `SUPABASE_ANON_KEY`）
+- 确认 Vercel 环境变量名称正确（`SUPABASE_URL`、`SUPABASE_ANON_KEY` 和 `SUPABASE_USER_ID`）
 - 确认已选择正确的环境（Production/Preview/Development）
+- 重新部署项目
+
+### 问题：USER_ID not configured
+**解决**: 
+- 确认已在 Vercel 和本地 `.env` 文件中设置了 `SUPABASE_USER_ID`
+- 确认 UUID 格式正确（例如：`a1b2c3d4-e5f6-7890-abcd-ef1234567890`）
 - 重新部署项目
 
 ### 问题：表不存在
