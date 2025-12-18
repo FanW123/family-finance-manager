@@ -66,23 +66,38 @@ router.get('/allocation', async (req, res) => {
 
 // Add investment
 router.post('/', (req, res) => {
-  const { type, symbol, name, amount, price, quantity, account, date } = req.body;
+  try {
+    const { type, symbol, name, amount, price, quantity, account, date } = req.body;
 
-  if (!type || !name || amount === undefined || !date) {
-    return res.status(400).json({ error: 'Type, name, amount, and date are required' });
+    console.log('Add investment request:', { type, symbol, name, amount, price, quantity, account, date });
+
+    if (!type || !name || amount === undefined || !date) {
+      console.error('Validation failed: missing required fields');
+      return res.status(400).json({ error: 'Type, name, amount, and date are required' });
+    }
+
+    if (!['stocks', 'bonds', 'cash', 'crypto'].includes(type)) {
+      console.error('Validation failed: invalid type', type);
+      return res.status(400).json({ error: 'Type must be stocks, bonds, cash, or crypto' });
+    }
+
+    const insert = db.prepare(`
+      INSERT INTO investments (type, symbol, name, amount, price, quantity, account, date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const result = insert.run(type, symbol || null, name, amount, price || null, quantity || null, account || null, date);
+    console.log('Investment added successfully:', result.lastInsertRowid);
+    
+    res.json({ id: result.lastInsertRowid, message: 'Investment added successfully' });
+  } catch (error: any) {
+    console.error('Error adding investment:', error);
+    res.status(500).json({ 
+      error: 'Failed to add investment',
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
-
-  if (!['stocks', 'bonds', 'cash', 'crypto'].includes(type)) {
-    return res.status(400).json({ error: 'Type must be stocks, bonds, cash, or crypto' });
-  }
-
-  const insert = db.prepare(`
-    INSERT INTO investments (type, symbol, name, amount, price, quantity, account, date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const result = insert.run(type, symbol || null, name, amount, price || null, quantity || null, account || null, date);
-  res.json({ id: result.lastInsertRowid, message: 'Investment added successfully' });
 });
 
 // Get target allocation (must be before /:id route to avoid route conflict)
