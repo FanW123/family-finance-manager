@@ -2,7 +2,7 @@
   "version": 2,
   "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
-  "installCommand": "npm install --ignore-scripts=false",
+  "installCommand": "npm install --ignore-scripts || npm install --ignore-scripts --no-optional",
   "rewrites": [
     {
       "source": "/api/(.*)",
