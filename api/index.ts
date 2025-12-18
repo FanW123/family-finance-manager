@@ -831,5 +831,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Export for Vercel serverless function
+// Last deploy: 2025-12-17
 export default app;
 
