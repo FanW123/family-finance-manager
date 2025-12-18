@@ -1,5 +1,5 @@
 import express from 'express';
-import db from '../database.js';
+import supabase from '../database.js';
 import axios from 'axios';
 
 const router = express.Router();
@@ -8,11 +8,26 @@ const router = express.Router();
 router.get('/suggestions', async (req, res) => {
   try {
     // Get current allocation
-    const investments = db.prepare(`
-      SELECT type, SUM(amount) as total
-      FROM investments
-      GROUP BY type
-    `).all() as Array<{ type: string; total: number }>;
+    const { data: investmentsData, error: investmentsError } = await supabase
+      .from('investments')
+      .select('type, amount');
+
+    if (investmentsError) {
+      console.error('Error querying investments:', investmentsError);
+      return res.status(500).json({ error: 'Failed to query investments' });
+    }
+
+    // Group by type
+    const typeMap = new Map<string, number>();
+    investmentsData?.forEach(inv => {
+      const current = typeMap.get(inv.type) || 0;
+      typeMap.set(inv.type, current + inv.amount);
+    });
+
+    const investments = Array.from(typeMap.entries()).map(([type, total]) => ({
+      type,
+      total
+    }));
 
     const totalValue = investments.reduce((sum, inv) => sum + inv.total, 0);
 
@@ -24,7 +39,16 @@ router.get('/suggestions', async (req, res) => {
     }
 
     // Get target allocation
-    const targetAllocation = db.prepare('SELECT * FROM target_allocation').all() as Array<{
+    const { data: targetData, error: targetError } = await supabase
+      .from('target_allocation')
+      .select('*');
+
+    if (targetError) {
+      console.error('Error querying target allocation:', targetError);
+      return res.status(500).json({ error: 'Failed to query target allocation' });
+    }
+
+    const targetAllocation = (targetData || []) as Array<{
       type: string;
       percentage: number;
     }>;
