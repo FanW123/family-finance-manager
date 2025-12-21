@@ -1,0 +1,129 @@
+:root {
+  /* Background */
+  --bg-0: #05070D;
+  --bg-1: #070B14;
+
+  /* Surfaces */
+  --surface-1: #0B1220;
+  --surface-2: #0F1A2D;
+  --surface-3: #121F36;
+
+  /* Text */
+  --text-1: #EAF2FF;
+  --text-2: #A9B6D3;
+  --text-3: #6F7D9D;
+  --text-disabled: #4A5672;
+
+  /* Border */
+  --border-soft: rgba(170,195,255,0.14);
+  --border-strong: rgba(170,195,255,0.22);
+  --divider: rgba(170,195,255,0.10);
+
+  /* Primary (Tech Green) */
+  --primary-300: #7CFFD0;
+  --primary-500: #2EE59D;
+  --primary-600: #19C884;
+  --primary-900: #06271C;
+
+  /* CTA */
+  --cta-bg: var(--primary-500);
+  --cta-bg-hover: var(--primary-600);
+  --cta-text: #04110C;
+  --focus-ring: rgba(46,229,157,0.35);
+
+  /* Nebula accents (Charts / Highlights) */
+  --nebula-teal: #20D3C2;
+  --nebula-cyan: #58B8FF;
+  --nebula-violet: #A78BFA;
+  --nebula-amber: #F7C76A;
+  --nebula-rose: #FF6FAE;
+  --neutral-silver: #B9C4DD;
+
+  /* Semantic */
+  --success: #2EE59D;
+  --success-bg: rgba(46,229,157,0.12);
+  --success-border: rgba(46,229,157,0.28);
+
+  --warning: #F7C76A;
+  --warning-bg: rgba(247,199,106,0.12);
+  --warning-border: rgba(247,199,106,0.28);
+
+  --danger: #FF5A6A;
+  --danger-bg: rgba(255,90,106,0.12);
+  --danger-border: rgba(255,90,106,0.28);
+
+  --info: #58B8FF;
+  --info-bg: rgba(88,184,255,0.12);
+  --info-border: rgba(88,184,255,0.28);
+
+  /* Charts */
+  --chart-grid: rgba(170,195,255,0.10);
+  --chart-axis: rgba(170,195,255,0.18);
+  --chart-label: var(--text-2);
+
+  /* Fonts */
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Global Styles */
+body {
+  background: var(--bg-0);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+}
+
+/* Reusable Classes */
+.card {
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.card:hover {
+  border-color: var(--border-strong);
+  transition: border-color 0.2s ease;
+}
+
+.button-primary {
+  background: var(--cta-bg);
+  color: var(--cta-text);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button-primary:hover {
+  background: var(--cta-bg-hover);
+  transform: translateY(-1px);
+}
+
+.button-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.input {
+  background: var(--surface-1);
+  border: 1px solid var(--border-soft);
+  color: var(--text-1);
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.input::placeholder {
+  color: var(--text-3);
+}
+

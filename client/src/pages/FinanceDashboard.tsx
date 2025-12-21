@@ -2,20 +2,43 @@ import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import api from '../apiClient';
 
+// Use CSS variables from theme.css
 const COLORS = {
-  primary: '#1a1a2e',
-  secondary: '#16213e',
-  accent: '#0f3460',
-  highlight: '#e94560',
-  success: '#00d9ff',
-  warning: '#ffd369',
-  stocks: '#e94560',
-  bonds: '#00d9ff',
-  cash: '#ffd369',
-  background: '#0a0a14',
-  card: '#16213e',
-  text: '#eee',
-  textMuted: '#a0a0b0'
+  // Backgrounds
+  background: '#05070D',  // --bg-0
+  card: '#0F1A2D',        // --surface-2
+  cardHover: '#121F36',   // --surface-3
+  
+  // Text
+  text: '#EAF2FF',        // --text-1
+  textMuted: '#A9B6D3',   // --text-2
+  textDisabled: '#6F7D9D', // --text-3
+  
+  // Primary (Green accent)
+  primary: '#2EE59D',     // --primary-500
+  primaryHover: '#19C884', // --primary-600
+  primaryLight: '#7CFFD0', // --primary-300
+  
+  // Chart colors (Nebula series)
+  stocks: '#A78BFA',      // --nebula-violet (紫色 - 股票)
+  bonds: '#58B8FF',       // --nebula-cyan (青色 - 债券)
+  cash: '#F7C76A',        // --nebula-amber (琥珀色 - 现金)
+  crypto: '#20D3C2',      // --nebula-teal (青绿色 - 加密货币)
+  
+  // Semantic
+  success: '#2EE59D',     // --success
+  warning: '#F7C76A',     // --warning
+  danger: '#FF5A6A',      // --danger
+  info: '#58B8FF',        // --info
+  
+  // Borders
+  border: 'rgba(170,195,255,0.14)', // --border-soft
+  borderStrong: 'rgba(170,195,255,0.22)', // --border-strong
+  divider: 'rgba(170,195,255,0.10)', // --divider
+  
+  // Chart specific
+  chartGrid: 'rgba(170,195,255,0.10)',
+  chartAxis: 'rgba(170,195,255,0.18)',
 };
 
 // FIRE-focused expense categories
