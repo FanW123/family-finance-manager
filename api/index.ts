@@ -831,6 +831,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Export for Vercel serverless function
-// Vercel expects a request handler, not just the Express app
+// Deploy timestamp: 2025-12-18 00:00:00
 export default app;
 
