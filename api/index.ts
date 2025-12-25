@@ -24,25 +24,33 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function getUserFromRequest(req: Request): Promise<string | null> {
   try {
     const authHeader = req.headers.authorization;
+    console.log('[Auth] Checking authorization header:', authHeader ? 'Present' : 'Missing');
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('No authorization header found');
+      console.log('[Auth] No valid authorization header found');
       return null;
     }
 
     const token = authHeader.substring(7);
+    console.log('[Auth] Token extracted (first 20 chars):', token.substring(0, 20) + '...');
+    console.log('[Auth] Supabase URL configured:', supabaseUrl ? 'Yes' : 'No');
+    console.log('[Auth] Supabase Key configured:', supabaseKey ? 'Yes' : 'No');
 
     const { data, error } = await supabase.auth.getUser(token);
     if (error || !data.user) {
-      console.error('Error getting user from token:', {
+      console.error('[Auth] Error getting user from token:', {
         message: error?.message,
         status: error?.status,
+        name: error?.name,
+        hasUser: !!data?.user,
       });
       return null;
     }
 
+    console.log('[Auth] User authenticated successfully:', data.user.id);
     return data.user.id;
   } catch (error: any) {
-    console.error('Error getting user from token:', {
+    console.error('[Auth] Exception getting user from token:', {
       message: error.message,
       stack: error.stack,
     });
@@ -831,6 +839,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Export for Vercel serverless function
-// Deploy timestamp: 2025-12-18 00:00:00
+// Vercel expects a request handler, not just the Express app
 export default app;
 
