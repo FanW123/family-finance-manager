@@ -65,6 +65,11 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+// Request logger to debug routing on Vercel
+app.use((req, _res, next) => {
+  console.log('[REQ]', req.method, req.url);
+  next();
+});
 
 // Health check (no auth)
 app.get('/health', (req, res) => {
