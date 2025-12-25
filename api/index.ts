@@ -70,6 +70,17 @@ app.use((req, _res, next) => {
   console.log('[REQ]', req.method, req.url);
   next();
 });
+// Strip /api prefix when deployed under Vercel /api function
+app.use((req, _res, next) => {
+  if (req.url === '/api') {
+    console.log('[REQ] Rewriting /api -> /');
+    req.url = '/';
+  } else if (req.url.startsWith('/api/')) {
+    console.log('[REQ] Rewriting', req.url, '->', req.url.slice(4));
+    req.url = req.url.slice(4);
+  }
+  next();
+});
 
 // Health check (no auth)
 app.get('/health', (req, res) => {
