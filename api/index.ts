@@ -20,6 +20,11 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Helper: get per-request supabase client with user token for RLS
+function getSupabaseClient(req: Request) {
+  return (req as any).supabase || supabase;
+}
+
 // Helper: get user id from Authorization header (JWT from Supabase Auth)
 async function getUserFromRequest(req: Request): Promise<string | null> {
   try {
@@ -90,6 +95,9 @@ app.get('/health', (req, res) => {
 // Auth middleware
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
+    const token = req.headers.authorization?.startsWith('Bearer ')
+      ? req.headers.authorization.substring(7)
+      : '';
     const userId = await getUserFromRequest(req);
     if (!userId) {
       console.error('Authentication failed: No userId returned');
@@ -100,6 +108,14 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
       });
     }
     (req as any).userId = userId;
+    // Attach per-request supabase client with user token so RLS sees auth.uid()
+    (req as any).supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
     next();
   } catch (error: any) {
     console.error('Auth middleware error:', error);
@@ -121,7 +137,8 @@ app.get('/expenses', async (req, res) => {
     const userId = (req as any).userId;
     const { month, year, category } = req.query;
 
-    let query = supabase.from('expenses').select('*').eq('user_id', userId);
+    const sb = getSupabaseClient(req);
+    let query = sb.from('expenses').select('*').eq('user_id', userId);
 
     if (month && year) {
       const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -167,7 +184,8 @@ app.get('/expenses/summary', async (req, res) => {
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
 
-    const { data, error } = await supabase
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
       .from('expenses')
       .select('category, amount')
       .eq('user_id', userId)
@@ -216,7 +234,8 @@ app.post('/expenses', async (req, res) => {
       return res.status(400).json({ error: 'Amount, category, and date are required' });
     }
 
-    const { data, error } = await supabase
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
       .from('expenses')
       .insert([
         {
@@ -249,7 +268,8 @@ app.put('/expenses/:id', async (req, res) => {
     const { id } = req.params;
     const { amount, category, description, date } = req.body;
 
-    const { data, error } = await supabase
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
       .from('expenses')
       .update({
         amount,
@@ -284,7 +304,8 @@ app.delete('/expenses/:id', async (req, res) => {
     const userId = (req as any).userId;
     const { id } = req.params;
 
-    const { error } = await supabase
+    const sb = getSupabaseClient(req);
+    const { error } = await sb
       .from('expenses')
       .delete()
       .eq('id', id)
@@ -308,7 +329,8 @@ app.delete('/expenses/:id', async (req, res) => {
 app.get('/investments', async (req, res) => {
   try {
     const userId = (req as any).userId;
-    const { data, error } = await supabase
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
       .from('investments')
       .select('*')
       .eq('user_id', userId)
@@ -338,7 +360,8 @@ app.get('/investments', async (req, res) => {
 app.get('/investments/by-type', async (req, res) => {
   try {
     const userId = (req as any).userId;
-    const { data, error } = await supabase.from('investments').select('type, amount').eq('user_id', userId);
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb.from('investments').select('type, amount').eq('user_id', userId);
 
     if (error) {
       console.error('Error querying investments by type:', error);
@@ -372,7 +395,8 @@ app.get('/investments/by-type', async (req, res) => {
 app.get('/investments/allocation', async (req, res) => {
   try {
     const userId = (req as any).userId;
-    const { data, error } = await supabase.from('investments').select('type, amount').eq('user_id', userId);
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb.from('investments').select('type, amount').eq('user_id', userId);
 
     if (error) {
       console.error('Error querying investments:', error);
@@ -409,7 +433,7 @@ app.get('/investments/allocation', async (req, res) => {
       }
     });
 
-    const { data: targetData, error: targetError } = await supabase
+    const { data: targetData, error: targetError } = await sb
       .from('target_allocation')
       .select('*')
       .eq('user_id', userId);
@@ -453,7 +477,8 @@ app.post('/investments', async (req, res) => {
       return res.status(400).json({ error: 'Type must be stocks, bonds, cash, or crypto' });
     }
 
-    const { data, error } = await supabase
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
       .from('investments')
       .insert([
         {
@@ -500,7 +525,8 @@ app.put('/investments/:id', async (req, res) => {
     const { id } = req.params;
     const { type, symbol, name, amount, price, quantity, account, date } = req.body;
 
-    const { data, error } = await supabase
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
       .from('investments')
       .update({
         type,
@@ -540,7 +566,8 @@ app.delete('/investments/:id', async (req, res) => {
     const userId = (req as any).userId;
     const { id } = req.params;
 
-    const { error } = await supabase
+    const sb = getSupabaseClient(req);
+    const { error } = await sb
       .from('investments')
       .delete()
       .eq('id', id)
@@ -562,7 +589,8 @@ app.delete('/investments/:id', async (req, res) => {
 app.get('/investments/target-allocation', async (req, res) => {
   try {
     const userId = (req as any).userId;
-    const { data, error } = await supabase
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
       .from('target_allocation')
       .select('type, percentage')
       .eq('user_id', userId);
@@ -605,7 +633,8 @@ app.post('/investments/target-allocation', async (req, res) => {
       { user_id: userId, type: 'cash', percentage: cash },
     ];
 
-    const { error } = await supabase.from('target_allocation').upsert(allocations, {
+    const sb = getSupabaseClient(req);
+    const { error } = await sb.from('target_allocation').upsert(allocations, {
       onConflict: 'user_id,type',
     });
 
@@ -627,7 +656,8 @@ app.post('/investments/target-allocation', async (req, res) => {
 app.get('/rebalancing/suggestions', async (req, res) => {
   try {
     const userId = (req as any).userId;
-    const { data: investmentsData, error: investmentsError } = await supabase
+    const sb = getSupabaseClient(req);
+    const { data: investmentsData, error: investmentsError } = await sb
       .from('investments')
       .select('type, amount')
       .eq('user_id', userId);
@@ -657,7 +687,7 @@ app.get('/rebalancing/suggestions', async (req, res) => {
       });
     }
 
-    const { data: targetData, error: targetError } = await supabase
+    const { data: targetData, error: targetError } = await sb
       .from('target_allocation')
       .select('*')
       .eq('user_id', userId);
