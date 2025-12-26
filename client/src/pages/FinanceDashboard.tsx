@@ -1240,7 +1240,6 @@ const FinanceDashboard = () => {
                   })()}
                 </div>
               )}
-              </div>
 
             {/* Expense Breakdown Summary */}
             {totalExpenses > 0 && (
