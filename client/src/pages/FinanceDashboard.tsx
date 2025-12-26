@@ -197,6 +197,9 @@ const FinanceDashboard = () => {
     const saved = localStorage.getItem('cityPlan');
     return saved ? JSON.parse(saved) : [];
   });
+  const [customCity, setCustomCity] = useState('');
+  const [customCost, setCustomCost] = useState('');
+  const [customMonths, setCustomMonths] = useState('3');
   const [retirementExpenseAdjustments, setRetirementExpenseAdjustments] = useState(() => {
     // 从 localStorage 恢复退休支出调整数据
     const saved = localStorage.getItem('retirementExpenseAdjustments');
@@ -3774,30 +3777,18 @@ const FinanceDashboard = () => {
                     padding: '1.5rem',
                     marginBottom: '2rem'
                   }}>
-                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📋 当前规划</h3>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📋 当前规划 - 可直接编辑</h3>
                     <div style={{ marginBottom: '1rem' }}>
                       {cityPlan.map((city: any, idx: number) => (
                         <div key={idx} style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '0.75rem',
+                          padding: '1rem',
                           background: COLORS.card,
                           borderRadius: '0.5rem',
-                          marginBottom: '0.5rem'
+                          marginBottom: '0.75rem'
                         }}>
-                          <div style={{ flex: 1 }}>
+                          {/* City Name Header */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <div style={{ fontSize: '1rem', fontWeight: '600' }}>{city.city}</div>
-                            <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
-                              {city.months} 个月 × ¥{city.monthlyCost.toLocaleString()}/月 · {city.level === 'budget' ? '节俭生活' : city.level === 'comfortable' ? '舒适生活' : '富足生活'}
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.text }}>
-                                ¥{(city.monthlyCost * city.months).toLocaleString()}
-                              </div>
-                            </div>
                             <button
                               onClick={() => {
                                 const newPlan = cityPlan.filter((_: any, i: number) => i !== idx);
@@ -3817,6 +3808,108 @@ const FinanceDashboard = () => {
                             >
                               删除
                             </button>
+                          </div>
+
+                          {/* Editable Fields */}
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '1rem',
+                            marginBottom: '0.75rem'
+                          }}>
+                            {/* Month Cost Input */}
+                            <div>
+                              <label style={{ fontSize: '0.8rem', color: COLORS.textMuted, display: 'block', marginBottom: '0.5rem' }}>
+                                月成本：
+                              </label>
+                              <div style={{ position: 'relative' }}>
+                                <span style={{
+                                  position: 'absolute',
+                                  left: '0.75rem',
+                                  top: '50%',
+                                  transform: 'translateY(-50%)',
+                                  color: COLORS.textMuted,
+                                  fontSize: '0.9rem'
+                                }}>
+                                  ¥
+                                </span>
+                                <input
+                                  type="number"
+                                  value={city.monthlyCost}
+                                  onChange={(e) => {
+                                    const newPlan = [...cityPlan];
+                                    newPlan[idx].monthlyCost = parseInt(e.target.value) || 0;
+                                    setCityPlan(newPlan);
+                                    localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    padding: '0.75rem 0.75rem 0.75rem 2rem',
+                                    background: COLORS.accent,
+                                    border: `1px solid ${COLORS.accent}`,
+                                    borderRadius: '0.5rem',
+                                    color: COLORS.text,
+                                    fontSize: '1rem',
+                                    fontFamily: 'inherit',
+                                    fontWeight: '600'
+                                  }}
+                                />
+                              </div>
+                              <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                                参考值: {city.level === 'budget' ? '节俭' : city.level === 'comfortable' ? '舒适' : '富足'}
+                              </div>
+                            </div>
+
+                            {/* Months Input */}
+                            <div>
+                              <label style={{ fontSize: '0.8rem', color: COLORS.textMuted, display: 'block', marginBottom: '0.5rem' }}>
+                                居住月数：
+                              </label>
+                              <input
+                                type="number"
+                                min="1"
+                                max="12"
+                                value={city.months}
+                                onChange={(e) => {
+                                  const value = parseInt(e.target.value) || 1;
+                                  const newPlan = [...cityPlan];
+                                  newPlan[idx].months = Math.min(12, Math.max(1, value));
+                                  setCityPlan(newPlan);
+                                  localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '0.75rem',
+                                  background: COLORS.accent,
+                                  border: `1px solid ${COLORS.accent}`,
+                                  borderRadius: '0.5rem',
+                                  color: COLORS.text,
+                                  fontSize: '1rem',
+                                  fontFamily: 'inherit',
+                                  fontWeight: '600'
+                                }}
+                              />
+                              <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                                1-12 个月
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Total */}
+                          <div style={{
+                            padding: '0.75rem',
+                            background: `${COLORS.success}20`,
+                            borderRadius: '0.5rem',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                              {city.months} 个月 × ¥{city.monthlyCost.toLocaleString()}/月
+                            </span>
+                            <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.success }}>
+                              = ¥{(city.monthlyCost * city.months).toLocaleString()}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -3842,6 +3935,107 @@ const FinanceDashboard = () => {
                 <div>
                   <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.1rem' }}>➕ 添加城市</h3>
                   
+                  {/* Custom City Input */}
+                  <div style={{
+                    background: COLORS.accent,
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    marginBottom: '2rem',
+                    border: `2px dashed ${COLORS.success}40`
+                  }}>
+                    <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: COLORS.success }}>
+                      ✏️ 自定义城市
+                    </h4>
+                    <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '1rem' }}>
+                      添加数据库中没有的城市，或使用自己的生活成本数据
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.75rem' }}>
+                        <input
+                          type="text"
+                          placeholder="城市名称（如：台北）"
+                          value={customCity}
+                          onChange={(e) => setCustomCity(e.target.value)}
+                          style={{
+                            padding: '0.75rem',
+                            background: COLORS.card,
+                            border: `1px solid ${COLORS.accent}`,
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                        <input
+                          type="number"
+                          placeholder="月成本"
+                          value={customCost}
+                          onChange={(e) => setCustomCost(e.target.value)}
+                          style={{
+                            padding: '0.75rem',
+                            background: COLORS.card,
+                            border: `1px solid ${COLORS.accent}`,
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                        <input
+                          type="number"
+                          placeholder="月数"
+                          min="1"
+                          max="12"
+                          value={customMonths}
+                          onChange={(e) => setCustomMonths(e.target.value)}
+                          style={{
+                            padding: '0.75rem',
+                            background: COLORS.card,
+                            border: `1px solid ${COLORS.accent}`,
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit'
+                          }}
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (customCity && customCost && parseInt(customCost) > 0) {
+                            const newCity = {
+                              city: customCity,
+                              level: 'custom',
+                              monthlyCost: parseInt(customCost),
+                              months: parseInt(customMonths) || 3
+                            };
+                            const newPlan = [...cityPlan, newCity];
+                            setCityPlan(newPlan);
+                            localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                            // Reset form
+                            setCustomCity('');
+                            setCustomCost('');
+                            setCustomMonths('3');
+                          } else {
+                            alert('请填写完整的城市信息');
+                          }
+                        }}
+                        style={{
+                          background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                          border: 'none',
+                          color: 'white',
+                          padding: '0.75rem',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        + 添加自定义城市
+                      </button>
+                    </div>
+                  </div>
+
                   {Object.entries(CITY_COSTS).map(([region, cities]) => (
                     <div key={region} style={{ marginBottom: '2rem' }}>
                       <h4 style={{
@@ -3938,49 +4132,6 @@ const FinanceDashboard = () => {
                     </div>
                   ))}
                 </div>
-
-                {/* Month Adjustment Section */}
-                {cityPlan.length > 0 && (
-                  <div style={{
-                    marginTop: '2rem',
-                    padding: '1.5rem',
-                    background: COLORS.accent,
-                    borderRadius: '0.75rem'
-                  }}>
-                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>⏱️ 调整居住月数</h3>
-                    {cityPlan.map((city: any, idx: number) => (
-                      <div key={idx} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        marginBottom: '1rem',
-                        padding: '0.75rem',
-                        background: COLORS.card,
-                        borderRadius: '0.5rem'
-                      }}>
-                        <div style={{ flex: 1, fontSize: '0.9rem', fontWeight: '600' }}>
-                          {city.city}
-                        </div>
-                        <input
-                          type="range"
-                          min="1"
-                          max="12"
-                          value={city.months}
-                          onChange={(e) => {
-                            const newPlan = [...cityPlan];
-                            newPlan[idx].months = parseInt(e.target.value);
-                            setCityPlan(newPlan);
-                            localStorage.setItem('cityPlan', JSON.stringify(newPlan));
-                          }}
-                          style={{ flex: 2 }}
-                        />
-                        <span style={{ fontSize: '1rem', fontWeight: '700', minWidth: '80px', textAlign: 'right' }}>
-                          {city.months} 个月
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
 
                 {/* Action Buttons */}
                 <div style={{
