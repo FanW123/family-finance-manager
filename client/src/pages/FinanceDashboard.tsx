@@ -3768,6 +3768,83 @@ const FinanceDashboard = () => {
 
               {/* Content */}
               <div style={{ padding: '2rem' }}>
+                {/* Month Usage Summary */}
+                {(() => {
+                  const totalMonths = cityPlan.reduce((sum: number, city: any) => sum + city.months, 0);
+                  const remainingMonths = 12 - totalMonths;
+                  const isOverLimit = totalMonths > 12;
+                  
+                  return (
+                    <div style={{
+                      background: isOverLimit ? `${COLORS.highlight}20` : totalMonths === 12 ? `${COLORS.success}20` : `${COLORS.warning}20`,
+                      border: `2px solid ${isOverLimit ? COLORS.highlight : totalMonths === 12 ? COLORS.success : COLORS.warning}`,
+                      borderRadius: '0.75rem',
+                      padding: '1.5rem',
+                      marginBottom: '2rem'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
+                            {isOverLimit ? '⚠️ 月数超限' : totalMonths === 12 ? '✓ 已规划全年' : '📅 月份规划'}
+                          </h3>
+                          <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                            {isOverLimit ? '总月数不能超过 12 个月' : totalMonths === 12 ? '完美！已规划完整一年' : '可以继续添加城市'}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '2rem', fontWeight: '700', color: isOverLimit ? COLORS.highlight : COLORS.text }}>
+                            {totalMonths}/12
+                          </div>
+                          <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                            剩余 {remainingMonths} 个月
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      <div style={{
+                        background: COLORS.card,
+                        borderRadius: '0.5rem',
+                        height: '1.5rem',
+                        overflow: 'hidden',
+                        position: 'relative'
+                      }}>
+                        <div style={{
+                          background: isOverLimit 
+                            ? `linear-gradient(90deg, ${COLORS.highlight} 0%, ${COLORS.highlight}80 100%)`
+                            : totalMonths === 12
+                            ? `linear-gradient(90deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`
+                            : `linear-gradient(90deg, ${COLORS.warning} 0%, ${COLORS.success} 100%)`,
+                          height: '100%',
+                          width: `${Math.min((totalMonths / 12) * 100, 100)}%`,
+                          transition: 'width 0.3s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.8rem',
+                          fontWeight: '600',
+                          color: 'white'
+                        }}>
+                          {totalMonths > 0 && `${totalMonths} 个月`}
+                        </div>
+                      </div>
+                      
+                      {isOverLimit && (
+                        <div style={{
+                          marginTop: '1rem',
+                          padding: '0.75rem',
+                          background: `${COLORS.highlight}30`,
+                          borderRadius: '0.5rem',
+                          fontSize: '0.85rem',
+                          color: COLORS.text
+                        }}>
+                          💡 请删除或减少某些城市的月数，使总月数不超过 12 个月
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {/* Current Plan Summary */}
                 {cityPlan.length > 0 && (
                   <div style={{
@@ -3873,7 +3950,15 @@ const FinanceDashboard = () => {
                                 onChange={(e) => {
                                   const value = parseInt(e.target.value) || 1;
                                   const newPlan = [...cityPlan];
-                                  newPlan[idx].months = Math.min(12, Math.max(1, value));
+                                  const currentTotal = cityPlan.reduce((sum: number, c: any, i: number) => 
+                                    i === idx ? sum : sum + c.months, 0);
+                                  const maxAllowed = Math.min(12, 12 - currentTotal);
+                                  newPlan[idx].months = Math.min(maxAllowed, Math.max(1, value));
+                                  
+                                  if (value > maxAllowed) {
+                                    alert(`最多只能设置 ${maxAllowed} 个月（总月数不能超过 12）`);
+                                  }
+                                  
                                   setCityPlan(newPlan);
                                   localStorage.setItem('cityPlan', JSON.stringify(newPlan));
                                 }}
@@ -3948,6 +4033,22 @@ const FinanceDashboard = () => {
                     </h4>
                     <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '1rem' }}>
                       添加数据库中没有的城市，或使用自己的生活成本数据
+                      {(() => {
+                        const totalMonths = cityPlan.reduce((sum: number, city: any) => sum + city.months, 0);
+                        const remainingMonths = 12 - totalMonths;
+                        if (remainingMonths < 12) {
+                          return (
+                            <span style={{ 
+                              marginLeft: '0.5rem', 
+                              color: remainingMonths > 0 ? COLORS.warning : COLORS.highlight,
+                              fontWeight: '600'
+                            }}>
+                              （剩余 {remainingMonths} 个月可用）
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.75rem' }}>
@@ -4002,11 +4103,20 @@ const FinanceDashboard = () => {
                       <button
                         onClick={() => {
                           if (customCity && customCost && parseInt(customCost) > 0) {
+                            const currentTotal = cityPlan.reduce((sum: number, c: any) => sum + c.months, 0);
+                            const requestedMonths = parseInt(customMonths) || 3;
+                            
+                            if (currentTotal + requestedMonths > 12) {
+                              const remainingMonths = 12 - currentTotal;
+                              alert(`无法添加 ${requestedMonths} 个月，只剩余 ${remainingMonths} 个月可用。请调整月数或删除其他城市。`);
+                              return;
+                            }
+                            
                             const newCity = {
                               city: customCity,
                               level: 'custom',
                               monthlyCost: parseInt(customCost),
-                              months: parseInt(customMonths) || 3
+                              months: requestedMonths
                             };
                             const newPlan = [...cityPlan, newCity];
                             setCityPlan(newPlan);
@@ -4086,11 +4196,27 @@ const FinanceDashboard = () => {
                                 <button
                                   key={option.level}
                                   onClick={() => {
+                                    const currentTotal = cityPlan.reduce((sum: number, c: any) => sum + c.months, 0);
+                                    const defaultMonths = 3;
+                                    
+                                    if (currentTotal + defaultMonths > 12) {
+                                      const remainingMonths = 12 - currentTotal;
+                                      if (remainingMonths <= 0) {
+                                        alert('已规划满 12 个月，无法添加更多城市。请删除或减少其他城市的月数。');
+                                        return;
+                                      } else {
+                                        alert(`无法添加默认的 ${defaultMonths} 个月，只剩余 ${remainingMonths} 个月。将自动设置为 ${remainingMonths} 个月。`);
+                                      }
+                                    }
+                                    
+                                    const actualMonths = Math.min(defaultMonths, Math.max(0, 12 - currentTotal));
+                                    if (actualMonths <= 0) return;
+                                    
                                     const newCity = {
                                       city: city.name,
                                       level: option.level,
                                       monthlyCost: option.cost,
-                                      months: 3 // default 3 months
+                                      months: actualMonths
                                     };
                                     const newPlan = [...cityPlan, newCity];
                                     setCityPlan(newPlan);
