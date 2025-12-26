@@ -199,7 +199,7 @@ const FinanceDashboard = () => {
   });
   const [customCity, setCustomCity] = useState('');
   const [customCost, setCustomCost] = useState('');
-  const [customMonths, setCustomMonths] = useState('3');
+  const [customMonths, setCustomMonths] = useState('1');
   const [retirementExpenseAdjustments, setRetirementExpenseAdjustments] = useState(() => {
     // 从 localStorage 恢复退休支出调整数据
     const saved = localStorage.getItem('retirementExpenseAdjustments');
@@ -4104,7 +4104,7 @@ const FinanceDashboard = () => {
                         onClick={() => {
                           if (customCity && customCost && parseInt(customCost) > 0) {
                             const currentTotal = cityPlan.reduce((sum: number, c: any) => sum + c.months, 0);
-                            const requestedMonths = parseInt(customMonths) || 3;
+                            const requestedMonths = parseInt(customMonths) || 1;
                             
                             if (currentTotal + requestedMonths > 12) {
                               const remainingMonths = 12 - currentTotal;
@@ -4124,7 +4124,7 @@ const FinanceDashboard = () => {
                             // Reset form
                             setCustomCity('');
                             setCustomCost('');
-                            setCustomMonths('3');
+                            setCustomMonths('1');
                           } else {
                             alert('请填写完整的城市信息');
                           }
@@ -4197,7 +4197,7 @@ const FinanceDashboard = () => {
                                   key={option.level}
                                   onClick={() => {
                                     const currentTotal = cityPlan.reduce((sum: number, c: any) => sum + c.months, 0);
-                                    const defaultMonths = 3;
+                                    const defaultMonths = 1;
                                     
                                     if (currentTotal + defaultMonths > 12) {
                                       const remainingMonths = 12 - currentTotal;
