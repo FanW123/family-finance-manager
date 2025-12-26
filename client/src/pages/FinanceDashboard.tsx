@@ -18,6 +18,56 @@ const COLORS = {
   textMuted: '#a0a0b0'
 };
 
+// City living cost database (monthly cost in CNY for housing + basic living)
+const CITY_COSTS = {
+  '中国': [
+    { name: '北京', budget: 8000, comfortable: 15000, luxury: 25000 },
+    { name: '上海', budget: 8000, comfortable: 15000, luxury: 25000 },
+    { name: '深圳', budget: 7000, comfortable: 13000, luxury: 22000 },
+    { name: '广州', budget: 6000, comfortable: 11000, luxury: 18000 },
+    { name: '杭州', budget: 6000, comfortable: 11000, luxury: 18000 },
+    { name: '成都', budget: 4500, comfortable: 8000, luxury: 14000 },
+    { name: '重庆', budget: 4000, comfortable: 7500, luxury: 13000 },
+    { name: '西安', budget: 4000, comfortable: 7000, luxury: 12000 },
+    { name: '南京', budget: 5000, comfortable: 9000, luxury: 15000 },
+    { name: '武汉', budget: 4500, comfortable: 8000, luxury: 13000 },
+    { name: '大理', budget: 3500, comfortable: 6000, luxury: 10000 },
+    { name: '丽江', budget: 4000, comfortable: 6500, luxury: 11000 },
+    { name: '厦门', budget: 5500, comfortable: 10000, luxury: 16000 },
+    { name: '三亚', budget: 6000, comfortable: 12000, luxury: 20000 },
+    { name: '青岛', budget: 5000, comfortable: 9000, luxury: 15000 }
+  ],
+  '亚洲': [
+    { name: '东京', budget: 12000, comfortable: 20000, luxury: 35000 },
+    { name: '首尔', budget: 9000, comfortable: 15000, luxury: 25000 },
+    { name: '曼谷', budget: 5000, comfortable: 8000, luxury: 15000 },
+    { name: '清迈', budget: 4000, comfortable: 6500, luxury: 11000 },
+    { name: '巴厘岛', budget: 5000, comfortable: 8000, luxury: 14000 },
+    { name: '新加坡', budget: 12000, comfortable: 20000, luxury: 35000 },
+    { name: '吉隆坡', budget: 5000, comfortable: 8500, luxury: 15000 },
+    { name: '芭提雅', budget: 4500, comfortable: 7500, luxury: 13000 },
+    { name: '岘港', budget: 4000, comfortable: 6500, luxury: 11000 },
+    { name: '胡志明市', budget: 4500, comfortable: 7500, luxury: 13000 }
+  ],
+  '欧美': [
+    { name: '里斯本', budget: 10000, comfortable: 16000, luxury: 28000 },
+    { name: '波尔图', budget: 9000, comfortable: 14000, luxury: 24000 },
+    { name: '巴塞罗那', budget: 12000, comfortable: 20000, luxury: 35000 },
+    { name: '柏林', budget: 11000, comfortable: 18000, luxury: 30000 },
+    { name: '墨西哥城', budget: 7000, comfortable: 12000, luxury: 20000 },
+    { name: '布宜诺斯艾利斯', budget: 7000, comfortable: 12000, luxury: 20000 },
+    { name: '纽约', budget: 25000, comfortable: 40000, luxury: 70000 },
+    { name: '旧金山', budget: 28000, comfortable: 45000, luxury: 75000 },
+    { name: '伦敦', budget: 20000, comfortable: 35000, luxury: 60000 },
+    { name: '巴黎', budget: 15000, comfortable: 25000, luxury: 45000 }
+  ],
+  '其他': [
+    { name: '迪拜', budget: 15000, comfortable: 25000, luxury: 45000 },
+    { name: '悉尼', budget: 18000, comfortable: 30000, luxury: 50000 },
+    { name: '奥克兰', budget: 13000, comfortable: 22000, luxury: 38000 }
+  ]
+};
+
 // FIRE-focused expense categories
 const EXPENSE_CATEGORIES = {
   essential: {
@@ -142,13 +192,18 @@ const FinanceDashboard = () => {
   });
   const [showCashCalculator, setShowCashCalculator] = useState(false);
   const [showFireOptimization, setShowFireOptimization] = useState(false);
+  const [showCityPlanner, setShowCityPlanner] = useState(false);
+  const [cityPlan, setCityPlan] = useState(() => {
+    const saved = localStorage.getItem('cityPlan');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [retirementExpenseAdjustments, setRetirementExpenseAdjustments] = useState(() => {
     // 从 localStorage 恢复退休支出调整数据
     const saved = localStorage.getItem('retirementExpenseAdjustments');
     return saved ? JSON.parse(saved) : {
-      essential: { enabled: false, adjustmentPct: 0, customAmount: 0 },
-      workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0 }, // 默认工作相关支出退休后消失
-      discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0 }
+      essential: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false },
+      workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0, useCityPlanner: false }, // 默认工作相关支出退休后消失
+      discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false }
     };
   });
   const [cashAccounts, setCashAccounts] = useState(() => {
@@ -641,10 +696,14 @@ const FinanceDashboard = () => {
       const adj = retirementExpenseAdjustments[key as keyof typeof retirementExpenseAdjustments];
       
       if (adj && adj.enabled) {
-        // If current expense is 0, use custom amount; otherwise use percentage adjustment
-        if (current > 0) {
+        // For essential expenses with city planner enabled, use city plan total
+        if (key === 'essential' && adj.useCityPlanner && cityPlan.length > 0) {
+          optimizedTotal += cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0);
+        } else if (current > 0) {
+          // Use percentage adjustment
           optimizedTotal += current * (1 + adj.adjustmentPct / 100);
         } else {
+          // Use custom amount
           optimizedTotal += (adj.customAmount || 0);
         }
       } else {
@@ -3158,11 +3217,19 @@ const FinanceDashboard = () => {
                       const adj = retirementExpenseAdjustments[cat.key as keyof typeof retirementExpenseAdjustments];
                       const hasCurrentExpense = cat.current > 0;
                       
-                      // For categories with current expense, use percentage adjustment
-                      // For categories without data, use direct amount input
-                      const adjustedAmount = hasCurrentExpense 
-                        ? cat.current * (1 + adj.adjustmentPct / 100)
-                        : (adj.customAmount || 0);
+                      // Calculate adjusted amount based on method chosen
+                      let adjustedAmount = 0;
+                      
+                      if (cat.key === 'essential' && adj.useCityPlanner && cityPlan.length > 0) {
+                        // Use city planner total
+                        adjustedAmount = cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0);
+                      } else if (hasCurrentExpense) {
+                        // Use percentage adjustment
+                        adjustedAmount = cat.current * (1 + adj.adjustmentPct / 100);
+                      } else {
+                        // Use custom amount input
+                        adjustedAmount = adj.customAmount || 0;
+                      }
                       
                       return (
                         <div key={cat.key} style={{
@@ -3217,7 +3284,115 @@ const FinanceDashboard = () => {
 
                             {adj.enabled && (
                               <div>
-                                {hasCurrentExpense ? (
+                                {/* City Planner option for essential expenses */}
+                                {cat.key === 'essential' && (
+                                  <label style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    cursor: 'pointer',
+                                    marginBottom: '1rem',
+                                    background: adj.useCityPlanner ? `${COLORS.success}15` : 'transparent',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.5rem',
+                                    border: adj.useCityPlanner ? `1px solid ${COLORS.success}40` : '1px solid transparent'
+                                  }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={adj.useCityPlanner || false}
+                                      onChange={(e) => {
+                                        const newAdj = {
+                                          ...retirementExpenseAdjustments,
+                                          [cat.key]: { ...adj, useCityPlanner: e.target.checked }
+                                        };
+                                        setRetirementExpenseAdjustments(newAdj);
+                                        localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
+                                      }}
+                                      style={{ marginRight: '0.5rem', width: '18px', height: '18px', cursor: 'pointer' }}
+                                    />
+                                    <span style={{ fontSize: '0.9rem', flex: 1 }}>🌍 使用城市规划器（全球旅居）</span>
+                                    {adj.useCityPlanner && cityPlan.length > 0 && (
+                                      <span style={{ fontSize: '0.85rem', color: COLORS.success, fontWeight: '600' }}>
+                                        {cityPlan.length} 个城市
+                                      </span>
+                                    )}
+                                  </label>
+                                )}
+
+                                {cat.key === 'essential' && adj.useCityPlanner ? (
+                                  // City Planner UI
+                                  <div style={{
+                                    background: COLORS.card,
+                                    borderRadius: '0.5rem',
+                                    padding: '1rem',
+                                    marginTop: '1rem'
+                                  }}>
+                                    <button
+                                      onClick={() => setShowCityPlanner(true)}
+                                      style={{
+                                        width: '100%',
+                                        background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                                        border: 'none',
+                                        color: 'white',
+                                        padding: '0.875rem',
+                                        borderRadius: '0.5rem',
+                                        fontSize: '0.95rem',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        fontFamily: 'inherit',
+                                        marginBottom: cityPlan.length > 0 ? '1rem' : '0'
+                                      }}
+                                    >
+                                      {cityPlan.length > 0 ? '✏️ 编辑城市规划' : '+ 添加城市规划'}
+                                    </button>
+
+                                    {cityPlan.length > 0 && (
+                                      <div>
+                                        {cityPlan.map((city: any, idx: number) => (
+                                          <div key={idx} style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '0.75rem',
+                                            background: COLORS.accent,
+                                            borderRadius: '0.5rem',
+                                            marginBottom: '0.5rem'
+                                          }}>
+                                            <div style={{ flex: 1 }}>
+                                              <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>
+                                                {city.city}
+                                              </div>
+                                              <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                                                {city.months} 个月 × ¥{city.monthlyCost.toLocaleString()}/月
+                                              </div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                              <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                                {city.level === 'budget' ? '节俭' : city.level === 'comfortable' ? '舒适' : '富足'}
+                                              </div>
+                                              <div style={{ fontSize: '1rem', fontWeight: '700', color: COLORS.text }}>
+                                                ¥{(city.monthlyCost * city.months).toLocaleString()}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                        <div style={{
+                                          padding: '0.75rem',
+                                          background: `${COLORS.success}20`,
+                                          borderRadius: '0.5rem',
+                                          marginTop: '0.75rem',
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center'
+                                        }}>
+                                          <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>年度总计：</span>
+                                          <span style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.success }}>
+                                            ¥{adjustedAmount.toLocaleString()}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : hasCurrentExpense ? (
                                   // Percentage-based adjustment for categories with data
                                   <>
                                     <div style={{
@@ -3385,10 +3560,14 @@ const FinanceDashboard = () => {
                     const current = currentExpenses[key as keyof typeof currentExpenses];
                     const adj = retirementExpenseAdjustments[key as keyof typeof retirementExpenseAdjustments];
                     if (adj.enabled) {
-                      // If current expense is 0, use custom amount; otherwise use percentage adjustment
-                      if (current > 0) {
+                      // For essential expenses with city planner enabled, use city plan total
+                      if (key === 'essential' && adj.useCityPlanner && cityPlan.length > 0) {
+                        optimizedAnnualExpenses += cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0);
+                      } else if (current > 0) {
+                        // Use percentage adjustment
                         optimizedAnnualExpenses += current * (1 + adj.adjustmentPct / 100);
                       } else {
+                        // Use custom amount
                         optimizedAnnualExpenses += (adj.customAmount || 0);
                       }
                     } else {
@@ -3485,12 +3664,14 @@ const FinanceDashboard = () => {
                     onClick={() => {
                       // Reset to defaults
                       const defaultAdj = {
-                        essential: { enabled: false, adjustmentPct: 0, customAmount: 0 },
-                        workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0 },
-                        discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0 }
+                        essential: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false },
+                        workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0, useCityPlanner: false },
+                        discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false }
                       };
                       setRetirementExpenseAdjustments(defaultAdj);
                       localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(defaultAdj));
+                      setCityPlan([]);
+                      localStorage.setItem('cityPlan', JSON.stringify([]));
                     }}
                     style={{
                       flex: 1,
@@ -3522,6 +3703,328 @@ const FinanceDashboard = () => {
                     }}
                   >
                     保存设置
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* City Planner Modal */}
+        {showCityPlanner && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1001,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              maxWidth: '1000px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '2rem',
+                borderBottom: `1px solid ${COLORS.accent}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                position: 'sticky',
+                top: 0,
+                background: COLORS.card,
+                zIndex: 1
+              }}>
+                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>🌍 城市规划器 - 设计你的全球旅居方案</h2>
+                <button
+                  onClick={() => setShowCityPlanner(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: COLORS.textMuted,
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem',
+                    lineHeight: 1
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: '2rem' }}>
+                {/* Current Plan Summary */}
+                {cityPlan.length > 0 && (
+                  <div style={{
+                    background: `${COLORS.success}15`,
+                    border: `1px solid ${COLORS.success}40`,
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    marginBottom: '2rem'
+                  }}>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📋 当前规划</h3>
+                    <div style={{ marginBottom: '1rem' }}>
+                      {cityPlan.map((city: any, idx: number) => (
+                        <div key={idx} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          borderRadius: '0.5rem',
+                          marginBottom: '0.5rem'
+                        }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '1rem', fontWeight: '600' }}>{city.city}</div>
+                            <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                              {city.months} 个月 × ¥{city.monthlyCost.toLocaleString()}/月 · {city.level === 'budget' ? '节俭生活' : city.level === 'comfortable' ? '舒适生活' : '富足生活'}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.text }}>
+                                ¥{(city.monthlyCost * city.months).toLocaleString()}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const newPlan = cityPlan.filter((_: any, i: number) => i !== idx);
+                                setCityPlan(newPlan);
+                                localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                              }}
+                              style={{
+                                background: 'transparent',
+                                border: `1px solid ${COLORS.highlight}`,
+                                color: COLORS.highlight,
+                                padding: '0.5rem 0.75rem',
+                                borderRadius: '0.5rem',
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                fontFamily: 'inherit'
+                              }}
+                            >
+                              删除
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{
+                      padding: '1rem',
+                      background: COLORS.card,
+                      borderRadius: '0.5rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      borderTop: `2px solid ${COLORS.success}`
+                    }}>
+                      <span style={{ fontSize: '1rem', fontWeight: '600' }}>年度总计：</span>
+                      <span style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.success }}>
+                        ¥{cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* City Selection */}
+                <div>
+                  <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.1rem' }}>➕ 添加城市</h3>
+                  
+                  {Object.entries(CITY_COSTS).map(([region, cities]) => (
+                    <div key={region} style={{ marginBottom: '2rem' }}>
+                      <h4 style={{
+                        margin: '0 0 1rem 0',
+                        fontSize: '1rem',
+                        color: COLORS.success,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}>
+                        <span>{region === '中国' ? '🇨🇳' : region === '亚洲' ? '🌏' : region === '欧美' ? '🌎' : '🌍'}</span>
+                        <span>{region}</span>
+                      </h4>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                        gap: '1rem'
+                      }}>
+                        {cities.map((city: any) => (
+                          <div key={city.name} style={{
+                            background: COLORS.accent,
+                            borderRadius: '0.75rem',
+                            padding: '1rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            border: `1px solid ${COLORS.accent}`
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.border = `1px solid ${COLORS.success}`;
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.border = `1px solid ${COLORS.accent}`;
+                            e.currentTarget.style.transform = 'translateY(0)';
+                          }}>
+                            <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem' }}>
+                              {city.name}
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
+                              选择生活水平：
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                              {[
+                                { level: 'budget', label: '节俭', cost: city.budget, color: COLORS.bonds },
+                                { level: 'comfortable', label: '舒适', cost: city.comfortable, color: COLORS.success },
+                                { level: 'luxury', label: '富足', cost: city.luxury, color: COLORS.warning }
+                              ].map(option => (
+                                <button
+                                  key={option.level}
+                                  onClick={() => {
+                                    const newCity = {
+                                      city: city.name,
+                                      level: option.level,
+                                      monthlyCost: option.cost,
+                                      months: 3 // default 3 months
+                                    };
+                                    const newPlan = [...cityPlan, newCity];
+                                    setCityPlan(newPlan);
+                                    localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                                  }}
+                                  style={{
+                                    background: COLORS.card,
+                                    border: `1px solid ${option.color}40`,
+                                    color: COLORS.text,
+                                    padding: '0.5rem',
+                                    borderRadius: '0.5rem',
+                                    fontSize: '0.85rem',
+                                    cursor: 'pointer',
+                                    fontFamily: 'inherit',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    transition: 'all 0.2s ease'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = `${option.color}20`;
+                                    e.currentTarget.style.borderColor = option.color;
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = COLORS.card;
+                                    e.currentTarget.style.borderColor = `${option.color}40`;
+                                  }}
+                                >
+                                  <span>{option.label}</span>
+                                  <span style={{ fontWeight: '600', color: option.color }}>
+                                    ¥{option.cost.toLocaleString()}/月
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Month Adjustment Section */}
+                {cityPlan.length > 0 && (
+                  <div style={{
+                    marginTop: '2rem',
+                    padding: '1.5rem',
+                    background: COLORS.accent,
+                    borderRadius: '0.75rem'
+                  }}>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>⏱️ 调整居住月数</h3>
+                    {cityPlan.map((city: any, idx: number) => (
+                      <div key={idx} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        marginBottom: '1rem',
+                        padding: '0.75rem',
+                        background: COLORS.card,
+                        borderRadius: '0.5rem'
+                      }}>
+                        <div style={{ flex: 1, fontSize: '0.9rem', fontWeight: '600' }}>
+                          {city.city}
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="12"
+                          value={city.months}
+                          onChange={(e) => {
+                            const newPlan = [...cityPlan];
+                            newPlan[idx].months = parseInt(e.target.value);
+                            setCityPlan(newPlan);
+                            localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                          }}
+                          style={{ flex: 2 }}
+                        />
+                        <span style={{ fontSize: '1rem', fontWeight: '700', minWidth: '80px', textAlign: 'right' }}>
+                          {city.months} 个月
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  marginTop: '2rem',
+                  paddingTop: '2rem',
+                  borderTop: `1px solid ${COLORS.accent}`
+                }}>
+                  <button
+                    onClick={() => {
+                      setCityPlan([]);
+                      localStorage.setItem('cityPlan', JSON.stringify([]));
+                    }}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: `1px solid ${COLORS.textMuted}`,
+                      color: COLORS.textMuted,
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    清空规划
+                  </button>
+                  <button
+                    onClick={() => setShowCityPlanner(false)}
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                      border: 'none',
+                      color: 'white',
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    完成
                   </button>
                 </div>
               </div>
