@@ -601,8 +601,30 @@ const FinanceDashboard = () => {
   const retirementExpenses = essentialExpenses + discretionaryExpenses;
   const savingsRate = monthlyIncome > 0 ? ((savingsInvestment / monthlyIncome) * 100) : 0;
 
+  // Calculate FIRE target based on last 12 months actual expenses
+  const getLast12MonthsExpenses = () => {
+    const now = new Date();
+    let totalExpenses = 0;
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthData = monthlyAggregation[monthKey];
+      
+      if (monthData && monthData.byGroup) {
+        // Only count essential and discretionary expenses for retirement (exclude work-related)
+        totalExpenses += (monthData.byGroup.essential || 0) + (monthData.byGroup.discretionary || 0);
+      }
+    }
+    
+    return totalExpenses;
+  };
+
+  const last12MonthsExpenses = getLast12MonthsExpenses();
+  const annualExpenses = last12MonthsExpenses; // Already 12 months total
+  
   const currentWithdrawalRate = fireMultiplier > 0 ? (100 / fireMultiplier) : 0;
-  const fireNumber = retirementExpenses * 12 * fireMultiplier;
+  const fireNumber = last12MonthsExpenses > 0 ? last12MonthsExpenses * fireMultiplier : retirementExpenses * 12 * fireMultiplier;
 
   // Calculate portfolio metrics
   // Calculate portfolio from investments (excluding cash)
@@ -927,18 +949,41 @@ const FinanceDashboard = () => {
               marginBottom: '2rem',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
             }}>
-              <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>FIRE 进度追踪</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.3rem' }}>🎯 FIRE 进度</h3>
+                <button 
+                  onClick={() => alert('目标优化功能即将推出！')}
+                  style={{
+                    background: 'transparent',
+                    border: `1px solid ${COLORS.success}`,
+                    color: COLORS.success,
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = `${COLORS.success}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  🎛️ 优化我的目标
+                </button>
+              </div>
               
               {/* Current Portfolio vs FIRE Number */}
-              <div style={{ marginBottom: '2rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>当前总资产</span>
-                  <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>FIRE目标</span>
+                  <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>FIRE 目标</span>
                 </div>
                 <div style={{
                   background: COLORS.accent,
                   borderRadius: '0.5rem',
-                  height: '2rem',
+                  height: '2.5rem',
                   position: 'relative',
                   overflow: 'hidden',
                   marginBottom: '0.5rem'
@@ -952,49 +997,68 @@ const FinanceDashboard = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: COLORS.text,
-                    fontWeight: '600',
-                    fontSize: '0.85rem'
+                    fontWeight: '700',
+                    fontSize: '1rem'
                   }}>
                     {totalPortfolio > 0 && `${((totalPortfolio / fireNumber) * 100).toFixed(1)}%`}
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: COLORS.textMuted }}>
-                  <span>¥{totalPortfolio.toLocaleString()}</span>
-                  <span>¥{fireNumber.toLocaleString()}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: '600' }}>
+                  <span style={{ color: COLORS.text }}>¥{totalPortfolio.toLocaleString()}</span>
+                  <span style={{ color: COLORS.warning }}>¥{fireNumber.toLocaleString()}</span>
                 </div>
-                {totalPortfolio >= fireNumber && (
-                  <div style={{
-                    marginTop: '1rem',
-                    padding: '1rem',
-                    background: `${COLORS.success}20`,
-                    border: `1px solid ${COLORS.success}`,
-                    borderRadius: '0.5rem',
-                    textAlign: 'center',
-                    fontSize: '1.1rem',
-                    fontWeight: '600',
-                    color: COLORS.success
-                  }}>
-                    🎉 恭喜！您已达到 FIRE 目标！
-                  </div>
-                )}
-                {totalPortfolio < fireNumber && (
-                  <div style={{
-                    marginTop: '1rem',
-                    padding: '1rem',
-                    background: `${COLORS.warning}20`,
-                    border: `1px solid ${COLORS.warning}`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.9rem'
-                  }}>
-                    <strong>距离 FIRE 目标还差:</strong> ¥{(fireNumber - totalPortfolio).toLocaleString()}
-                    {monthlyIncome > 0 && savingsRate > 0 && (
-                      <div style={{ marginTop: '0.5rem', color: COLORS.textMuted }}>
-                        按当前储蓄率，预计还需: {Math.ceil((fireNumber - totalPortfolio) / (monthlyIncome * savingsRate / 100))} 个月
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
+
+              {/* Insight based on 12-month expenses */}
+              <div style={{
+                background: `${COLORS.success}15`,
+                border: `1px solid ${COLORS.success}40`,
+                borderRadius: '0.5rem',
+                padding: '1rem',
+                marginBottom: '1rem',
+                fontSize: '0.85rem',
+                color: COLORS.textMuted
+              }}>
+                💡 基于你过去 12 个月的实际支出：
+                <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: COLORS.text }}>
+                  年支出 <strong style={{ color: COLORS.success }}>¥{annualExpenses.toLocaleString()}</strong> → FIRE 目标 <strong style={{ color: COLORS.warning }}>¥{fireNumber.toLocaleString()}</strong>
+                </div>
+              </div>
+              {/* Progress Status */}
+              {totalPortfolio >= fireNumber && (
+                <div style={{
+                  padding: '1.25rem',
+                  background: `${COLORS.success}20`,
+                  border: `2px solid ${COLORS.success}`,
+                  borderRadius: '0.75rem',
+                  textAlign: 'center',
+                  fontSize: '1.2rem',
+                  fontWeight: '700',
+                  color: COLORS.success
+                }}>
+                  🎉 恭喜！您已达到 FIRE 目标！
+                </div>
+              )}
+              {totalPortfolio < fireNumber && (
+                <div style={{
+                  padding: '1rem',
+                  background: `${COLORS.warning}10`,
+                  border: `1px solid ${COLORS.warning}40`,
+                  borderRadius: '0.5rem',
+                  fontSize: '0.9rem'
+                }}>
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <strong style={{ color: COLORS.warning }}>距离 FIRE 目标还差:</strong>{' '}
+                    <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.text }}>
+                      ¥{(fireNumber - totalPortfolio).toLocaleString()}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
+                    当前完成度：{((totalPortfolio / fireNumber) * 100).toFixed(1)}%
+                  </div>
+                </div>
+              )}
+            </div>
 
               {/* Expense Recommendations based on FIRE Progress */}
               {monthlyIncome > 0 && totalPortfolio < fireNumber && (
