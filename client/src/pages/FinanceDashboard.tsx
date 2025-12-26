@@ -611,10 +611,10 @@ const FinanceDashboard = () => {
   const retirementExpenses = essentialExpenses + discretionaryExpenses;
   const savingsRate = monthlyIncome > 0 ? ((savingsInvestment / monthlyIncome) * 100) : 0;
 
-  // Calculate FIRE target based on last 12 months actual expenses
-  const getLast12MonthsExpenses = () => {
+  // Calculate FIRE target based on last 12 months actual expenses with user adjustments
+  const getLast12MonthsExpensesByGroup = () => {
     const now = new Date();
-    let totalExpenses = 0;
+    const byGroup = { essential: 0, workRelated: 0, discretionary: 0 };
     
     for (let i = 0; i < 12; i++) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -622,16 +622,41 @@ const FinanceDashboard = () => {
       const monthData = monthlyAggregation[monthKey];
       
       if (monthData && monthData.byGroup) {
-        // Only count essential and discretionary expenses for retirement (exclude work-related)
-        totalExpenses += (monthData.byGroup.essential || 0) + (monthData.byGroup.discretionary || 0);
+        byGroup.essential += monthData.byGroup.essential || 0;
+        byGroup.workRelated += monthData.byGroup.workRelated || 0;
+        byGroup.discretionary += monthData.byGroup.discretionary || 0;
       }
     }
     
-    return totalExpenses;
+    return byGroup;
+  };
+
+  const getLast12MonthsExpenses = () => {
+    const expensesByGroup = getLast12MonthsExpensesByGroup();
+    let optimizedTotal = 0;
+    
+    // Apply user adjustments from retirementExpenseAdjustments
+    Object.keys(expensesByGroup).forEach(key => {
+      const current = expensesByGroup[key as keyof typeof expensesByGroup];
+      const adj = retirementExpenseAdjustments[key as keyof typeof retirementExpenseAdjustments];
+      
+      if (adj && adj.enabled) {
+        // If current expense is 0, use custom amount; otherwise use percentage adjustment
+        if (current > 0) {
+          optimizedTotal += current * (1 + adj.adjustmentPct / 100);
+        } else {
+          optimizedTotal += (adj.customAmount || 0);
+        }
+      } else {
+        optimizedTotal += current;
+      }
+    });
+    
+    return optimizedTotal;
   };
 
   const last12MonthsExpenses = getLast12MonthsExpenses();
-  const annualExpenses = last12MonthsExpenses; // Already 12 months total
+  const annualExpenses = last12MonthsExpenses; // Already 12 months total with adjustments applied
   
   const currentWithdrawalRate = fireMultiplier > 0 ? (100 / fireMultiplier) : 0;
   const fireNumber = last12MonthsExpenses > 0 ? last12MonthsExpenses * fireMultiplier : retirementExpenses * 12 * fireMultiplier;
