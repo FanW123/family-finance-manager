@@ -197,6 +197,10 @@ const FinanceDashboard = () => {
     const saved = localStorage.getItem('cityPlan');
     return saved ? JSON.parse(saved) : [];
   });
+  const [annualTravelCosts, setAnnualTravelCosts] = useState(() => {
+    const saved = localStorage.getItem('annualTravelCosts');
+    return saved ? JSON.parse(saved) : { flights: 0, visas: 0, insurance: 0 };
+  });
   const [customCity, setCustomCity] = useState('');
   const [customCost, setCustomCost] = useState('');
   const [customMonths, setCustomMonths] = useState('1');
@@ -720,8 +724,39 @@ const FinanceDashboard = () => {
   const last12MonthsExpenses = getLast12MonthsExpenses();
   const annualExpenses = last12MonthsExpenses; // Already 12 months total with adjustments applied
   
+  // Calculate optimized FIRE number based on user adjustments
+  const calculateOptimizedAnnualExpenses = () => {
+    const currentExpensesByGroup = getLast12MonthsExpensesByGroup();
+    let optimizedTotal = 0;
+    
+    Object.keys(currentExpensesByGroup).forEach(key => {
+      const current = currentExpensesByGroup[key as keyof typeof currentExpensesByGroup];
+      const adj = retirementExpenseAdjustments[key as keyof typeof retirementExpenseAdjustments];
+      
+      if (adj.enabled) {
+        // For essential expenses with city planner enabled, use city plan total + travel costs
+        if (key === 'essential' && adj.useCityPlanner && cityPlan.length > 0) {
+          const cityCosts = cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0);
+          const travelCosts = annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance;
+          optimizedTotal += cityCosts + travelCosts;
+        } else if (current > 0) {
+          // Use percentage adjustment
+          optimizedTotal += current * (1 + adj.adjustmentPct / 100);
+        } else {
+          // Use custom amount
+          optimizedTotal += (adj.customAmount || 0);
+        }
+      } else {
+        optimizedTotal += current;
+      }
+    });
+    
+    return optimizedTotal;
+  };
+  
+  const optimizedAnnualExpenses = calculateOptimizedAnnualExpenses();
   const currentWithdrawalRate = fireMultiplier > 0 ? (100 / fireMultiplier) : 0;
-  const fireNumber = last12MonthsExpenses > 0 ? last12MonthsExpenses * fireMultiplier : retirementExpenses * 12 * fireMultiplier;
+  const fireNumber = optimizedAnnualExpenses > 0 ? optimizedAnnualExpenses * fireMultiplier : last12MonthsExpenses * fireMultiplier;
 
   // Calculate portfolio metrics
   // Calculate portfolio from investments (excluding cash)
@@ -1116,10 +1151,48 @@ const FinanceDashboard = () => {
                 fontSize: '0.85rem',
                 color: COLORS.textMuted
               }}>
-                💡 基于你过去 12 个月的实际支出：
-                <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: COLORS.text }}>
-                  年支出 <strong style={{ color: COLORS.success }}>¥{annualExpenses.toLocaleString()}</strong> → FIRE 目标 <strong style={{ color: COLORS.warning }}>¥{fireNumber.toLocaleString()}</strong>
-                </div>
+                {(() => {
+                  const hasOptimization = optimizedAnnualExpenses !== last12MonthsExpenses;
+                  
+                  if (hasOptimization) {
+                    return (
+                      <>
+                        💡 已应用您的优化设置：
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: COLORS.text }}>
+                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <span style={{ textDecoration: 'line-through', color: COLORS.textMuted }}>
+                              ¥{last12MonthsExpenses.toLocaleString()}
+                            </span>
+                            <span>→</span>
+                            <span>
+                              退休年支出 <strong style={{ color: COLORS.success }}>¥{optimizedAnnualExpenses.toLocaleString()}</strong>
+                            </span>
+                          </div>
+                          <div style={{ marginTop: '0.5rem' }}>
+                            FIRE 目标 <strong style={{ color: COLORS.warning }}>¥{fireNumber.toLocaleString()}</strong>
+                          </div>
+                          {cityPlan.length > 0 && retirementExpenseAdjustments.essential.useCityPlanner && (
+                            <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: COLORS.textMuted }}>
+                              🌍 包含 {cityPlan.length} 个城市规划
+                              {(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance > 0) && 
+                                ` + 年度额外成本 ¥${(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance).toLocaleString()}`
+                              }
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    );
+                  } else {
+                    return (
+                      <>
+                        💡 基于你过去 12 个月的实际支出：
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: COLORS.text }}>
+                          年支出 <strong style={{ color: COLORS.success }}>¥{annualExpenses.toLocaleString()}</strong> → FIRE 目标 <strong style={{ color: COLORS.warning }}>¥{fireNumber.toLocaleString()}</strong>
+                        </div>
+                      </>
+                    );
+                  }
+                })()}
               </div>
               {/* Progress Status */}
               {totalPortfolio >= fireNumber && (
@@ -3563,9 +3636,11 @@ const FinanceDashboard = () => {
                     const current = currentExpenses[key as keyof typeof currentExpenses];
                     const adj = retirementExpenseAdjustments[key as keyof typeof retirementExpenseAdjustments];
                     if (adj.enabled) {
-                      // For essential expenses with city planner enabled, use city plan total
+                      // For essential expenses with city planner enabled, use city plan total + travel costs
                       if (key === 'essential' && adj.useCityPlanner && cityPlan.length > 0) {
-                        optimizedAnnualExpenses += cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0);
+                        const cityCosts = cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0);
+                        const travelCosts = annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance;
+                        optimizedAnnualExpenses += cityCosts + travelCosts;
                       } else if (current > 0) {
                         // Use percentage adjustment
                         optimizedAnnualExpenses += current * (1 + adj.adjustmentPct / 100);
@@ -4008,9 +4083,200 @@ const FinanceDashboard = () => {
                       alignItems: 'center',
                       borderTop: `2px solid ${COLORS.success}`
                     }}>
-                      <span style={{ fontSize: '1rem', fontWeight: '600' }}>年度总计：</span>
+                      <span style={{ fontSize: '1rem', fontWeight: '600' }}>城市生活成本：</span>
                       <span style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.success }}>
                         ¥{cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0).toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    {/* Annual Travel Costs */}
+                    <div style={{
+                      marginTop: '1.5rem',
+                      padding: '1.5rem',
+                      background: `${COLORS.warning}15`,
+                      border: `2px dashed ${COLORS.warning}40`,
+                      borderRadius: '0.75rem'
+                    }}>
+                      <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>✈️</span>
+                        <span>年度额外成本</span>
+                        <span style={{ fontSize: '0.8rem', color: COLORS.textMuted, fontWeight: 'normal' }}>（可选）</span>
+                      </h4>
+                      <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                        城市生活成本不包含以下项目，请根据您的旅居计划填写：
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {/* Flights */}
+                        <div style={{
+                          background: COLORS.card,
+                          padding: '1rem',
+                          borderRadius: '0.5rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '1rem'
+                        }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem' }}>🛫 城市间交通（机票/火车）</div>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>
+                              {cityPlan.length > 1 ? `您规划了 ${cityPlan.length} 个城市，需要 ${cityPlan.length - 1}+ 次城市间交通` : '建议预留往返交通费用'}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>¥</span>
+                            <input
+                              type="number"
+                              placeholder="0"
+                              value={annualTravelCosts.flights || ''}
+                              onChange={(e) => {
+                                const newCosts = { ...annualTravelCosts, flights: parseInt(e.target.value) || 0 };
+                                setAnnualTravelCosts(newCosts);
+                                localStorage.setItem('annualTravelCosts', JSON.stringify(newCosts));
+                              }}
+                              style={{
+                                width: '120px',
+                                padding: '0.5rem',
+                                background: COLORS.accent,
+                                border: `1px solid ${COLORS.warning}40`,
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '0.9rem',
+                                fontFamily: 'inherit',
+                                textAlign: 'right'
+                              }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Visas */}
+                        <div style={{
+                          background: COLORS.card,
+                          padding: '1rem',
+                          borderRadius: '0.5rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '1rem'
+                        }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem' }}>📋 签证费用</div>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>
+                              包含签证申请费、照片、文件翻译等
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>¥</span>
+                            <input
+                              type="number"
+                              placeholder="0"
+                              value={annualTravelCosts.visas || ''}
+                              onChange={(e) => {
+                                const newCosts = { ...annualTravelCosts, visas: parseInt(e.target.value) || 0 };
+                                setAnnualTravelCosts(newCosts);
+                                localStorage.setItem('annualTravelCosts', JSON.stringify(newCosts));
+                              }}
+                              style={{
+                                width: '120px',
+                                padding: '0.5rem',
+                                background: COLORS.accent,
+                                border: `1px solid ${COLORS.warning}40`,
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '0.9rem',
+                                fontFamily: 'inherit',
+                                textAlign: 'right'
+                              }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Insurance */}
+                        <div style={{
+                          background: COLORS.card,
+                          padding: '1rem',
+                          borderRadius: '0.5rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '1rem'
+                        }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.25rem' }}>🛡️ 旅行保险</div>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>
+                              医疗、意外、财产等旅行保险费用
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>¥</span>
+                            <input
+                              type="number"
+                              placeholder="0"
+                              value={annualTravelCosts.insurance || ''}
+                              onChange={(e) => {
+                                const newCosts = { ...annualTravelCosts, insurance: parseInt(e.target.value) || 0 };
+                                setAnnualTravelCosts(newCosts);
+                                localStorage.setItem('annualTravelCosts', JSON.stringify(newCosts));
+                              }}
+                              style={{
+                                width: '120px',
+                                padding: '0.5rem',
+                                background: COLORS.accent,
+                                border: `1px solid ${COLORS.warning}40`,
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '0.9rem',
+                                fontFamily: 'inherit',
+                                textAlign: 'right'
+                              }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Subtotal */}
+                        {(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance > 0) && (
+                          <div style={{
+                            padding: '0.75rem 1rem',
+                            background: `${COLORS.warning}30`,
+                            borderRadius: '0.5rem',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            borderTop: `2px solid ${COLORS.warning}`
+                          }}>
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>额外成本小计：</span>
+                            <span style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.warning }}>
+                              ¥{(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Grand Total */}
+                    <div style={{
+                      marginTop: '1.5rem',
+                      padding: '1.5rem',
+                      background: `linear-gradient(135deg, ${COLORS.success}20 0%, ${COLORS.highlight}20 100%)`,
+                      border: `3px solid ${COLORS.success}`,
+                      borderRadius: '0.75rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: '700' }}>🎯 年度总计</div>
+                        <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                          城市生活 + 额外成本
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.success }}>
+                        ¥{(
+                          cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0) +
+                          annualTravelCosts.flights + 
+                          annualTravelCosts.visas + 
+                          annualTravelCosts.insurance
+                        ).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -4189,9 +4455,27 @@ const FinanceDashboard = () => {
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                               {[
-                                { level: 'budget', label: '节俭', cost: city.budget, color: COLORS.bonds },
-                                { level: 'comfortable', label: '舒适', cost: city.comfortable, color: COLORS.success },
-                                { level: 'luxury', label: '富足', cost: city.luxury, color: COLORS.warning }
+                                { 
+                                  level: 'budget', 
+                                  label: '节俭', 
+                                  cost: city.budget, 
+                                  color: COLORS.bonds,
+                                  description: '合租/青旅，自己做饭为主(周1-2次外食)，公共交通，基础娱乐'
+                                },
+                                { 
+                                  level: 'comfortable', 
+                                  label: '舒适', 
+                                  cost: city.comfortable, 
+                                  color: COLORS.success,
+                                  description: '独立公寓/Airbnb，做饭+外食各半(周3-4次)，公共交通+偶尔打车，常规娱乐'
+                                },
+                                { 
+                                  level: 'luxury', 
+                                  label: '富足', 
+                                  cost: city.luxury, 
+                                  color: COLORS.warning,
+                                  description: '高品质公寓，经常外食(周5-6次)，打车为主，丰富娱乐'
+                                }
                               ].map(option => (
                                 <button
                                   key={option.level}
@@ -4226,15 +4510,17 @@ const FinanceDashboard = () => {
                                     background: COLORS.card,
                                     border: `1px solid ${option.color}40`,
                                     color: COLORS.text,
-                                    padding: '0.5rem',
+                                    padding: '0.75rem',
                                     borderRadius: '0.5rem',
                                     fontSize: '0.85rem',
                                     cursor: 'pointer',
                                     fontFamily: 'inherit',
                                     display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    transition: 'all 0.2s ease'
+                                    flexDirection: 'column',
+                                    alignItems: 'stretch',
+                                    gap: '0.5rem',
+                                    transition: 'all 0.2s ease',
+                                    textAlign: 'left'
                                   }}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.style.background = `${option.color}20`;
@@ -4245,10 +4531,24 @@ const FinanceDashboard = () => {
                                     e.currentTarget.style.borderColor = `${option.color}40`;
                                   }}
                                 >
-                                  <span>{option.label}</span>
-                                  <span style={{ fontWeight: '600', color: option.color }}>
-                                    ¥{option.cost.toLocaleString()}/月
-                                  </span>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontWeight: '600' }}>{option.label}</span>
+                                    <span style={{ fontWeight: '700', color: option.color }}>
+                                      ¥{option.cost.toLocaleString()}/月
+                                    </span>
+                                  </div>
+                                  <div style={{ 
+                                    fontSize: '0.75rem', 
+                                    color: COLORS.textMuted, 
+                                    lineHeight: '1.4',
+                                    paddingTop: '0.25rem',
+                                    borderTop: `1px solid ${COLORS.accent}`
+                                  }}>
+                                    {option.description}
+                                  </div>
+                                  <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, fontStyle: 'italic' }}>
+                                    ⚠️ 不含：机票、签证费用
+                                  </div>
                                 </button>
                               ))}
                             </div>
