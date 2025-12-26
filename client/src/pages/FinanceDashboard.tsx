@@ -146,9 +146,9 @@ const FinanceDashboard = () => {
     // 从 localStorage 恢复退休支出调整数据
     const saved = localStorage.getItem('retirementExpenseAdjustments');
     return saved ? JSON.parse(saved) : {
-      essential: { enabled: false, adjustmentPct: 0 },
-      workRelated: { enabled: true, adjustmentPct: -100 }, // 默认工作相关支出退休后消失
-      discretionary: { enabled: false, adjustmentPct: 0 }
+      essential: { enabled: false, adjustmentPct: 0, customAmount: 0 },
+      workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0 }, // 默认工作相关支出退休后消失
+      discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0 }
     };
   });
   const [cashAccounts, setCashAccounts] = useState(() => {
@@ -3131,7 +3131,13 @@ const FinanceDashboard = () => {
                     
                     return categories.map(cat => {
                       const adj = retirementExpenseAdjustments[cat.key as keyof typeof retirementExpenseAdjustments];
-                      const adjustedAmount = cat.current * (1 + adj.adjustmentPct / 100);
+                      const hasCurrentExpense = cat.current > 0;
+                      
+                      // For categories with current expense, use percentage adjustment
+                      // For categories without data, use direct amount input
+                      const adjustedAmount = hasCurrentExpense 
+                        ? cat.current * (1 + adj.adjustmentPct / 100)
+                        : (adj.customAmount || 0);
                       
                       return (
                         <div key={cat.key} style={{
@@ -3151,8 +3157,9 @@ const FinanceDashboard = () => {
                               <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>
                                 {cat.label}
                               </div>
-                              <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                              <div style={{ fontSize: '0.85rem', color: hasCurrentExpense ? COLORS.textMuted : COLORS.warning }}>
                                 当前：¥{cat.current.toLocaleString()}/年
+                                {!hasCurrentExpense && <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem' }}>（暂无记录）</span>}
                               </div>
                               <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginTop: '0.25rem', fontStyle: 'italic' }}>
                                 {cat.examples}
@@ -3185,60 +3192,137 @@ const FinanceDashboard = () => {
 
                             {adj.enabled && (
                               <div>
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '1rem',
-                                  marginBottom: '0.75rem'
-                                }}>
-                                  <span style={{ fontSize: '0.9rem', minWidth: '80px' }}>调整幅度：</span>
-                                  <input
-                                    type="range"
-                                    min="-100"
-                                    max="100"
-                                    value={adj.adjustmentPct}
-                                    onChange={(e) => {
-                                      const newAdj = {
-                                        ...retirementExpenseAdjustments,
-                                        [cat.key]: { ...adj, adjustmentPct: parseInt(e.target.value) }
-                                      };
-                                      setRetirementExpenseAdjustments(newAdj);
-                                      localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
-                                    }}
-                                    style={{ flex: 1 }}
-                                  />
-                                  <span style={{
-                                    fontSize: '1.1rem',
-                                    fontWeight: '700',
-                                    minWidth: '60px',
-                                    textAlign: 'right',
-                                    color: adj.adjustmentPct < 0 ? COLORS.success : adj.adjustmentPct > 0 ? COLORS.highlight : COLORS.text
-                                  }}>
-                                    {adj.adjustmentPct > 0 ? '+' : ''}{adj.adjustmentPct}%
-                                  </span>
-                                </div>
+                                {hasCurrentExpense ? (
+                                  // Percentage-based adjustment for categories with data
+                                  <>
+                                    <div style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '1rem',
+                                      marginBottom: '0.75rem'
+                                    }}>
+                                      <span style={{ fontSize: '0.9rem', minWidth: '80px' }}>调整幅度：</span>
+                                      <input
+                                        type="range"
+                                        min="-100"
+                                        max="100"
+                                        value={adj.adjustmentPct}
+                                        onChange={(e) => {
+                                          const newAdj = {
+                                            ...retirementExpenseAdjustments,
+                                            [cat.key]: { ...adj, adjustmentPct: parseInt(e.target.value) }
+                                          };
+                                          setRetirementExpenseAdjustments(newAdj);
+                                          localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
+                                        }}
+                                        style={{ flex: 1 }}
+                                      />
+                                      <span style={{
+                                        fontSize: '1.1rem',
+                                        fontWeight: '700',
+                                        minWidth: '60px',
+                                        textAlign: 'right',
+                                        color: adj.adjustmentPct < 0 ? COLORS.success : adj.adjustmentPct > 0 ? COLORS.highlight : COLORS.text
+                                      }}>
+                                        {adj.adjustmentPct > 0 ? '+' : ''}{adj.adjustmentPct}%
+                                      </span>
+                                    </div>
 
-                                <div style={{
-                                  background: COLORS.card,
-                                  padding: '0.75rem',
-                                  borderRadius: '0.5rem',
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center'
-                                }}>
-                                  <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>退休后预估：</span>
-                                  <span style={{
-                                    fontSize: '1.2rem',
-                                    fontWeight: '700',
-                                    color: adjustedAmount < cat.current ? COLORS.success : adjustedAmount > cat.current ? COLORS.warning : COLORS.text
-                                  }}>
-                                    ¥{adjustedAmount.toLocaleString()}
-                                    <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: COLORS.textMuted }}>
-                                      ({adjustedAmount - cat.current > 0 ? '+' : ''}
-                                      ¥{(adjustedAmount - cat.current).toLocaleString()})
-                                    </span>
-                                  </span>
-                                </div>
+                                    <div style={{
+                                      background: COLORS.card,
+                                      padding: '0.75rem',
+                                      borderRadius: '0.5rem',
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center'
+                                    }}>
+                                      <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>退休后预估：</span>
+                                      <span style={{
+                                        fontSize: '1.2rem',
+                                        fontWeight: '700',
+                                        color: adjustedAmount < cat.current ? COLORS.success : adjustedAmount > cat.current ? COLORS.warning : COLORS.text
+                                      }}>
+                                        ¥{adjustedAmount.toLocaleString()}
+                                        <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: COLORS.textMuted }}>
+                                          ({adjustedAmount - cat.current > 0 ? '+' : ''}
+                                          ¥{(adjustedAmount - cat.current).toLocaleString()})
+                                        </span>
+                                      </span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  // Direct amount input for categories without data
+                                  <>
+                                    <div style={{
+                                      background: `${COLORS.warning}15`,
+                                      border: `1px solid ${COLORS.warning}40`,
+                                      borderRadius: '0.5rem',
+                                      padding: '0.75rem',
+                                      marginBottom: '0.75rem',
+                                      fontSize: '0.85rem',
+                                      color: COLORS.textMuted
+                                    }}>
+                                      💡 暂无历史记录，请直接输入退休后的预期年支出
+                                    </div>
+                                    <div style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '1rem',
+                                      marginBottom: '0.75rem'
+                                    }}>
+                                      <span style={{ fontSize: '0.9rem', minWidth: '80px' }}>预期支出：</span>
+                                      <div style={{ flex: 1, position: 'relative' }}>
+                                        <span style={{
+                                          position: 'absolute',
+                                          left: '0.75rem',
+                                          top: '50%',
+                                          transform: 'translateY(-50%)',
+                                          color: COLORS.textMuted,
+                                          fontSize: '1rem'
+                                        }}>
+                                          ¥
+                                        </span>
+                                        <input
+                                          type="number"
+                                          placeholder="0"
+                                          value={adj.customAmount || ''}
+                                          onChange={(e) => {
+                                            const value = parseInt(e.target.value) || 0;
+                                            const newAdj = {
+                                              ...retirementExpenseAdjustments,
+                                              [cat.key]: { ...adj, customAmount: value }
+                                            };
+                                            setRetirementExpenseAdjustments(newAdj);
+                                            localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
+                                          }}
+                                          style={{
+                                            width: '100%',
+                                            padding: '0.75rem 0.75rem 0.75rem 2rem',
+                                            background: COLORS.card,
+                                            border: `1px solid ${COLORS.accent}`,
+                                            borderRadius: '0.5rem',
+                                            color: COLORS.text,
+                                            fontSize: '1rem',
+                                            fontFamily: 'inherit'
+                                          }}
+                                        />
+                                      </div>
+                                      <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>/年</span>
+                                    </div>
+
+                                    {adjustedAmount > 0 && (
+                                      <div style={{
+                                        background: COLORS.card,
+                                        padding: '0.75rem',
+                                        borderRadius: '0.5rem',
+                                        fontSize: '0.85rem',
+                                        color: COLORS.success
+                                      }}>
+                                        ✓ 已设置退休后年支出：¥{adjustedAmount.toLocaleString()}
+                                      </div>
+                                    )}
+                                  </>
+                                )}
                               </div>
                             )}
                           </div>
@@ -3276,7 +3360,12 @@ const FinanceDashboard = () => {
                     const current = currentExpenses[key as keyof typeof currentExpenses];
                     const adj = retirementExpenseAdjustments[key as keyof typeof retirementExpenseAdjustments];
                     if (adj.enabled) {
-                      optimizedAnnualExpenses += current * (1 + adj.adjustmentPct / 100);
+                      // If current expense is 0, use custom amount; otherwise use percentage adjustment
+                      if (current > 0) {
+                        optimizedAnnualExpenses += current * (1 + adj.adjustmentPct / 100);
+                      } else {
+                        optimizedAnnualExpenses += (adj.customAmount || 0);
+                      }
                     } else {
                       optimizedAnnualExpenses += current;
                     }
@@ -3371,9 +3460,9 @@ const FinanceDashboard = () => {
                     onClick={() => {
                       // Reset to defaults
                       const defaultAdj = {
-                        essential: { enabled: false, adjustmentPct: 0 },
-                        workRelated: { enabled: true, adjustmentPct: -100 },
-                        discretionary: { enabled: false, adjustmentPct: 0 }
+                        essential: { enabled: false, adjustmentPct: 0, customAmount: 0 },
+                        workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0 },
+                        discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0 }
                       };
                       setRetirementExpenseAdjustments(defaultAdj);
                       localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(defaultAdj));
