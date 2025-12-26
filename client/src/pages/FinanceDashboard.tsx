@@ -141,6 +141,16 @@ const FinanceDashboard = () => {
     date: '',
   });
   const [showCashCalculator, setShowCashCalculator] = useState(false);
+  const [showFireOptimization, setShowFireOptimization] = useState(false);
+  const [retirementExpenseAdjustments, setRetirementExpenseAdjustments] = useState(() => {
+    // 从 localStorage 恢复退休支出调整数据
+    const saved = localStorage.getItem('retirementExpenseAdjustments');
+    return saved ? JSON.parse(saved) : {
+      essential: { enabled: false, adjustmentPct: 0 },
+      workRelated: { enabled: true, adjustmentPct: -100 }, // 默认工作相关支出退休后消失
+      discretionary: { enabled: false, adjustmentPct: 0 }
+    };
+  });
   const [cashAccounts, setCashAccounts] = useState(() => {
     // 从 localStorage 恢复现金账户数据
     const savedAccounts = localStorage.getItem('cashAccounts');
@@ -952,7 +962,7 @@ const FinanceDashboard = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h3 style={{ margin: 0, fontSize: '1.3rem' }}>🎯 FIRE 总览</h3>
                 <button 
-                  onClick={() => alert('目标优化功能即将推出！')}
+                  onClick={() => setShowFireOptimization(true)}
                   style={{
                     background: 'transparent',
                     border: `1px solid ${COLORS.success}`,
@@ -2915,6 +2925,492 @@ const FinanceDashboard = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* FIRE Optimization Modal */}
+        {showFireOptimization && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '2rem',
+                borderBottom: `1px solid ${COLORS.accent}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                position: 'sticky',
+                top: 0,
+                background: COLORS.card,
+                zIndex: 1
+              }}>
+                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>🎛️ 优化你的 FIRE 目标</h2>
+                <button
+                  onClick={() => setShowFireOptimization(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: COLORS.textMuted,
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem',
+                    lineHeight: 1
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: '2rem' }}>
+                {/* Current Baseline */}
+                <div style={{
+                  background: `${COLORS.accent}80`,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  marginBottom: '2rem'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📊 基准数据（过去 12 个月）</h3>
+                  <div style={{ fontSize: '0.95rem', color: COLORS.textMuted }}>
+                    年支出：<strong style={{ color: COLORS.text, fontSize: '1.2rem' }}>¥{annualExpenses.toLocaleString()}</strong>
+                  </div>
+                  
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '1rem',
+                    marginTop: '1rem'
+                  }}>
+                    {(() => {
+                      const getLast12MonthsByGroup = () => {
+                        const now = new Date();
+                        const byGroup = { essential: 0, workRelated: 0, discretionary: 0 };
+                        
+                        for (let i = 0; i < 12; i++) {
+                          const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                          const monthData = monthlyAggregation[monthKey];
+                          
+                          if (monthData && monthData.byGroup) {
+                            byGroup.essential += monthData.byGroup.essential || 0;
+                            byGroup.workRelated += monthData.byGroup.workRelated || 0;
+                            byGroup.discretionary += monthData.byGroup.discretionary || 0;
+                          }
+                        }
+                        
+                        return byGroup;
+                      };
+                      
+                      const expensesByGroup = getLast12MonthsByGroup();
+                      
+                      return (
+                        <>
+                          <div style={{
+                            background: COLORS.card,
+                            padding: '1rem',
+                            borderRadius: '0.5rem',
+                            borderLeft: `4px solid ${COLORS.highlight}`
+                          }}>
+                            <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              🏠 必需支出
+                            </div>
+                            <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.text }}>
+                              ¥{expensesByGroup.essential.toLocaleString()}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                              {annualExpenses > 0 ? ((expensesByGroup.essential / annualExpenses * 100).toFixed(0)) : 0}%
+                            </div>
+                          </div>
+
+                          <div style={{
+                            background: COLORS.card,
+                            padding: '1rem',
+                            borderRadius: '0.5rem',
+                            borderLeft: `4px solid ${COLORS.bonds}`
+                          }}>
+                            <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              🚗 工作相关
+                            </div>
+                            <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.text }}>
+                              ¥{expensesByGroup.workRelated.toLocaleString()}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                              {annualExpenses > 0 ? ((expensesByGroup.workRelated / annualExpenses * 100).toFixed(0)) : 0}%
+                            </div>
+                          </div>
+
+                          <div style={{
+                            background: COLORS.card,
+                            padding: '1rem',
+                            borderRadius: '0.5rem',
+                            borderLeft: `4px solid ${COLORS.warning}`
+                          }}>
+                            <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              ✈️ 可选支出
+                            </div>
+                            <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.text }}>
+                              ¥{expensesByGroup.discretionary.toLocaleString()}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                              {annualExpenses > 0 ? ((expensesByGroup.discretionary / annualExpenses * 100).toFixed(0)) : 0}%
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Adjustment Controls */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.1rem' }}>📍 调整退休后的支出预期：</h3>
+                  
+                  {(() => {
+                    const getLast12MonthsByGroup = () => {
+                      const now = new Date();
+                      const byGroup = { essential: 0, workRelated: 0, discretionary: 0 };
+                      
+                      for (let i = 0; i < 12; i++) {
+                        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        const monthData = monthlyAggregation[monthKey];
+                        
+                        if (monthData && monthData.byGroup) {
+                          byGroup.essential += monthData.byGroup.essential || 0;
+                          byGroup.workRelated += monthData.byGroup.workRelated || 0;
+                          byGroup.discretionary += monthData.byGroup.discretionary || 0;
+                        }
+                      }
+                      
+                      return byGroup;
+                    };
+                    
+                    const currentExpenses = getLast12MonthsByGroup();
+                    
+                    const categories = [
+                      {
+                        key: 'essential',
+                        label: '🏠 必需支出（住房、水电、食品、医疗等）',
+                        current: currentExpenses.essential,
+                        examples: '如全球旅居可能降低住房成本'
+                      },
+                      {
+                        key: 'workRelated',
+                        label: '🚗 工作相关（通勤、职业装、工作餐等）',
+                        current: currentExpenses.workRelated,
+                        examples: '退休后通常完全消失'
+                      },
+                      {
+                        key: 'discretionary',
+                        label: '✈️ 可选支出（旅行、娱乐、外出就餐等）',
+                        current: currentExpenses.discretionary,
+                        examples: '退休后可能增加旅行和爱好支出'
+                      }
+                    ];
+                    
+                    return categories.map(cat => {
+                      const adj = retirementExpenseAdjustments[cat.key as keyof typeof retirementExpenseAdjustments];
+                      const adjustedAmount = cat.current * (1 + adj.adjustmentPct / 100);
+                      
+                      return (
+                        <div key={cat.key} style={{
+                          background: COLORS.accent,
+                          borderRadius: '0.75rem',
+                          padding: '1.5rem',
+                          marginBottom: '1.5rem',
+                          border: adj.enabled ? `2px solid ${COLORS.success}` : `1px solid ${COLORS.accent}`
+                        }}>
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            marginBottom: '1rem'
+                          }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                                {cat.label}
+                              </div>
+                              <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                当前：¥{cat.current.toLocaleString()}/年
+                              </div>
+                              <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginTop: '0.25rem', fontStyle: 'italic' }}>
+                                {cat.examples}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ marginTop: '1rem' }}>
+                            <label style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              cursor: 'pointer',
+                              marginBottom: '1rem'
+                            }}>
+                              <input
+                                type="checkbox"
+                                checked={adj.enabled}
+                                onChange={(e) => {
+                                  const newAdj = {
+                                    ...retirementExpenseAdjustments,
+                                    [cat.key]: { ...adj, enabled: e.target.checked }
+                                  };
+                                  setRetirementExpenseAdjustments(newAdj);
+                                  localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
+                                }}
+                                style={{ marginRight: '0.5rem', width: '18px', height: '18px', cursor: 'pointer' }}
+                              />
+                              <span style={{ fontSize: '0.9rem' }}>调整此项支出</span>
+                            </label>
+
+                            {adj.enabled && (
+                              <div>
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '1rem',
+                                  marginBottom: '0.75rem'
+                                }}>
+                                  <span style={{ fontSize: '0.9rem', minWidth: '80px' }}>调整幅度：</span>
+                                  <input
+                                    type="range"
+                                    min="-100"
+                                    max="100"
+                                    value={adj.adjustmentPct}
+                                    onChange={(e) => {
+                                      const newAdj = {
+                                        ...retirementExpenseAdjustments,
+                                        [cat.key]: { ...adj, adjustmentPct: parseInt(e.target.value) }
+                                      };
+                                      setRetirementExpenseAdjustments(newAdj);
+                                      localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
+                                    }}
+                                    style={{ flex: 1 }}
+                                  />
+                                  <span style={{
+                                    fontSize: '1.1rem',
+                                    fontWeight: '700',
+                                    minWidth: '60px',
+                                    textAlign: 'right',
+                                    color: adj.adjustmentPct < 0 ? COLORS.success : adj.adjustmentPct > 0 ? COLORS.highlight : COLORS.text
+                                  }}>
+                                    {adj.adjustmentPct > 0 ? '+' : ''}{adj.adjustmentPct}%
+                                  </span>
+                                </div>
+
+                                <div style={{
+                                  background: COLORS.card,
+                                  padding: '0.75rem',
+                                  borderRadius: '0.5rem',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center'
+                                }}>
+                                  <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>退休后预估：</span>
+                                  <span style={{
+                                    fontSize: '1.2rem',
+                                    fontWeight: '700',
+                                    color: adjustedAmount < cat.current ? COLORS.success : adjustedAmount > cat.current ? COLORS.warning : COLORS.text
+                                  }}>
+                                    ¥{adjustedAmount.toLocaleString()}
+                                    <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: COLORS.textMuted }}>
+                                      ({adjustedAmount - cat.current > 0 ? '+' : ''}
+                                      ¥{(adjustedAmount - cat.current).toLocaleString()})
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {/* Summary */}
+                {(() => {
+                  const getLast12MonthsByGroup = () => {
+                    const now = new Date();
+                    const byGroup = { essential: 0, workRelated: 0, discretionary: 0 };
+                    
+                    for (let i = 0; i < 12; i++) {
+                      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                      const monthData = monthlyAggregation[monthKey];
+                      
+                      if (monthData && monthData.byGroup) {
+                        byGroup.essential += monthData.byGroup.essential || 0;
+                        byGroup.workRelated += monthData.byGroup.workRelated || 0;
+                        byGroup.discretionary += monthData.byGroup.discretionary || 0;
+                      }
+                    }
+                    
+                    return byGroup;
+                  };
+                  
+                  const currentExpenses = getLast12MonthsByGroup();
+                  let optimizedAnnualExpenses = 0;
+                  
+                  Object.keys(currentExpenses).forEach(key => {
+                    const current = currentExpenses[key as keyof typeof currentExpenses];
+                    const adj = retirementExpenseAdjustments[key as keyof typeof retirementExpenseAdjustments];
+                    if (adj.enabled) {
+                      optimizedAnnualExpenses += current * (1 + adj.adjustmentPct / 100);
+                    } else {
+                      optimizedAnnualExpenses += current;
+                    }
+                  });
+                  
+                  const optimizedFireNumber = optimizedAnnualExpenses * fireMultiplier;
+                  const savings = fireNumber - optimizedFireNumber;
+                  
+                  return (
+                    <div style={{
+                      background: `linear-gradient(135deg, ${COLORS.success}20 0%, ${COLORS.highlight}20 100%)`,
+                      border: `2px solid ${COLORS.success}`,
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      marginTop: '2rem'
+                    }}>
+                      <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.2rem' }}>💡 优化后的结果：</h3>
+                      
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '1.5rem',
+                        marginBottom: '1.5rem'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                            退休年支出
+                          </div>
+                          <div style={{ fontSize: '1.8rem', fontWeight: '700', color: COLORS.text }}>
+                            ¥{optimizedAnnualExpenses.toLocaleString()}
+                          </div>
+                          {optimizedAnnualExpenses !== annualExpenses && (
+                            <div style={{ fontSize: '0.8rem', color: savings > 0 ? COLORS.success : COLORS.warning, marginTop: '0.25rem' }}>
+                              {savings > 0 ? '⬇️' : '⬆️'} {((optimizedAnnualExpenses - annualExpenses) / annualExpenses * 100).toFixed(1)}%
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                            新的 FIRE 目标
+                          </div>
+                          <div style={{ fontSize: '1.8rem', fontWeight: '700', color: COLORS.warning }}>
+                            ¥{optimizedFireNumber.toLocaleString()}
+                          </div>
+                          {savings !== 0 && (
+                            <div style={{ fontSize: '0.8rem', color: savings > 0 ? COLORS.success : COLORS.warning, marginTop: '0.25rem' }}>
+                              {savings > 0 ? '节省' : '增加'} ¥{Math.abs(savings).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {savings > 0 && (
+                        <div style={{
+                          background: `${COLORS.success}20`,
+                          border: `1px solid ${COLORS.success}`,
+                          borderRadius: '0.5rem',
+                          padding: '1rem',
+                          fontSize: '0.9rem',
+                          color: COLORS.success
+                        }}>
+                          🎉 优化后，你的 FIRE 目标降低了 ¥{savings.toLocaleString()}！这意味着你可以更早实现财务自由。
+                        </div>
+                      )}
+                      
+                      {savings < 0 && (
+                        <div style={{
+                          background: `${COLORS.warning}20`,
+                          border: `1px solid ${COLORS.warning}`,
+                          borderRadius: '0.5rem',
+                          padding: '1rem',
+                          fontSize: '0.9rem',
+                          color: COLORS.warning
+                        }}>
+                          ⚠️ 优化后，你的 FIRE 目标增加了 ¥{Math.abs(savings).toLocaleString()}。这反映了你对退休生活质量的更高期望。
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Action Buttons */}
+                <div style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  marginTop: '2rem',
+                  paddingTop: '2rem',
+                  borderTop: `1px solid ${COLORS.accent}`
+                }}>
+                  <button
+                    onClick={() => {
+                      // Reset to defaults
+                      const defaultAdj = {
+                        essential: { enabled: false, adjustmentPct: 0 },
+                        workRelated: { enabled: true, adjustmentPct: -100 },
+                        discretionary: { enabled: false, adjustmentPct: 0 }
+                      };
+                      setRetirementExpenseAdjustments(defaultAdj);
+                      localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(defaultAdj));
+                    }}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: `1px solid ${COLORS.textMuted}`,
+                      color: COLORS.textMuted,
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    重置为默认
+                  </button>
+                  <button
+                    onClick={() => setShowFireOptimization(false)}
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                      border: 'none',
+                      color: 'white',
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    保存设置
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
