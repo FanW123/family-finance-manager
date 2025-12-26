@@ -950,7 +950,7 @@ const FinanceDashboard = () => {
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.3rem' }}>🎯 FIRE 进度</h3>
+                <h3 style={{ margin: 0, fontSize: '1.3rem' }}>🎯 FIRE 总览</h3>
                 <button 
                   onClick={() => alert('目标优化功能即将推出！')}
                   style={{
