@@ -821,7 +821,7 @@ const FinanceDashboard = () => {
                 fontFamily: 'inherit'
               }}
             >
-              {tab === 'dashboard' ? 'FIRE进度' : tab === 'expenses' ? '月度支出' : tab === 'portfolio' ? '投资组合' : '再平衡建议'}
+              {tab === 'dashboard' ? 'FIRE总览' : tab === 'expenses' ? '月度支出' : tab === 'portfolio' ? '投资组合' : '再平衡建议'}
             </button>
           ))}
         </div>
