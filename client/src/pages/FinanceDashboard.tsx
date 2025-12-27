@@ -18,53 +18,53 @@ const COLORS = {
   textMuted: '#a0a0b0'
 };
 
-// City living cost database (monthly cost in CNY for housing + basic living)
+// City living cost database (monthly cost in USD for housing + basic living)
 const CITY_COSTS = {
   '中国': [
-    { name: '北京', budget: 8000, comfortable: 15000, luxury: 25000 },
-    { name: '上海', budget: 8000, comfortable: 15000, luxury: 25000 },
-    { name: '深圳', budget: 7000, comfortable: 13000, luxury: 22000 },
-    { name: '广州', budget: 6000, comfortable: 11000, luxury: 18000 },
-    { name: '杭州', budget: 6000, comfortable: 11000, luxury: 18000 },
-    { name: '成都', budget: 4500, comfortable: 8000, luxury: 14000 },
-    { name: '重庆', budget: 4000, comfortable: 7500, luxury: 13000 },
-    { name: '西安', budget: 4000, comfortable: 7000, luxury: 12000 },
-    { name: '南京', budget: 5000, comfortable: 9000, luxury: 15000 },
-    { name: '武汉', budget: 4500, comfortable: 8000, luxury: 13000 },
-    { name: '大理', budget: 3500, comfortable: 6000, luxury: 10000 },
-    { name: '丽江', budget: 4000, comfortable: 6500, luxury: 11000 },
-    { name: '厦门', budget: 5500, comfortable: 10000, luxury: 16000 },
-    { name: '三亚', budget: 6000, comfortable: 12000, luxury: 20000 },
-    { name: '青岛', budget: 5000, comfortable: 9000, luxury: 15000 }
+    { name: '北京', budget: 1110, comfortable: 2080, luxury: 3470 },
+    { name: '上海', budget: 1110, comfortable: 2080, luxury: 3470 },
+    { name: '深圳', budget: 970, comfortable: 1800, luxury: 3050 },
+    { name: '广州', budget: 830, comfortable: 1530, luxury: 2500 },
+    { name: '杭州', budget: 830, comfortable: 1530, luxury: 2500 },
+    { name: '成都', budget: 625, comfortable: 1110, luxury: 1940 },
+    { name: '重庆', budget: 555, comfortable: 1040, luxury: 1800 },
+    { name: '西安', budget: 555, comfortable: 970, luxury: 1670 },
+    { name: '南京', budget: 695, comfortable: 1250, luxury: 2080 },
+    { name: '武汉', budget: 625, comfortable: 1110, luxury: 1800 },
+    { name: '大理', budget: 485, comfortable: 835, luxury: 1390 },
+    { name: '丽江', budget: 555, comfortable: 900, luxury: 1530 },
+    { name: '厦门', budget: 765, comfortable: 1390, luxury: 2220 },
+    { name: '三亚', budget: 835, comfortable: 1670, luxury: 2780 },
+    { name: '青岛', budget: 695, comfortable: 1250, luxury: 2080 }
   ],
   '亚洲': [
-    { name: '东京', budget: 12000, comfortable: 20000, luxury: 35000 },
-    { name: '首尔', budget: 9000, comfortable: 15000, luxury: 25000 },
-    { name: '曼谷', budget: 5000, comfortable: 8000, luxury: 15000 },
-    { name: '清迈', budget: 4000, comfortable: 6500, luxury: 11000 },
-    { name: '巴厘岛', budget: 5000, comfortable: 8000, luxury: 14000 },
-    { name: '新加坡', budget: 12000, comfortable: 20000, luxury: 35000 },
-    { name: '吉隆坡', budget: 5000, comfortable: 8500, luxury: 15000 },
-    { name: '芭提雅', budget: 4500, comfortable: 7500, luxury: 13000 },
-    { name: '岘港', budget: 4000, comfortable: 6500, luxury: 11000 },
-    { name: '胡志明市', budget: 4500, comfortable: 7500, luxury: 13000 }
+    { name: '东京', budget: 1670, comfortable: 2780, luxury: 4860 },
+    { name: '首尔', budget: 1250, comfortable: 2080, luxury: 3470 },
+    { name: '曼谷', budget: 695, comfortable: 1110, luxury: 2080 },
+    { name: '清迈', budget: 555, comfortable: 900, luxury: 1530 },
+    { name: '巴厘岛', budget: 695, comfortable: 1110, luxury: 1940 },
+    { name: '新加坡', budget: 1670, comfortable: 2780, luxury: 4860 },
+    { name: '吉隆坡', budget: 695, comfortable: 1180, luxury: 2080 },
+    { name: '芭提雅', budget: 625, comfortable: 1040, luxury: 1800 },
+    { name: '岘港', budget: 555, comfortable: 900, luxury: 1530 },
+    { name: '胡志明市', budget: 625, comfortable: 1040, luxury: 1800 }
   ],
   '欧美': [
-    { name: '里斯本', budget: 10000, comfortable: 16000, luxury: 28000 },
-    { name: '波尔图', budget: 9000, comfortable: 14000, luxury: 24000 },
-    { name: '巴塞罗那', budget: 12000, comfortable: 20000, luxury: 35000 },
-    { name: '柏林', budget: 11000, comfortable: 18000, luxury: 30000 },
-    { name: '墨西哥城', budget: 7000, comfortable: 12000, luxury: 20000 },
-    { name: '布宜诺斯艾利斯', budget: 7000, comfortable: 12000, luxury: 20000 },
-    { name: '纽约', budget: 25000, comfortable: 40000, luxury: 70000 },
-    { name: '旧金山', budget: 28000, comfortable: 45000, luxury: 75000 },
-    { name: '伦敦', budget: 20000, comfortable: 35000, luxury: 60000 },
-    { name: '巴黎', budget: 15000, comfortable: 25000, luxury: 45000 }
+    { name: '里斯本', budget: 1390, comfortable: 2220, luxury: 3890 },
+    { name: '波尔图', budget: 1250, comfortable: 1940, luxury: 3330 },
+    { name: '巴塞罗那', budget: 1670, comfortable: 2780, luxury: 4860 },
+    { name: '柏林', budget: 1530, comfortable: 2500, luxury: 4170 },
+    { name: '墨西哥城', budget: 970, comfortable: 1670, luxury: 2780 },
+    { name: '布宜诺斯艾利斯', budget: 970, comfortable: 1670, luxury: 2780 },
+    { name: '纽约', budget: 3470, comfortable: 5560, luxury: 9720 },
+    { name: '旧金山', budget: 3890, comfortable: 6250, luxury: 10420 },
+    { name: '伦敦', budget: 2780, comfortable: 4860, luxury: 8330 },
+    { name: '巴黎', budget: 2080, comfortable: 3470, luxury: 6250 }
   ],
   '其他': [
-    { name: '迪拜', budget: 15000, comfortable: 25000, luxury: 45000 },
-    { name: '悉尼', budget: 18000, comfortable: 30000, luxury: 50000 },
-    { name: '奥克兰', budget: 13000, comfortable: 22000, luxury: 38000 }
+    { name: '迪拜', budget: 2080, comfortable: 3470, luxury: 6250 },
+    { name: '悉尼', budget: 2500, comfortable: 4170, luxury: 6940 },
+    { name: '奥克兰', budget: 1800, comfortable: 3050, luxury: 5280 }
   ]
 };
 
@@ -159,7 +159,13 @@ const FinanceDashboard = () => {
     cash: 20
   });
   const [showAddExpense, setShowAddExpense] = useState(false);
-  const [newExpense, setNewExpense] = useState({ category: '', amount: '', date: new Date().toISOString().split('T')[0], description: '' });
+  const [newExpense, setNewExpense] = useState({ 
+    category: '', 
+    amount: '', 
+    date: new Date().toISOString().split('T')[0], 
+    description: '',
+    currency: 'USD'
+  });
   const [loading, setLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -201,6 +207,18 @@ const FinanceDashboard = () => {
     const saved = localStorage.getItem('annualTravelCosts');
     return saved ? JSON.parse(saved) : { flights: 0, visas: 0, insurance: 0 };
   });
+  const [currencySettings, setCurrencySettings] = useState(() => {
+    const saved = localStorage.getItem('currencySettings');
+    return saved ? JSON.parse(saved) : {
+      baseCurrency: 'USD',
+      exchangeRates: {
+        USD: 1,
+        CNY: 0.139, // 1 CNY = 0.139 USD (1 USD = 7.2 CNY)
+        EUR: 1.08   // 1 EUR = 1.08 USD
+      }
+    };
+  });
+  const [showCurrencySettings, setShowCurrencySettings] = useState(false);
   const [customCity, setCustomCity] = useState('');
   const [customCost, setCustomCost] = useState('');
   const [customMonths, setCustomMonths] = useState('1');
@@ -320,7 +338,7 @@ const FinanceDashboard = () => {
           date: newExpense.date
         });
         await loadData();
-        setNewExpense({ category: '', amount: '', date: new Date().toISOString().split('T')[0], description: '' });
+        setNewExpense({ category: '', amount: '', date: new Date().toISOString().split('T')[0], description: '', currency: 'USD' });
         setShowAddExpense(false);
       } catch (error) {
         console.error('Error adding expense:', error);
@@ -386,7 +404,7 @@ const FinanceDashboard = () => {
               amount: res.data.price * (stock.quantity || 0),
               date: stock.date,
             });
-            console.log(`${stock.symbol} 价格已更新: ¥${res.data.price}`);
+            console.log(`${stock.symbol} 价格已更新: $${res.data.price}`);
             successCount++;
           } else {
             console.warn(`${stock.symbol} 未返回价格数据`);
@@ -1031,7 +1049,7 @@ const FinanceDashboard = () => {
                   必需支出/月
                 </div>
                 <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.highlight }}>
-                  ¥{essentialExpenses.toLocaleString()}
+                  ${essentialExpenses.toLocaleString()}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
                   退休后继续
@@ -1048,10 +1066,10 @@ const FinanceDashboard = () => {
                   退休后总支出
                 </div>
                 <div style={{ fontSize: '2rem', fontWeight: '700' }}>
-                  ¥{retirementExpenses.toLocaleString()}
+                  ${retirementExpenses.toLocaleString()}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
-                  年需求: ¥{(retirementExpenses * 12).toLocaleString()}
+                  年需求: ${(retirementExpenses * 12).toLocaleString()}
                 </div>
               </div>
 
@@ -1065,7 +1083,7 @@ const FinanceDashboard = () => {
                   FIRE数字 ({fireMultiplier.toFixed(1)}x)
                 </div>
                 <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.warning }}>
-                  ¥{fireNumber.toLocaleString()}
+                  ${fireNumber.toLocaleString()}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
                   {currentWithdrawalRate.toFixed(2)}% 提取率
@@ -1136,8 +1154,8 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: '600' }}>
-                  <span style={{ color: COLORS.text }}>¥{totalPortfolio.toLocaleString()}</span>
-                  <span style={{ color: COLORS.warning }}>¥{fireNumber.toLocaleString()}</span>
+                  <span style={{ color: COLORS.text }}>${totalPortfolio.toLocaleString()}</span>
+                  <span style={{ color: COLORS.warning }}>${fireNumber.toLocaleString()}</span>
                 </div>
               </div>
 
@@ -1161,21 +1179,21 @@ const FinanceDashboard = () => {
                         <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: COLORS.text }}>
                           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                             <span style={{ textDecoration: 'line-through', color: COLORS.textMuted }}>
-                              ¥{last12MonthsExpenses.toLocaleString()}
+                              ${last12MonthsExpenses.toLocaleString()}
                             </span>
                             <span>→</span>
                             <span>
-                              退休年支出 <strong style={{ color: COLORS.success }}>¥{optimizedAnnualExpenses.toLocaleString()}</strong>
+                              退休年支出 <strong style={{ color: COLORS.success }}>${optimizedAnnualExpenses.toLocaleString()}</strong>
                             </span>
                           </div>
                           <div style={{ marginTop: '0.5rem' }}>
-                            FIRE 目标 <strong style={{ color: COLORS.warning }}>¥{fireNumber.toLocaleString()}</strong>
+                            FIRE 目标 <strong style={{ color: COLORS.warning }}>${fireNumber.toLocaleString()}</strong>
                           </div>
                           {cityPlan.length > 0 && retirementExpenseAdjustments.essential.useCityPlanner && (
                             <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: COLORS.textMuted }}>
                               🌍 包含 {cityPlan.length} 个城市规划
                               {(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance > 0) && 
-                                ` + 年度额外成本 ¥${(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance).toLocaleString()}`
+                                ` + 年度额外成本 $${(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance).toLocaleString()}`
                               }
                             </div>
                           )}
@@ -1187,7 +1205,7 @@ const FinanceDashboard = () => {
                       <>
                         💡 基于你过去 12 个月的实际支出：
                         <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: COLORS.text }}>
-                          年支出 <strong style={{ color: COLORS.success }}>¥{annualExpenses.toLocaleString()}</strong> → FIRE 目标 <strong style={{ color: COLORS.warning }}>¥{fireNumber.toLocaleString()}</strong>
+                          年支出 <strong style={{ color: COLORS.success }}>${annualExpenses.toLocaleString()}</strong> → FIRE 目标 <strong style={{ color: COLORS.warning }}>${fireNumber.toLocaleString()}</strong>
                         </div>
                       </>
                     );
@@ -1220,7 +1238,7 @@ const FinanceDashboard = () => {
                   <div style={{ marginBottom: '0.5rem' }}>
                     <strong style={{ color: COLORS.warning }}>距离 FIRE 目标还差:</strong>{' '}
                     <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.text }}>
-                      ¥{(fireNumber - totalPortfolio).toLocaleString()}
+                      ${(fireNumber - totalPortfolio).toLocaleString()}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
@@ -1277,7 +1295,7 @@ const FinanceDashboard = () => {
                                     建议月度储蓄
                                   </div>
                                   <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.success }}>
-                                    ¥{requiredMonthlySavings.toLocaleString()}
+                                    ${requiredMonthlySavings.toLocaleString()}
                                   </div>
                                   <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
                                     储蓄率: {recommendedSavingsRate.toFixed(1)}%
@@ -1293,10 +1311,10 @@ const FinanceDashboard = () => {
                                     建议最大支出
                                   </div>
                                   <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.warning }}>
-                                    ¥{recommendedMaxExpenses.toLocaleString()}
+                                    ${recommendedMaxExpenses.toLocaleString()}
                                   </div>
                                   <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
-                                    当前: ¥{currentTotalExpenses.toLocaleString()}
+                                    当前: ${currentTotalExpenses.toLocaleString()}
                                   </div>
                                 </div>
                               </div>
@@ -1311,7 +1329,7 @@ const FinanceDashboard = () => {
                                 marginBottom: '1rem',
                                 fontSize: '0.85rem'
                               }}>
-                                <strong>⚠️ 当前支出超出建议:</strong> 超出 ¥{(currentTotalExpenses - recommendedMaxExpenses).toLocaleString()}
+                                <strong>⚠️ 当前支出超出建议:</strong> 超出 ${(currentTotalExpenses - recommendedMaxExpenses).toLocaleString()}
                                 <div style={{ marginTop: '0.5rem', color: COLORS.textMuted }}>
                                   建议削减支出以提高储蓄率，加速 FIRE 进度
                                 </div>
@@ -1341,9 +1359,9 @@ const FinanceDashboard = () => {
                             }}>
                               <div style={{ marginBottom: '0.5rem', fontWeight: '600' }}>优化建议:</div>
                               <ul style={{ margin: 0, paddingLeft: '1.5rem', color: COLORS.textMuted }}>
-                                <li>优先削减"可选支出"类别（当前: ¥{discretionaryExpenses.toLocaleString()}）</li>
+                                <li>优先削减"可选支出"类别（当前: ${discretionaryExpenses.toLocaleString()}）</li>
                                 <li>工作相关支出退休后会消失，无需过度优化</li>
-                                <li>保持必需支出在合理范围（当前: ¥{essentialExpenses.toLocaleString()}）</li>
+                                <li>保持必需支出在合理范围（当前: ${essentialExpenses.toLocaleString()}）</li>
                                 {savingsRate < 50 && (
                                   <li style={{ color: COLORS.warning }}>
                                     <strong>目标储蓄率 ≥50%，当前 {savingsRate.toFixed(1)}%，需要提高 {(50 - savingsRate).toFixed(1)}%</strong>
@@ -1355,7 +1373,7 @@ const FinanceDashboard = () => {
                             {/* Auto-update button */}
                             <button
                               onClick={async () => {
-                                if (confirm(`确定要将建议的最大支出 ¥${recommendedMaxExpenses.toLocaleString()} 应用到月度预算吗？\n\n这将帮助您更好地控制支出，加速 FIRE 进度。`)) {
+                                if (confirm(`确定要将建议的最大支出 $${recommendedMaxExpenses.toLocaleString()} 应用到月度预算吗？\n\n这将帮助您更好地控制支出，加速 FIRE 进度。`)) {
                                   try {
                                     // 为必需支出和可选支出设置预算
                                     if (essentialExpenses > 0) {
@@ -1439,7 +1457,7 @@ const FinanceDashboard = () => {
                         {item.label}
                       </div>
                       <div style={{ fontSize: '1.3rem', fontWeight: '700', color: item.color }}>
-                        ¥{item.value.toLocaleString()}
+                        ${item.value.toLocaleString()}
                       </div>
                     </div>
                   ))}
@@ -1456,7 +1474,7 @@ const FinanceDashboard = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '1rem', fontWeight: '600' }}>本月总支出（{selectedYear}年{selectedMonth}月）</span>
                     <span style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.highlight }}>
-                      ¥{currentMonthTotal.toLocaleString()}
+                      ${currentMonthTotal.toLocaleString()}
                     </span>
                   </div>
                   {prevMonthTotal > 0 && (
@@ -1469,7 +1487,7 @@ const FinanceDashboard = () => {
                         {monthOverMonthChange > 0 ? '↑' : '↓'} {Math.abs(monthOverMonthChange).toFixed(1)}%
                       </span>
                       <span style={{ fontSize: '0.85rem' }}>
-                        (¥{prevMonthTotal.toLocaleString()})
+                        (${prevMonthTotal.toLocaleString()})
                       </span>
                     </div>
                   )}
@@ -1498,7 +1516,7 @@ const FinanceDashboard = () => {
                   }}>
                     <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>股票</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.stocks }}>
-                      ¥{portfolio.stocks.toLocaleString()}
+                      ${portfolio.stocks.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>
                       {currentAllocation.stocks.toFixed(1)}%
@@ -1512,7 +1530,7 @@ const FinanceDashboard = () => {
                   }}>
                     <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>债券</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.bonds }}>
-                      ¥{portfolio.bonds.toLocaleString()}
+                      ${portfolio.bonds.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>
                       {currentAllocation.bonds.toFixed(1)}%
@@ -1526,7 +1544,7 @@ const FinanceDashboard = () => {
                   }}>
                     <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>现金</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.cash }}>
-                      ¥{portfolio.cash.toLocaleString()}
+                      ${portfolio.cash.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>
                       {currentAllocation.cash.toFixed(1)}%
@@ -1544,7 +1562,7 @@ const FinanceDashboard = () => {
                 }}>
                   <span style={{ fontSize: '1rem', fontWeight: '600' }}>总资产</span>
                   <span style={{ fontSize: '1.5rem', fontWeight: '700' }}>
-                    ¥{totalPortfolio.toLocaleString()}
+                    ${totalPortfolio.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -1717,7 +1735,7 @@ const FinanceDashboard = () => {
                   必需支出/月
                 </div>
                 <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.highlight }}>
-                  ¥{essentialExpenses.toLocaleString()}
+                  ${essentialExpenses.toLocaleString()}
                 </div>
               </div>
 
@@ -1731,7 +1749,7 @@ const FinanceDashboard = () => {
                   退休后总支出
                 </div>
                 <div style={{ fontSize: '2rem', fontWeight: '700' }}>
-                  ¥{retirementExpenses.toLocaleString()}
+                  ${retirementExpenses.toLocaleString()}
                 </div>
               </div>
 
@@ -1745,7 +1763,7 @@ const FinanceDashboard = () => {
                   FIRE数字 ({fireMultiplier.toFixed(1)}x)
                 </div>
                 <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.warning }}>
-                  ¥{fireNumber.toLocaleString()}
+                  ${fireNumber.toLocaleString()}
                 </div>
               </div>
             </div>
@@ -1766,7 +1784,7 @@ const FinanceDashboard = () => {
                   本月总支出
                 </div>
                 <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.highlight }}>
-                  ¥{totalExpenses.toLocaleString()}
+                  ${totalExpenses.toLocaleString()}
                 </div>
               </div>
 
@@ -1918,7 +1936,7 @@ const FinanceDashboard = () => {
                         </Pie>
                         <Tooltip 
                           contentStyle={{ background: COLORS.accent, border: 'none', borderRadius: '0.5rem' }}
-                          formatter={(value) => `¥${value}`}
+                          formatter={(value) => `$${value}`}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -1942,7 +1960,7 @@ const FinanceDashboard = () => {
                         borderLeft: `4px solid ${item.color}`
                       }}>
                         <span style={{ fontSize: '0.9rem' }}>{item.label}</span>
-                        <span style={{ fontWeight: '700', fontSize: '1.1rem' }}>¥{item.value.toLocaleString()}</span>
+                        <span style={{ fontWeight: '700', fontSize: '1.1rem' }}>${item.value.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
@@ -1989,7 +2007,7 @@ const FinanceDashboard = () => {
                           <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>{expense.date}</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          <div style={{ fontSize: '1.2rem', fontWeight: '600' }}>¥{expense.amount}</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: '600' }}>${expense.amount}</div>
                           <button
                             onClick={() => deleteExpense(expense.id)}
                             style={{
@@ -2035,7 +2053,7 @@ const FinanceDashboard = () => {
                       <YAxis stroke={COLORS.textMuted} />
                       <Tooltip 
                         contentStyle={{ background: COLORS.accent, border: 'none', borderRadius: '0.5rem' }}
-                        formatter={(value: number) => `¥${value.toLocaleString()}`}
+                        formatter={(value: number) => `$${value.toLocaleString()}`}
                       />
                       <Legend />
                       <Line type="monotone" dataKey="total" stroke={COLORS.highlight} strokeWidth={3} name="总支出" />
@@ -2072,16 +2090,16 @@ const FinanceDashboard = () => {
                           <tr key={idx} style={{ borderBottom: `1px solid ${COLORS.accent}` }}>
                             <td style={{ padding: '1rem', fontWeight: '600' }}>{monthData.month}</td>
                             <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '700', fontSize: '1.1rem' }}>
-                              ¥{monthData.total.toLocaleString()}
+                              ${monthData.total.toLocaleString()}
                             </td>
                             <td style={{ padding: '1rem', textAlign: 'right', color: COLORS.bonds }}>
-                              ¥{monthData.essential.toLocaleString()}
+                              ${monthData.essential.toLocaleString()}
                             </td>
                             <td style={{ padding: '1rem', textAlign: 'right', color: COLORS.warning }}>
-                              ¥{monthData.discretionary.toLocaleString()}
+                              ${monthData.discretionary.toLocaleString()}
                             </td>
                             <td style={{ padding: '1rem', textAlign: 'right', color: COLORS.success }}>
-                              ¥{monthData.savings.toLocaleString()}
+                              ${monthData.savings.toLocaleString()}
                             </td>
                             <td style={{ padding: '1rem', textAlign: 'center', color: COLORS.textMuted }}>
                               {monthlyAggregation[monthData.monthKey]?.count || 0}
@@ -2115,19 +2133,19 @@ const FinanceDashboard = () => {
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>月均总支出</div>
                             <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.highlight }}>
-                              ¥{avgTotal.toLocaleString(undefined, {maximumFractionDigits: 0})}
+                              ${avgTotal.toLocaleString(undefined, {maximumFractionDigits: 0})}
                             </div>
                           </div>
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>月均必需支出</div>
                             <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.bonds }}>
-                              ¥{avgEssential.toLocaleString(undefined, {maximumFractionDigits: 0})}
+                              ${avgEssential.toLocaleString(undefined, {maximumFractionDigits: 0})}
                             </div>
                           </div>
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>月均可选支出</div>
                             <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.warning }}>
-                              ¥{avgDiscretionary.toLocaleString(undefined, {maximumFractionDigits: 0})}
+                              ${avgDiscretionary.toLocaleString(undefined, {maximumFractionDigits: 0})}
                             </div>
                           </div>
                         </>
@@ -2164,7 +2182,7 @@ const FinanceDashboard = () => {
                   border: `2px solid ${COLORS.secondary}`
                 }}>
                   <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>总资产</div>
-                  <div style={{ fontSize: '2rem', fontWeight: '700' }}>¥{totalPortfolio.toLocaleString()}</div>
+                  <div style={{ fontSize: '2rem', fontWeight: '700' }}>${totalPortfolio.toLocaleString()}</div>
                 </div>
                 <div style={{
                   background: COLORS.accent,
@@ -2174,7 +2192,7 @@ const FinanceDashboard = () => {
                 }}>
                   <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>股票</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.stocks }}>
-                    ¥{portfolio.stocks.toLocaleString()}
+                    ${portfolio.stocks.toLocaleString()}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                     {currentAllocation.stocks.toFixed(1)}%
@@ -2188,7 +2206,7 @@ const FinanceDashboard = () => {
                 }}>
                   <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>债券</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.bonds }}>
-                    ¥{portfolio.bonds.toLocaleString()}
+                    ${portfolio.bonds.toLocaleString()}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                     {currentAllocation.bonds.toFixed(1)}%
@@ -2212,7 +2230,7 @@ const FinanceDashboard = () => {
                     <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem', opacity: 0.7 }}>🧮 点击计算</span>
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.cash }}>
-                    ¥{portfolio.cash.toLocaleString()}
+                    ${portfolio.cash.toLocaleString()}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                     {currentAllocation.cash.toFixed(1)}%
@@ -2366,7 +2384,7 @@ const FinanceDashboard = () => {
                   }}>
                     <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>总计</div>
                     <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.cash }}>
-                      ¥{(() => {
+                      ${(() => {
                         const total = cashAccounts.reduce((sum: number, acc: any) => {
                           const amount = parseFloat(acc.amount) || 0;
                           console.log(`Account: ${acc.name}, Amount: ${acc.amount}, Parsed: ${amount}`);
@@ -2461,7 +2479,7 @@ const FinanceDashboard = () => {
                           localStorage.setItem('cashAccounts', JSON.stringify(cashAccounts));
                           
                           setShowCashCalculator(false);
-                          alert(`现金总额已更新为 ¥${totalCash.toLocaleString()}！请刷新页面查看更新。`);
+                          alert(`现金总额已更新为 $${totalCash.toLocaleString()}！请刷新页面查看更新。`);
                         } catch (error: any) {
                           console.error('Error updating cash:', error);
                           console.error('Error details:', error.response?.data);
@@ -2544,7 +2562,7 @@ const FinanceDashboard = () => {
                   <YAxis stroke={COLORS.textMuted} />
                   <Tooltip 
                     contentStyle={{ background: COLORS.accent, border: 'none', borderRadius: '0.5rem' }}
-                    formatter={(value) => `¥${value.toLocaleString()}`}
+                    formatter={(value) => `$${value.toLocaleString()}`}
                   />
                   <Legend />
                   <Bar dataKey="current" fill={COLORS.highlight} name="当前" />
@@ -2912,7 +2930,7 @@ const FinanceDashboard = () => {
                                 />
                               </td>
                               <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right', fontWeight: '700' }}>
-                                ¥{((parseFloat(editingInvestment.quantity) || 0) * (parseFloat(editingInvestment.price) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                ${((parseFloat(editingInvestment.quantity) || 0) * (parseFloat(editingInvestment.price) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
                               <td style={{ padding: '1rem', textAlign: 'center' }}>
                                 <button
@@ -2960,10 +2978,10 @@ const FinanceDashboard = () => {
                                 {(investment.quantity || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
                               <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right' }}>
-                                ¥{(investment.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                ${(investment.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
                               <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right', fontWeight: '700' }}>
-                                ¥{((investment.quantity || 0) * (investment.price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                ${((investment.quantity || 0) * (investment.price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
                               <td style={{ padding: '1rem', textAlign: 'center' }}>
                                 <button
@@ -3074,7 +3092,7 @@ const FinanceDashboard = () => {
                             fontWeight: '700',
                             color: suggestion.action === 'Reduce' ? COLORS.highlight : COLORS.success
                           }}>
-                            {suggestion.action === 'Reduce' ? '−' : '+'} ¥{suggestion.amount.toLocaleString()}
+                            {suggestion.action === 'Reduce' ? '−' : '+'} ${suggestion.amount.toLocaleString()}
                           </div>
                           <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                             {suggestion.action === 'Reduce' ? '减少' : '增加'}
@@ -3153,7 +3171,7 @@ const FinanceDashboard = () => {
                 }}>
                   <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📊 基准数据（过去 12 个月）</h3>
                   <div style={{ fontSize: '0.95rem', color: COLORS.textMuted }}>
-                    年支出：<strong style={{ color: COLORS.text, fontSize: '1.2rem' }}>¥{annualExpenses.toLocaleString()}</strong>
+                    年支出：<strong style={{ color: COLORS.text, fontSize: '1.2rem' }}>${annualExpenses.toLocaleString()}</strong>
                   </div>
                   
                   <div style={{
@@ -3196,7 +3214,7 @@ const FinanceDashboard = () => {
                               🏠 必需支出
                             </div>
                             <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.text }}>
-                              ¥{expensesByGroup.essential.toLocaleString()}
+                              ${expensesByGroup.essential.toLocaleString()}
                             </div>
                             <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
                               {annualExpenses > 0 ? ((expensesByGroup.essential / annualExpenses * 100).toFixed(0)) : 0}%
@@ -3213,7 +3231,7 @@ const FinanceDashboard = () => {
                               🚗 工作相关
                             </div>
                             <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.text }}>
-                              ¥{expensesByGroup.workRelated.toLocaleString()}
+                              ${expensesByGroup.workRelated.toLocaleString()}
                             </div>
                             <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
                               {annualExpenses > 0 ? ((expensesByGroup.workRelated / annualExpenses * 100).toFixed(0)) : 0}%
@@ -3230,7 +3248,7 @@ const FinanceDashboard = () => {
                               ✈️ 可选支出
                             </div>
                             <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.text }}>
-                              ¥{expensesByGroup.discretionary.toLocaleString()}
+                              ${expensesByGroup.discretionary.toLocaleString()}
                             </div>
                             <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
                               {annualExpenses > 0 ? ((expensesByGroup.discretionary / annualExpenses * 100).toFixed(0)) : 0}%
@@ -3326,7 +3344,7 @@ const FinanceDashboard = () => {
                                 {cat.label}
                               </div>
                               <div style={{ fontSize: '0.85rem', color: hasCurrentExpense ? COLORS.textMuted : COLORS.warning }}>
-                                当前：¥{cat.current.toLocaleString()}/年
+                                当前：${cat.current.toLocaleString()}/年
                                 {!hasCurrentExpense && <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem' }}>（暂无记录）</span>}
                               </div>
                               <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginTop: '0.25rem', fontStyle: 'italic' }}>
@@ -3438,7 +3456,7 @@ const FinanceDashboard = () => {
                                                 {city.city}
                                               </div>
                                               <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
-                                                {city.months} 个月 × ¥{city.monthlyCost.toLocaleString()}/月
+                                                {city.months} 个月 × ${city.monthlyCost.toLocaleString()}/月
                                               </div>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
@@ -3446,7 +3464,7 @@ const FinanceDashboard = () => {
                                                 {city.level === 'budget' ? '节俭' : city.level === 'comfortable' ? '舒适' : '富足'}
                                               </div>
                                               <div style={{ fontSize: '1rem', fontWeight: '700', color: COLORS.text }}>
-                                                ¥{(city.monthlyCost * city.months).toLocaleString()}
+                                                ${(city.monthlyCost * city.months).toLocaleString()}
                                               </div>
                                             </div>
                                           </div>
@@ -3462,7 +3480,7 @@ const FinanceDashboard = () => {
                                         }}>
                                           <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>年度总计：</span>
                                           <span style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.success }}>
-                                            ¥{adjustedAmount.toLocaleString()}
+                                            ${adjustedAmount.toLocaleString()}
                                           </span>
                                         </div>
                                       </div>
@@ -3518,10 +3536,10 @@ const FinanceDashboard = () => {
                                         fontWeight: '700',
                                         color: adjustedAmount < cat.current ? COLORS.success : adjustedAmount > cat.current ? COLORS.warning : COLORS.text
                                       }}>
-                                        ¥{adjustedAmount.toLocaleString()}
+                                        ${adjustedAmount.toLocaleString()}
                                         <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: COLORS.textMuted }}>
                                           ({adjustedAmount - cat.current > 0 ? '+' : ''}
-                                          ¥{(adjustedAmount - cat.current).toLocaleString()})
+                                          ${(adjustedAmount - cat.current).toLocaleString()})
                                         </span>
                                       </span>
                                     </div>
@@ -3556,7 +3574,7 @@ const FinanceDashboard = () => {
                                           color: COLORS.textMuted,
                                           fontSize: '1rem'
                                         }}>
-                                          ¥
+                                          $
                                         </span>
                                         <input
                                           type="number"
@@ -3594,7 +3612,7 @@ const FinanceDashboard = () => {
                                         fontSize: '0.85rem',
                                         color: COLORS.success
                                       }}>
-                                        ✓ 已设置退休后年支出：¥{adjustedAmount.toLocaleString()}
+                                        ✓ 已设置退休后年支出：${adjustedAmount.toLocaleString()}
                                       </div>
                                     )}
                                   </>
@@ -3677,7 +3695,7 @@ const FinanceDashboard = () => {
                             退休年支出
                           </div>
                           <div style={{ fontSize: '1.8rem', fontWeight: '700', color: COLORS.text }}>
-                            ¥{optimizedAnnualExpenses.toLocaleString()}
+                            ${optimizedAnnualExpenses.toLocaleString()}
                           </div>
                           {optimizedAnnualExpenses !== annualExpenses && (
                             <div style={{ fontSize: '0.8rem', color: savings > 0 ? COLORS.success : COLORS.warning, marginTop: '0.25rem' }}>
@@ -3691,11 +3709,11 @@ const FinanceDashboard = () => {
                             新的 FIRE 目标
                           </div>
                           <div style={{ fontSize: '1.8rem', fontWeight: '700', color: COLORS.warning }}>
-                            ¥{optimizedFireNumber.toLocaleString()}
+                            ${optimizedFireNumber.toLocaleString()}
                           </div>
                           {savings !== 0 && (
                             <div style={{ fontSize: '0.8rem', color: savings > 0 ? COLORS.success : COLORS.warning, marginTop: '0.25rem' }}>
-                              {savings > 0 ? '节省' : '增加'} ¥{Math.abs(savings).toLocaleString()}
+                              {savings > 0 ? '节省' : '增加'} ${Math.abs(savings).toLocaleString()}
                             </div>
                           )}
                         </div>
@@ -3710,7 +3728,7 @@ const FinanceDashboard = () => {
                           fontSize: '0.9rem',
                           color: COLORS.success
                         }}>
-                          🎉 优化后，你的 FIRE 目标降低了 ¥{savings.toLocaleString()}！这意味着你可以更早实现财务自由。
+                          🎉 优化后，你的 FIRE 目标降低了 ${savings.toLocaleString()}！这意味着你可以更早实现财务自由。
                         </div>
                       )}
                       
@@ -3723,7 +3741,7 @@ const FinanceDashboard = () => {
                           fontSize: '0.9rem',
                           color: COLORS.warning
                         }}>
-                          ⚠️ 优化后，你的 FIRE 目标增加了 ¥{Math.abs(savings).toLocaleString()}。这反映了你对退休生活质量的更高期望。
+                          ⚠️ 优化后，你的 FIRE 目标增加了 ${Math.abs(savings).toLocaleString()}。这反映了你对退休生活质量的更高期望。
                         </div>
                       )}
                     </div>
@@ -3983,7 +4001,7 @@ const FinanceDashboard = () => {
                                   color: COLORS.textMuted,
                                   fontSize: '0.9rem'
                                 }}>
-                                  ¥
+                                  $
                                 </span>
                                 <input
                                   type="number"
@@ -4065,10 +4083,10 @@ const FinanceDashboard = () => {
                             alignItems: 'center'
                           }}>
                             <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                              {city.months} 个月 × ¥{city.monthlyCost.toLocaleString()}/月
+                              {city.months} 个月 × ${city.monthlyCost.toLocaleString()}/月
                             </span>
                             <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.success }}>
-                              = ¥{(city.monthlyCost * city.months).toLocaleString()}
+                              = ${(city.monthlyCost * city.months).toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -4085,7 +4103,7 @@ const FinanceDashboard = () => {
                     }}>
                       <span style={{ fontSize: '1rem', fontWeight: '600' }}>城市生活成本：</span>
                       <span style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.success }}>
-                        ¥{cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0).toLocaleString()}
+                        ${cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0).toLocaleString()}
                       </span>
                     </div>
                     
@@ -4124,7 +4142,7 @@ const FinanceDashboard = () => {
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>¥</span>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>$</span>
                             <input
                               type="number"
                               placeholder="0"
@@ -4166,7 +4184,7 @@ const FinanceDashboard = () => {
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>¥</span>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>$</span>
                             <input
                               type="number"
                               placeholder="0"
@@ -4208,7 +4226,7 @@ const FinanceDashboard = () => {
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>¥</span>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>$</span>
                             <input
                               type="number"
                               placeholder="0"
@@ -4246,7 +4264,7 @@ const FinanceDashboard = () => {
                           }}>
                             <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>额外成本小计：</span>
                             <span style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.warning }}>
-                              ¥{(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance).toLocaleString()}
+                              ${(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance).toLocaleString()}
                             </span>
                           </div>
                         )}
@@ -4271,7 +4289,7 @@ const FinanceDashboard = () => {
                         </div>
                       </div>
                       <span style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.success }}>
-                        ¥{(
+                        ${(
                           cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0) +
                           annualTravelCosts.flights + 
                           annualTravelCosts.visas + 
@@ -4534,7 +4552,7 @@ const FinanceDashboard = () => {
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span style={{ fontWeight: '600' }}>{option.label}</span>
                                     <span style={{ fontWeight: '700', color: option.color }}>
-                                      ¥{option.cost.toLocaleString()}/月
+                                      ${option.cost.toLocaleString()}/月
                                     </span>
                                   </div>
                                   <div style={{ 
