@@ -1020,7 +1020,24 @@ const FinanceDashboard = () => {
               marginBottom: '2rem',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
             }}>
-              <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.3rem' }}>🎯 FIRE 总览</h3>
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.3rem' }}>🎯 FIRE 总览</h3>
+              
+              {/* Current Total Assets - Prominent Display */}
+              <div style={{ 
+                fontSize: '2.5rem', 
+                fontWeight: '700', 
+                marginBottom: '1.5rem',
+                color: COLORS.text 
+              }}>
+                当前总资产：${totalPortfolio.toLocaleString()}
+              </div>
+              
+              {/* FIRE Progress Tracking */}
+              <div style={{ marginBottom: '0.5rem' }}>
+                <h4 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem', color: COLORS.textMuted }}>
+                  FIRE 进度追踪
+                </h4>
+              </div>
               
               {/* Current Portfolio vs FIRE Number */}
               <div style={{ marginBottom: '1rem' }}>
