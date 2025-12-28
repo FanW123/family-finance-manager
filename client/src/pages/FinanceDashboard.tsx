@@ -1109,187 +1109,6 @@ const FinanceDashboard = () => {
               )}
             </div>
 
-              {/* Expense Recommendations based on FIRE Progress */}
-              {monthlyIncome > 0 && totalPortfolio < fireNumber && (
-                <div style={{
-                  background: `${COLORS.success}10`,
-                  border: `1px solid ${COLORS.success}`,
-                  borderRadius: '0.5rem',
-                  padding: '1.5rem',
-                  marginBottom: '1.5rem'
-                }}>
-                  <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1.1rem', color: COLORS.success }}>
-                    💡 基于 FIRE 进度的支出建议
-                  </h4>
-                  
-                  {/* Calculate recommended monthly expenses */}
-                  {(() => {
-                    const remainingAmount = fireNumber - totalPortfolio;
-                    const targetMonths = retirementYears * 12; // 假设还有这么多月
-                    const requiredMonthlySavings = remainingAmount / targetMonths;
-                    const recommendedMaxExpenses = monthlyIncome - requiredMonthlySavings;
-                    const currentTotalExpenses = totalExpenses;
-                    const recommendedSavingsRate = (requiredMonthlySavings / monthlyIncome) * 100;
-                    const canAffordExpenses = recommendedMaxExpenses > 0;
-
-                    return (
-                      <div>
-                        {canAffordExpenses ? (
-                          <>
-                            <div style={{ marginBottom: '1rem' }}>
-                              <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                                为实现 FIRE 目标，建议:
-                              </div>
-                              <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                                gap: '1rem',
-                                marginBottom: '1rem'
-                              }}>
-                                <div style={{
-                                  padding: '0.75rem',
-                                  background: COLORS.accent,
-                                  borderRadius: '0.5rem',
-                                  borderLeft: `4px solid ${COLORS.success}`
-                                }}>
-                                  <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                                    建议月度储蓄
-                                  </div>
-                                  <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.success }}>
-                                    ${requiredMonthlySavings.toLocaleString()}
-                                  </div>
-                                  <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
-                                    储蓄率: {recommendedSavingsRate.toFixed(1)}%
-                                  </div>
-                                </div>
-                                <div style={{
-                                  padding: '0.75rem',
-                                  background: COLORS.accent,
-                                  borderRadius: '0.5rem',
-                                  borderLeft: `4px solid ${COLORS.warning}`
-                                }}>
-                                  <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                                    建议最大支出
-                                  </div>
-                                  <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.warning }}>
-                                    ${recommendedMaxExpenses.toLocaleString()}
-                                  </div>
-                                  <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
-                                    当前: ${currentTotalExpenses.toLocaleString()}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {currentTotalExpenses > recommendedMaxExpenses && (
-                              <div style={{
-                                padding: '0.75rem',
-                                background: `${COLORS.highlight}20`,
-                                border: `1px solid ${COLORS.highlight}`,
-                                borderRadius: '0.5rem',
-                                marginBottom: '1rem',
-                                fontSize: '0.85rem'
-                              }}>
-                                <strong>⚠️ 当前支出超出建议:</strong> 超出 ${(currentTotalExpenses - recommendedMaxExpenses).toLocaleString()}
-                                <div style={{ marginTop: '0.5rem', color: COLORS.textMuted }}>
-                                  建议削减支出以提高储蓄率，加速 FIRE 进度
-                                </div>
-                              </div>
-                            )}
-                            
-                            {currentTotalExpenses <= recommendedMaxExpenses && (
-                              <div style={{
-                                padding: '0.75rem',
-                                background: `${COLORS.success}20`,
-                                border: `1px solid ${COLORS.success}`,
-                                borderRadius: '0.5rem',
-                                marginBottom: '1rem',
-                                fontSize: '0.85rem',
-                                color: COLORS.success
-                              }}>
-                                ✓ 当前支出在建议范围内，保持当前节奏即可
-                              </div>
-                            )}
-
-                            <div style={{
-                              padding: '0.75rem',
-                              background: COLORS.accent,
-                              borderRadius: '0.5rem',
-                              fontSize: '0.85rem',
-                              marginBottom: '1rem'
-                            }}>
-                              <div style={{ marginBottom: '0.5rem', fontWeight: '600' }}>优化建议:</div>
-                              <ul style={{ margin: 0, paddingLeft: '1.5rem', color: COLORS.textMuted }}>
-                                <li>优先削减"可选支出"类别（当前: ${discretionaryExpenses.toLocaleString()}）</li>
-                                <li>工作相关支出退休后会消失，无需过度优化</li>
-                                <li>保持必需支出在合理范围（当前: ${essentialExpenses.toLocaleString()}）</li>
-                                {actualSavingsRate < 50 && (
-                                  <li style={{ color: COLORS.warning }}>
-                                    <strong>目标储蓄率 ≥50%，当前 {actualSavingsRate.toFixed(1)}%，需要提高 {(50 - actualSavingsRate).toFixed(1)}%</strong>
-                                  </li>
-                                )}
-                              </ul>
-                            </div>
-
-                            {/* Auto-update button */}
-                            <button
-                              onClick={async () => {
-                                if (confirm(`确定要将建议的最大支出 $${recommendedMaxExpenses.toLocaleString()} 应用到月度预算吗？\n\n这将帮助您更好地控制支出，加速 FIRE 进度。`)) {
-                                  try {
-                                    // 为必需支出和可选支出设置预算
-                                    if (essentialExpenses > 0) {
-                                      await api.post('/expenses/budgets', {
-                                        category: 'housing', // 使用一个通用类别作为示例
-                                        monthly_limit: essentialExpenses * 1.1 // 留10%缓冲
-                                      });
-                                    }
-                                    
-                                    alert('预算建议已应用！请前往"月度支出"标签页查看和调整详细预算。');
-                                    // 刷新数据
-                                    await loadData();
-                                  } catch (error) {
-                                    console.error('Error applying budget suggestions:', error);
-                                    alert('应用预算建议失败，请手动设置预算');
-                                  }
-                                }
-                              }}
-                              style={{
-                                width: '100%',
-                                background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
-                                border: 'none',
-                                color: 'white',
-                                padding: '0.75rem 1.5rem',
-                                borderRadius: '0.5rem',
-                                fontSize: '0.9rem',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                fontFamily: 'inherit',
-                                marginTop: '0.5rem'
-                              }}
-                            >
-                              📊 应用支出建议到月度预算
-                            </button>
-                          </>
-                        ) : (
-                          <div style={{
-                            padding: '0.75rem',
-                            background: `${COLORS.highlight}20`,
-                            border: `1px solid ${COLORS.highlight}`,
-                            borderRadius: '0.5rem',
-                            fontSize: '0.85rem'
-                          }}>
-                            <strong>⚠️ 收入不足:</strong> 当前收入无法在预期时间内达到 FIRE 目标
-                            <div style={{ marginTop: '0.5rem', color: COLORS.textMuted }}>
-                              建议: 增加收入或延长退休时间
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
             {/* KPI Cards */}
             <div style={{
               display: 'grid',
@@ -1534,6 +1353,188 @@ const FinanceDashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Expense Recommendations based on FIRE Progress */}
+            {monthlyIncome > 0 && totalPortfolio < fireNumber && (
+              <div style={{
+                background: `${COLORS.success}10`,
+                border: `1px solid ${COLORS.success}`,
+                borderRadius: '0.5rem',
+                padding: '1.5rem',
+                marginBottom: '2rem',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+              }}>
+                <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1.1rem', color: COLORS.success }}>
+                  💡 基于 FIRE 进度的支出建议
+                </h4>
+                
+                {/* Calculate recommended monthly expenses */}
+                {(() => {
+                  const remainingAmount = fireNumber - totalPortfolio;
+                  const targetMonths = retirementYears * 12; // 假设还有这么多月
+                  const requiredMonthlySavings = remainingAmount / targetMonths;
+                  const recommendedMaxExpenses = monthlyIncome - requiredMonthlySavings;
+                  const currentTotalExpenses = totalExpenses;
+                  const recommendedSavingsRate = (requiredMonthlySavings / monthlyIncome) * 100;
+                  const canAffordExpenses = recommendedMaxExpenses > 0;
+
+                  return (
+                    <div>
+                      {canAffordExpenses ? (
+                        <>
+                          <div style={{ marginBottom: '1rem' }}>
+                            <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                              为实现 FIRE 目标，建议:
+                            </div>
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                              gap: '1rem',
+                              marginBottom: '1rem'
+                            }}>
+                              <div style={{
+                                padding: '0.75rem',
+                                background: COLORS.accent,
+                                borderRadius: '0.5rem',
+                                borderLeft: `4px solid ${COLORS.success}`
+                              }}>
+                                <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                                  建议月度储蓄
+                                </div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.success }}>
+                                  ${requiredMonthlySavings.toLocaleString()}
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                                  储蓄率: {recommendedSavingsRate.toFixed(1)}%
+                                </div>
+                              </div>
+                              <div style={{
+                                padding: '0.75rem',
+                                background: COLORS.accent,
+                                borderRadius: '0.5rem',
+                                borderLeft: `4px solid ${COLORS.warning}`
+                              }}>
+                                <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                                  建议最大支出
+                                </div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.warning }}>
+                                  ${recommendedMaxExpenses.toLocaleString()}
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                                  当前: ${currentTotalExpenses.toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {currentTotalExpenses > recommendedMaxExpenses && (
+                            <div style={{
+                              padding: '0.75rem',
+                              background: `${COLORS.highlight}20`,
+                              border: `1px solid ${COLORS.highlight}`,
+                              borderRadius: '0.5rem',
+                              marginBottom: '1rem',
+                              fontSize: '0.85rem'
+                            }}>
+                              <strong>⚠️ 当前支出超出建议:</strong> 超出 ${(currentTotalExpenses - recommendedMaxExpenses).toLocaleString()}
+                              <div style={{ marginTop: '0.5rem', color: COLORS.textMuted }}>
+                                建议削减支出以提高储蓄率，加速 FIRE 进度
+                              </div>
+                            </div>
+                          )}
+                          
+                          {currentTotalExpenses <= recommendedMaxExpenses && (
+                            <div style={{
+                              padding: '0.75rem',
+                              background: `${COLORS.success}20`,
+                              border: `1px solid ${COLORS.success}`,
+                              borderRadius: '0.5rem',
+                              marginBottom: '1rem',
+                              fontSize: '0.85rem',
+                              color: COLORS.success
+                            }}>
+                              ✓ 当前支出在建议范围内，保持当前节奏即可
+                            </div>
+                          )}
+
+                          <div style={{
+                            padding: '0.75rem',
+                            background: COLORS.accent,
+                            borderRadius: '0.5rem',
+                            fontSize: '0.85rem',
+                            marginBottom: '1rem'
+                          }}>
+                            <div style={{ marginBottom: '0.5rem', fontWeight: '600' }}>优化建议:</div>
+                            <ul style={{ margin: 0, paddingLeft: '1.5rem', color: COLORS.textMuted }}>
+                              <li>优先削减"可选支出"类别（当前: ${discretionaryExpenses.toLocaleString()}）</li>
+                              <li>工作相关支出退休后会消失，无需过度优化</li>
+                              <li>保持必需支出在合理范围（当前: ${essentialExpenses.toLocaleString()}）</li>
+                              {actualSavingsRate < 50 && (
+                                <li style={{ color: COLORS.warning }}>
+                                  <strong>目标储蓄率 ≥50%，当前 {actualSavingsRate.toFixed(1)}%，需要提高 {(50 - actualSavingsRate).toFixed(1)}%</strong>
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+
+                          {/* Auto-update button */}
+                          <button
+                            onClick={async () => {
+                              if (confirm(`确定要将建议的最大支出 $${recommendedMaxExpenses.toLocaleString()} 应用到月度预算吗？\n\n这将帮助您更好地控制支出，加速 FIRE 进度。`)) {
+                                try {
+                                  // 为必需支出和可选支出设置预算
+                                  if (essentialExpenses > 0) {
+                                    await api.post('/expenses/budgets', {
+                                      category: 'housing', // 使用一个通用类别作为示例
+                                      monthly_limit: essentialExpenses * 1.1 // 留10%缓冲
+                                    });
+                                  }
+                                  
+                                  alert('预算建议已应用！请前往"月度支出"标签页查看和调整详细预算。');
+                                  // 刷新数据
+                                  await loadData();
+                                } catch (error) {
+                                  console.error('Error applying budget suggestions:', error);
+                                  alert('应用预算建议失败，请手动设置预算');
+                                }
+                              }
+                            }}
+                            style={{
+                              width: '100%',
+                              background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                              border: 'none',
+                              color: 'white',
+                              padding: '0.75rem 1.5rem',
+                              borderRadius: '0.5rem',
+                              fontSize: '0.9rem',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              fontFamily: 'inherit',
+                              marginTop: '0.5rem'
+                            }}
+                          >
+                            📊 应用支出建议到月度预算
+                          </button>
+                        </>
+                      ) : (
+                        <div style={{
+                          padding: '0.75rem',
+                          background: `${COLORS.highlight}20`,
+                          border: `1px solid ${COLORS.highlight}`,
+                          borderRadius: '0.5rem',
+                          fontSize: '0.85rem'
+                        }}>
+                          <strong>⚠️ 收入不足:</strong> 当前收入无法在预期时间内达到 FIRE 目标
+                          <div style={{ marginTop: '0.5rem', color: COLORS.textMuted }}>
+                            建议: 增加收入或延长退休时间
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
 
             {/* Portfolio Summary */}
             {totalPortfolio > 0 && (
