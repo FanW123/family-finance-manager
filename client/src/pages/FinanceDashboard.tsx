@@ -1094,15 +1094,10 @@ const FinanceDashboard = () => {
                   borderRadius: '0.5rem',
                   fontSize: '0.9rem'
                 }}>
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <strong style={{ color: COLORS.warning }}>距离 FIRE 目标还差:</strong>{' '}
-                    <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.text }}>
-                      ${(fireNumber - totalPortfolio).toLocaleString()}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
-                    当前完成度：{((totalPortfolio / fireNumber) * 100).toFixed(1)}%
-                  </div>
+                  <strong style={{ color: COLORS.warning }}>距离 FIRE 目标还差:</strong>{' '}
+                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.text }}>
+                    ${(fireNumber - totalPortfolio).toLocaleString()}
+                  </span>
                 </div>
               )}
             </div>
