@@ -1572,75 +1572,6 @@ const FinanceDashboard = () => {
               </div>
             </div>
 
-            {/* Expense Breakdown Summary */}
-            {totalExpenses > 0 && (
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '2rem',
-                marginBottom: '2rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>本月支出分类</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                  {[
-                    { label: '必需支出', value: essentialExpenses, color: COLORS.highlight },
-                    { label: '工作相关', value: workRelatedExpenses, color: COLORS.bonds },
-                    { label: '可选支出', value: discretionaryExpenses, color: COLORS.warning },
-                    { label: '储蓄投资', value: savingsInvestment, color: COLORS.success },
-                    { label: '债务偿还', value: debtPayments, color: '#9d4edd' }
-                  ].filter(item => item.value > 0).map((item, idx) => (
-                    <div key={idx} style={{
-                      padding: '1rem',
-                      background: COLORS.accent,
-                      borderRadius: '0.5rem',
-                      borderLeft: `4px solid ${item.color}`
-                    }}>
-                      <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                        {item.label}
-                      </div>
-                      <div style={{ fontSize: '1.3rem', fontWeight: '700', color: item.color }}>
-                        ${item.value.toLocaleString()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{
-                  marginTop: '1.5rem',
-                  padding: '1rem',
-                  background: COLORS.accent,
-                  borderRadius: '0.5rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: '600' }}>本月总支出（{selectedYear}年{selectedMonth}月）</span>
-                    <span style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.highlight }}>
-                      ${currentMonthTotal.toLocaleString()}
-                    </span>
-                  </div>
-                  {prevMonthTotal > 0 && (
-                    <div style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: COLORS.textMuted }}>
-                      <span>vs 上月:</span>
-                      <span style={{ 
-                        color: monthOverMonthChange > 0 ? COLORS.highlight : COLORS.success,
-                        fontWeight: '600'
-                      }}>
-                        {monthOverMonthChange > 0 ? '↑' : '↓'} {Math.abs(monthOverMonthChange).toFixed(1)}%
-                      </span>
-                      <span style={{ fontSize: '0.85rem' }}>
-                        (${prevMonthTotal.toLocaleString()})
-                      </span>
-                    </div>
-                  )}
-                  <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                    {filteredExpenses.length} 笔交易
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Portfolio Summary */}
             {totalPortfolio > 0 && (
               <div style={{
@@ -1693,20 +1624,6 @@ const FinanceDashboard = () => {
                       {currentAllocation.cash.toFixed(1)}%
                     </div>
                   </div>
-                </div>
-                <div style={{
-                  marginTop: '1.5rem',
-                  padding: '1rem',
-                  background: COLORS.accent,
-                  borderRadius: '0.5rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <span style={{ fontSize: '1rem', fontWeight: '600' }}>总资产</span>
-                  <span style={{ fontSize: '1.5rem', fontWeight: '700' }}>
-                    ${totalPortfolio.toLocaleString()}
-                  </span>
                 </div>
               </div>
             )}
