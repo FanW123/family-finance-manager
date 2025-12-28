@@ -1073,60 +1073,6 @@ const FinanceDashboard = () => {
                   <span style={{ color: COLORS.warning }}>${fireNumber.toLocaleString()}</span>
                 </div>
               </div>
-
-              {/* Insight based on 12-month expenses */}
-              <div style={{
-                background: `${COLORS.success}15`,
-                border: `1px solid ${COLORS.success}40`,
-                borderRadius: '0.5rem',
-                padding: '1rem',
-                marginBottom: '1rem',
-                fontSize: '0.85rem',
-                color: COLORS.textMuted
-              }}>
-                {(() => {
-                  const hasOptimization = optimizedAnnualExpenses !== last12MonthsExpenses;
-                  
-                  if (hasOptimization) {
-                    return (
-                      <>
-                        💡 已应用您的优化设置：
-                        <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: COLORS.text }}>
-                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                            <span style={{ textDecoration: 'line-through', color: COLORS.textMuted }}>
-                              ${last12MonthsExpenses.toLocaleString()}
-                            </span>
-                            <span>→</span>
-                            <span>
-                              退休年支出 <strong style={{ color: COLORS.success }}>${optimizedAnnualExpenses.toLocaleString()}</strong>
-                            </span>
-                          </div>
-                          <div style={{ marginTop: '0.5rem' }}>
-                            FIRE 目标 <strong style={{ color: COLORS.warning }}>${fireNumber.toLocaleString()}</strong>
-                          </div>
-                          {cityPlan.length > 0 && retirementExpenseAdjustments.essential.useCityPlanner && (
-                            <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: COLORS.textMuted }}>
-                              🌍 包含 {cityPlan.length} 个城市规划
-                              {(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance > 0) && 
-                                ` + 年度额外成本 $${(annualTravelCosts.flights + annualTravelCosts.visas + annualTravelCosts.insurance).toLocaleString()}`
-                              }
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    );
-                  } else {
-                    return (
-                      <>
-                        💡 基于你过去 12 个月的实际支出：
-                        <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: COLORS.text }}>
-                          年支出 <strong style={{ color: COLORS.success }}>${annualExpenses.toLocaleString()}</strong> → FIRE 目标 <strong style={{ color: COLORS.warning }}>${fireNumber.toLocaleString()}</strong>
-                        </div>
-                      </>
-                    );
-                  }
-                })()}
-              </div>
               {/* Progress Status */}
               {totalPortfolio >= fireNumber && (
                 <div style={{
