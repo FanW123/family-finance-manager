@@ -1310,40 +1310,48 @@ const FinanceDashboard = () => {
                 borderRadius: '0.5rem',
                 fontSize: '0.9rem'
               }}>
-                <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: COLORS.text }}>
+                <div style={{ fontWeight: '600', marginBottom: '0.75rem', color: COLORS.text }}>
                   💡 Insights
                 </div>
-                <div style={{ color: COLORS.textMuted, lineHeight: '1.6' }}>
-                  {(() => {
-                    const insights = [];
-                    
-                    // Insight 1: Savings rate
-                    if (actualSavingsRate >= 50) {
-                      insights.push(`储蓄率 ${actualSavingsRate.toFixed(1)}%，高于 FIRE 目标 50%，保持优秀！`);
-                    } else if (actualSavingsRate > 0) {
-                      insights.push(`储蓄率 ${actualSavingsRate.toFixed(1)}%，建议提高至 50% 以加速 FIRE 进度。`);
-                    } else {
-                      insights.push(`本月支出超过收入，建议检查必需支出和可选支出。`);
+                {(() => {
+                  const insights = [];
+                  
+                  // Insight 1: Savings rate
+                  if (actualSavingsRate >= 50) {
+                    insights.push(`储蓄率 ${actualSavingsRate.toFixed(1)}%，高于 FIRE 目标 50%，保持优秀！`);
+                  } else if (actualSavingsRate > 0) {
+                    insights.push(`储蓄率 ${actualSavingsRate.toFixed(1)}%，建议提高至 50% 以加速 FIRE 进度。`);
+                  } else {
+                    insights.push(`本月支出超过收入，建议检查必需支出和可选支出。`);
+                  }
+                  
+                  // Insight 2: Month over month change
+                  if (monthOverMonthChange > 15) {
+                    insights.push(`本月支出环比增长 ${monthOverMonthChange.toFixed(1)}%，增幅较大，建议查看支出明细。`);
+                  } else if (monthOverMonthChange < -15) {
+                    insights.push(`本月支出环比下降 ${Math.abs(monthOverMonthChange).toFixed(1)}%，支出控制良好！`);
+                  }
+                  
+                  // Insight 3: FIRE progress
+                  if (totalPortfolio > 0 && fireNumber > 0) {
+                    const progressPct = (totalPortfolio / fireNumber) * 100;
+                    if (progressPct >= 75) {
+                      insights.push(`FIRE 进度已达 ${progressPct.toFixed(1)}%，距离目标越来越近了！`);
                     }
-                    
-                    // Insight 2: Month over month change
-                    if (monthOverMonthChange > 15) {
-                      insights.push(`本月支出环比增长 ${monthOverMonthChange.toFixed(1)}%，增幅较大，建议查看支出明细。`);
-                    } else if (monthOverMonthChange < -15) {
-                      insights.push(`本月支出环比下降 ${Math.abs(monthOverMonthChange).toFixed(1)}%，支出控制良好！`);
-                    }
-                    
-                    // Insight 3: FIRE progress
-                    if (totalPortfolio > 0 && fireNumber > 0) {
-                      const progressPct = (totalPortfolio / fireNumber) * 100;
-                      if (progressPct >= 75) {
-                        insights.push(`FIRE 进度已达 ${progressPct.toFixed(1)}%，距离目标越来越近了！`);
-                      }
-                    }
-                    
-                    return insights.length > 0 ? insights.join(' ') : '持续记录收支，获取更多智能洞察。';
-                  })()}
-                </div>
+                  }
+                  
+                  return insights.length > 0 ? (
+                    <ol style={{ margin: 0, paddingLeft: '1.5rem', color: COLORS.textMuted, lineHeight: '1.8' }}>
+                      {insights.map((insight, index) => (
+                        <li key={index} style={{ marginBottom: '0.5rem' }}>{insight}</li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <div style={{ color: COLORS.textMuted, lineHeight: '1.6' }}>
+                      持续记录收支，获取更多智能洞察。
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
