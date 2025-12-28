@@ -689,7 +689,11 @@ const FinanceDashboard = () => {
   const debtPayments = expensesByGroup.debt || 0;
 
   const retirementExpenses = essentialExpenses + discretionaryExpenses;
-  const savingsRate = monthlyIncome > 0 ? ((savingsInvestment / monthlyIncome) * 100) : 0;
+  
+  // Calculate monthly net savings and savings rate (income - total expenses)
+  const monthlyTotalExpenses = currentMonthTotal;
+  const monthlySavings = monthlyIncome - monthlyTotalExpenses;
+  const actualSavingsRate = monthlyIncome > 0 ? ((monthlySavings / monthlyIncome) * 100) : 0;
 
   // Calculate FIRE target based on last 12 months actual expenses with user adjustments
   const getLast12MonthsExpensesByGroup = () => {
@@ -794,6 +798,13 @@ const FinanceDashboard = () => {
   }, 0);
 
   const totalPortfolio = portfolio.stocks + portfolio.bonds + portfolio.cash + (portfolio.crypto || 0);
+  
+  // Calculate asset growth rate (estimated based on monthly savings * 12)
+  // TODO: In the future, track historical portfolio values for accurate calculation
+  const estimatedAnnualGrowth = monthlySavings * 12;
+  const assetGrowthRate = totalPortfolio > estimatedAnnualGrowth && totalPortfolio > 0 
+    ? (estimatedAnnualGrowth / (totalPortfolio - estimatedAnnualGrowth)) * 100 
+    : 0;
   
   const currentAllocation = {
     stocks: totalPortfolio > 0 ? (portfolio.stocks / totalPortfolio * 100) : 0,
@@ -1001,96 +1012,6 @@ const FinanceDashboard = () => {
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <div>
-            {/* FIRE Key Metrics Cards */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '1.5rem',
-              marginBottom: '2rem'
-            }}>
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                border: `2px solid ${COLORS.success}`
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  储蓄率 (Savings Rate)
-                </div>
-                <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.success }}>
-                  {savingsRate.toFixed(1)}%
-                </div>
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
-                  目标: ≥50% for FIRE
-                </div>
-                {savingsRate >= 50 && (
-                  <div style={{
-                    marginTop: '0.5rem',
-                    padding: '0.25rem 0.5rem',
-                    background: `${COLORS.success}20`,
-                    borderRadius: '0.25rem',
-                    fontSize: '0.75rem',
-                    color: COLORS.success,
-                    fontWeight: '600'
-                  }}>
-                    ✓ 目标达成
-                  </div>
-                )}
-              </div>
-
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  必需支出/月
-                </div>
-                <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.highlight }}>
-                  ${essentialExpenses.toLocaleString()}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
-                  退休后继续
-                </div>
-              </div>
-
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  退休后总支出
-                </div>
-                <div style={{ fontSize: '2rem', fontWeight: '700' }}>
-                  ${retirementExpenses.toLocaleString()}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
-                  年需求: ${(retirementExpenses * 12).toLocaleString()}
-                </div>
-              </div>
-
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  FIRE数字 ({fireMultiplier.toFixed(1)}x)
-                </div>
-                <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.warning }}>
-                  ${fireNumber.toLocaleString()}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
-                  {currentWithdrawalRate.toFixed(2)}% 提取率
-                </div>
-              </div>
-            </div>
-
             {/* FIRE Progress Section */}
             <div style={{
               background: COLORS.card,
@@ -1099,30 +1020,7 @@ const FinanceDashboard = () => {
               marginBottom: '2rem',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.3rem' }}>🎯 FIRE 总览</h3>
-                <button 
-                  onClick={() => setShowFireOptimization(true)}
-                  style={{
-                    background: 'transparent',
-                    border: `1px solid ${COLORS.success}`,
-                    color: COLORS.success,
-                    padding: '0.5rem 1rem',
-                    borderRadius: '0.5rem',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = `${COLORS.success}20`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  🎛️ 优化我的目标
-                </button>
-              </div>
+              <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.3rem' }}>🎯 FIRE 总览</h3>
               
               {/* Current Portfolio vs FIRE Number */}
               <div style={{ marginBottom: '1rem' }}>
@@ -1362,9 +1260,9 @@ const FinanceDashboard = () => {
                                 <li>优先削减"可选支出"类别（当前: ${discretionaryExpenses.toLocaleString()}）</li>
                                 <li>工作相关支出退休后会消失，无需过度优化</li>
                                 <li>保持必需支出在合理范围（当前: ${essentialExpenses.toLocaleString()}）</li>
-                                {savingsRate < 50 && (
+                                {actualSavingsRate < 50 && (
                                   <li style={{ color: COLORS.warning }}>
-                                    <strong>目标储蓄率 ≥50%，当前 {savingsRate.toFixed(1)}%，需要提高 {(50 - savingsRate).toFixed(1)}%</strong>
+                                    <strong>目标储蓄率 ≥50%，当前 {actualSavingsRate.toFixed(1)}%，需要提高 {(50 - actualSavingsRate).toFixed(1)}%</strong>
                                   </li>
                                 )}
                               </ul>
@@ -1429,6 +1327,251 @@ const FinanceDashboard = () => {
                 </div>
               )}
 
+            {/* KPI Cards */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1.5rem',
+              marginBottom: '2rem'
+            }}>
+              {/* KPI 1: FIRE Progress */}
+              <div style={{
+                background: COLORS.card,
+                borderRadius: '1rem',
+                padding: '1.5rem',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+              }}>
+                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
+                  🎯 FIRE 进度
+                </div>
+                <div style={{
+                  fontSize: '2.5rem',
+                  fontWeight: '700',
+                  color: COLORS.success,
+                  marginBottom: '0.75rem'
+                }}>
+                  {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(1)}%` : '0%'}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                  当前: ${(totalPortfolio / 1000).toFixed(1)}K
+                </div>
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                  目标: ${(fireNumber / 1000).toFixed(1)}K
+                </div>
+              </div>
+
+              {/* KPI 2: FIRE Target with Optimize Button */}
+              <div style={{
+                background: COLORS.card,
+                borderRadius: '1rem',
+                padding: '1.5rem',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+              }}>
+                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
+                  🔥 FIRE 目标
+                </div>
+                <div style={{
+                  fontSize: '2rem',
+                  fontWeight: '700',
+                  color: COLORS.warning,
+                  marginBottom: '0.5rem'
+                }}>
+                  ${fireNumber.toLocaleString()}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '1rem' }}>
+                  年支出 × {fireMultiplier.toFixed(1)} 倍
+                </div>
+                <button
+                  onClick={() => setShowFireOptimization(true)}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: `1px solid ${COLORS.success}`,
+                    color: COLORS.success,
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'inherit'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = `${COLORS.success}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  📝 优化目标
+                </button>
+              </div>
+
+              {/* KPI 3: Monthly Net Savings */}
+              <div style={{
+                background: COLORS.card,
+                borderRadius: '1rem',
+                padding: '1.5rem',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+              }}>
+                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
+                  💰 月度净储蓄
+                </div>
+                <div style={{
+                  fontSize: '2rem',
+                  fontWeight: '700',
+                  color: monthlySavings >= 0 ? COLORS.success : COLORS.highlight,
+                  marginBottom: '0.5rem'
+                }}>
+                  ${monthlySavings.toLocaleString()}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                  = 收入 ${monthlyIncome.toLocaleString()} - 支出 ${monthlyTotalExpenses.toLocaleString()}
+                </div>
+                <div style={{
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  color: actualSavingsRate >= 50 ? COLORS.success : COLORS.textMuted,
+                  marginTop: '0.5rem'
+                }}>
+                  储蓄率: {actualSavingsRate.toFixed(1)}%
+                  {actualSavingsRate >= 50 && ' ✓'}
+                </div>
+              </div>
+
+              {/* KPI 4: Asset Growth Rate */}
+              <div style={{
+                background: COLORS.card,
+                borderRadius: '1rem',
+                padding: '1.5rem',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+              }}>
+                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
+                  📈 资产增长
+                </div>
+                <div style={{
+                  fontSize: '2rem',
+                  fontWeight: '700',
+                  color: COLORS.bonds,
+                  marginBottom: '0.5rem'
+                }}>
+                  +{assetGrowthRate.toFixed(1)}%
+                </div>
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                  近 12 个月（估算）
+                </div>
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                  年增长: +${estimatedAnnualGrowth.toLocaleString()}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                  月均: +${(estimatedAnnualGrowth / 12).toLocaleString()}
+                </div>
+              </div>
+            </div>
+
+            {/* Monthly Income/Expense Overview with Insights */}
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              padding: '2rem',
+              marginBottom: '2rem',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.3rem' }}>📊 本月收支概览</h3>
+                {monthOverMonthChange !== 0 && (
+                  <div style={{
+                    fontSize: '0.9rem',
+                    fontWeight: '600',
+                    color: monthOverMonthChange > 0 ? COLORS.highlight : COLORS.success,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    {monthOverMonthChange > 0 ? '↗' : '↘'} {Math.abs(monthOverMonthChange).toFixed(1)}% 超上月同比
+                  </div>
+                )}
+              </div>
+              
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '1rem',
+                marginBottom: '1.5rem'
+              }}>
+                <div style={{
+                  padding: '1rem',
+                  background: COLORS.accent,
+                  borderRadius: '0.5rem',
+                  borderLeft: `4px solid ${COLORS.highlight}`
+                }}>
+                  <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                    当前月度支出
+                  </div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.highlight }}>
+                    ${currentMonthTotal.toLocaleString()}
+                  </div>
+                </div>
+                
+                <div style={{
+                  padding: '1rem',
+                  background: COLORS.accent,
+                  borderRadius: '0.5rem',
+                  borderLeft: `4px solid ${COLORS.success}`
+                }}>
+                  <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                    当前月度收入
+                  </div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.success }}>
+                    ${monthlyIncome.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Insights */}
+              <div style={{
+                padding: '1rem',
+                background: `${COLORS.warning}15`,
+                border: `1px solid ${COLORS.warning}40`,
+                borderRadius: '0.5rem',
+                fontSize: '0.9rem'
+              }}>
+                <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: COLORS.text }}>
+                  💡 Insights
+                </div>
+                <div style={{ color: COLORS.textMuted, lineHeight: '1.6' }}>
+                  {(() => {
+                    const insights = [];
+                    
+                    // Insight 1: Savings rate
+                    if (actualSavingsRate >= 50) {
+                      insights.push(`储蓄率 ${actualSavingsRate.toFixed(1)}%，高于 FIRE 目标 50%，保持优秀！`);
+                    } else if (actualSavingsRate > 0) {
+                      insights.push(`储蓄率 ${actualSavingsRate.toFixed(1)}%，建议提高至 50% 以加速 FIRE 进度。`);
+                    } else {
+                      insights.push(`本月支出超过收入，建议检查必需支出和可选支出。`);
+                    }
+                    
+                    // Insight 2: Month over month change
+                    if (monthOverMonthChange > 15) {
+                      insights.push(`本月支出环比增长 ${monthOverMonthChange.toFixed(1)}%，增幅较大，建议查看支出明细。`);
+                    } else if (monthOverMonthChange < -15) {
+                      insights.push(`本月支出环比下降 ${Math.abs(monthOverMonthChange).toFixed(1)}%，支出控制良好！`);
+                    }
+                    
+                    // Insight 3: FIRE progress
+                    if (totalPortfolio > 0 && fireNumber > 0) {
+                      const progressPct = (totalPortfolio / fireNumber) * 100;
+                      if (progressPct >= 75) {
+                        insights.push(`FIRE 进度已达 ${progressPct.toFixed(1)}%，距离目标越来越近了！`);
+                      }
+                    }
+                    
+                    return insights.length > 0 ? insights.join(' ') : '持续记录收支，获取更多智能洞察。';
+                  })()}
+                </div>
+              </div>
+            </div>
+
             {/* Expense Breakdown Summary */}
             {totalExpenses > 0 && (
               <div style={{
@@ -1438,7 +1581,7 @@ const FinanceDashboard = () => {
                 marginBottom: '2rem',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
               }}>
-                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>本月支出概览</h3>
+                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>本月支出分类</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                   {[
                     { label: '必需支出', value: essentialExpenses, color: COLORS.highlight },
@@ -1718,7 +1861,7 @@ const FinanceDashboard = () => {
                   储蓄率
                 </div>
                 <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.success }}>
-                  {savingsRate.toFixed(1)}%
+                  {actualSavingsRate.toFixed(1)}%
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
                   目标: ≥50%
