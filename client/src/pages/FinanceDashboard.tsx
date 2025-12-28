@@ -1020,8 +1020,6 @@ const FinanceDashboard = () => {
               marginBottom: '2rem',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
             }}>
-              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.3rem' }}>🎯 FIRE 总览</h3>
-              
               {/* Current Total Assets - Prominent Display */}
               <div style={{ 
                 fontSize: '2.5rem', 
