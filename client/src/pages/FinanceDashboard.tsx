@@ -118,7 +118,7 @@ const BUDGET_TEMPLATES = {
         id: 'pets', 
         name: '🐕 宠物相关', 
         isParent: true,
-        expanded: true,
+        expanded: false,
         children: [
           { id: 'pet_insurance', name: '宠物保险', budgetType: 'yearly', amount: 1200 },
           { id: 'pet_food', name: '宠物食物', budgetType: 'weekly', amount: 30 },
@@ -130,7 +130,7 @@ const BUDGET_TEMPLATES = {
         id: 'beauty', 
         name: '💄 美容护肤', 
         isParent: true,
-        expanded: true,
+        expanded: false,
         children: [
           { id: 'skincare', name: '护肤品', budgetType: 'monthly', amount: 300 },
           { id: 'cosmetics', name: '彩妆', budgetType: 'monthly', amount: 200 },
@@ -157,7 +157,7 @@ const BUDGET_TEMPLATES = {
         id: 'pets', 
         name: '🐕 宠物相关', 
         isParent: true,
-        expanded: true,
+        expanded: false,
         children: [
           { id: 'pet_insurance', name: '宠物保险', budgetType: 'yearly', amount: 800 },
           { id: 'pet_food', name: '宠物食物', budgetType: 'weekly', amount: 20 },
@@ -169,7 +169,7 @@ const BUDGET_TEMPLATES = {
         id: 'beauty', 
         name: '💄 美容护肤', 
         isParent: true,
-        expanded: true,
+        expanded: false,
         children: [
           { id: 'skincare', name: '护肤品', budgetType: 'monthly', amount: 200 },
           { id: 'cosmetics', name: '彩妆', budgetType: 'monthly', amount: 150 },
@@ -196,7 +196,7 @@ const BUDGET_TEMPLATES = {
         id: 'pets', 
         name: '🐕 宠物相关', 
         isParent: true,
-        expanded: true,
+        expanded: false,
         children: [
           { id: 'pet_insurance', name: '宠物保险', budgetType: 'yearly', amount: 600 },
           { id: 'pet_food', name: '宠物食物', budgetType: 'weekly', amount: 15 },
@@ -208,7 +208,7 @@ const BUDGET_TEMPLATES = {
         id: 'beauty', 
         name: '💄 美容护肤', 
         isParent: true,
-        expanded: true,
+        expanded: false,
         children: [
           { id: 'skincare', name: '护肤品', budgetType: 'monthly', amount: 150 },
           { id: 'cosmetics', name: '彩妆', budgetType: 'monthly', amount: 100 },
@@ -2689,61 +2689,33 @@ const FinanceDashboard = () => {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>我的预算分类</h2>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button
-                        onClick={() => {
-                          const newCategory = {
-                            id: `custom_${Date.now()}`,
-                            name: '🆕 新分类',
-                            budgetType: 'weekly',
-                            amount: 0
-                          };
-                          const updated = [...budgetCategories, newCategory];
-                          setBudgetCategories(updated);
-                          localStorage.setItem('budgetCategories', JSON.stringify(updated));
-                        }}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                          border: 'none',
-                          borderRadius: '0.5rem',
-                          color: COLORS.text,
-                          fontSize: '0.9rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          fontFamily: 'inherit'
-                        }}
-                      >
-                        + 新增分类
-                      </button>
-                      <button
-                        onClick={() => {
-                          const newCategory = {
-                            id: `parent_${Date.now()}`,
-                            name: '📁 新父分类',
-                            isParent: true,
-                            expanded: true,
-                            children: []
-                          };
-                          const updated = [...budgetCategories, newCategory];
-                          setBudgetCategories(updated);
-                          localStorage.setItem('budgetCategories', JSON.stringify(updated));
-                        }}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          background: COLORS.accent,
-                          border: `2px solid ${COLORS.highlight}`,
-                          borderRadius: '0.5rem',
-                          color: COLORS.text,
-                          fontSize: '0.9rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          fontFamily: 'inherit'
-                        }}
-                      >
-                        + 新增父分类
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => {
+                        const newCategory = {
+                          id: `custom_${Date.now()}`,
+                          name: '🆕 新分类',
+                          budgetType: 'weekly',
+                          amount: 0
+                        };
+                        // Insert at the beginning instead of the end
+                        const updated = [newCategory, ...budgetCategories];
+                        setBudgetCategories(updated);
+                        localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                      }}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      + 新增分类
+                    </button>
                   </div>
 
                   {budgetCategories.map((category: any, index: number) => {
@@ -2898,7 +2870,7 @@ const FinanceDashboard = () => {
                                   id: category.id,
                                   name: category.name,
                                   isParent: true,
-                                  expanded: true,
+                                  expanded: false,
                                   children: [
                                     {
                                       id: `${category.id}_default`,
