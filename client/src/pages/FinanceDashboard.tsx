@@ -286,6 +286,7 @@ interface Investment {
 const FinanceDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [incomes, setIncomes] = useState<any[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
   const [fireMultiplier, setFireMultiplier] = useState(28.6);
@@ -466,6 +467,17 @@ const FinanceDashboard = () => {
           return;
         }
         console.error('Expenses error details:', error.response?.data);
+      }
+
+      // Load incomes
+      try {
+        const incomesRes = await api.get(`/incomes?month=${selectedMonth}&year=${selectedYear}`);
+        setIncomes(incomesRes.data || []);
+      } catch (error: any) {
+        console.error('Error loading incomes:', error);
+        // Don't show alert for incomes, just log the error
+        // It might fail if table doesn't exist yet
+        setIncomes([]);
       }
 
       // Load investments
@@ -877,6 +889,14 @@ const FinanceDashboard = () => {
   // Current month vs previous month comparison
   const currentMonthKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
   const currentMonthTotal = monthlyAggregation[currentMonthKey]?.total || 0;
+  
+  // Calculate current month income total
+  const currentMonthIncomeTotal = incomes
+    .filter(income => {
+      const incomeDate = new Date(income.date);
+      return incomeDate.getMonth() + 1 === selectedMonth && incomeDate.getFullYear() === selectedYear;
+    })
+    .reduce((sum, income) => sum + (parseFloat(income.amount) || 0), 0);
   
   const prevMonth = selectedMonth === 1 ? 12 : selectedMonth - 1;
   const prevYear = selectedMonth === 1 ? selectedYear - 1 : selectedYear;
@@ -1963,10 +1983,10 @@ const FinanceDashboard = () => {
                     </button>
                   </div>
                   <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.success, marginBottom: '0.5rem' }}>
-                    ${monthlyIncome.toLocaleString()}
+                    ${currentMonthIncomeTotal.toLocaleString()}
                   </div>
                   <div style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                    税后收入
+                    本月实际收入
                   </div>
                 </div>
 
