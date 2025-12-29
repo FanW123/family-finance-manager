@@ -2856,44 +2856,6 @@ const FinanceDashboard = () => {
                                 /{category.budgetType === 'weekly' ? '周' : category.budgetType === 'monthly' ? '月' : '年'}
                               </span>
                             </div>
-                            
-                            {/* Convert to parent button */}
-                            <button
-                              onClick={() => {
-                                const updated = [...budgetCategories];
-                                // Convert to parent category, keep original as first child
-                                updated[index] = {
-                                  id: category.id,
-                                  name: category.name,
-                                  isParent: true,
-                                  expanded: false,
-                                  children: [
-                                    {
-                                      id: `${category.id}_default`,
-                                      name: '默认',
-                                      budgetType: category.budgetType,
-                                      amount: category.amount
-                                    }
-                                  ]
-                                };
-                                setBudgetCategories(updated);
-                                localStorage.setItem('budgetCategories', JSON.stringify(updated));
-                              }}
-                              style={{
-                                padding: '0.4rem 0.8rem',
-                                background: 'none',
-                                border: `1px dashed ${COLORS.highlight}`,
-                                borderRadius: '0.35rem',
-                                color: COLORS.highlight,
-                                fontSize: '0.8rem',
-                                cursor: 'pointer',
-                                fontFamily: 'inherit',
-                                width: '100%',
-                                marginTop: '0.5rem'
-                              }}
-                            >
-                              + 转换为父分类（可添加子分类）
-                            </button>
                           </>
                         )}
 
@@ -2907,34 +2869,61 @@ const FinanceDashboard = () => {
                           marginTop: '0.5rem'
                         }}>
                           <span>→ ${yearlyAmount.toLocaleString()} / 年</span>
-                          {isParent && (
-                            <button
-                              onClick={() => {
+                          <button
+                            onClick={() => {
+                              const updated = [...budgetCategories];
+                              
+                              if (isParent) {
+                                // Already a parent, just add a new child
                                 const newChild = {
                                   id: `${category.id}_child_${Date.now()}`,
                                   name: '新子分类',
                                   budgetType: 'weekly',
                                   amount: 0
                                 };
-                                const updated = [...budgetCategories];
                                 updated[index].children.push(newChild);
-                                setBudgetCategories(updated);
-                                localStorage.setItem('budgetCategories', JSON.stringify(updated));
-                              }}
-                              style={{
-                                padding: '0.4rem 0.8rem',
-                                background: COLORS.card,
-                                border: `1px solid ${COLORS.highlight}`,
-                                borderRadius: '0.35rem',
-                                color: COLORS.text,
-                                fontSize: '0.85rem',
-                                cursor: 'pointer',
-                                fontFamily: 'inherit'
-                              }}
-                            >
-                              + 添加子分类
-                            </button>
-                          )}
+                                // Expand to show the new child
+                                updated[index].expanded = true;
+                              } else {
+                                // Convert to parent and add first child
+                                updated[index] = {
+                                  id: category.id,
+                                  name: category.name,
+                                  isParent: true,
+                                  expanded: true,
+                                  children: [
+                                    {
+                                      id: `${category.id}_original`,
+                                      name: category.name.replace(/^[^\s]+\s/, ''), // Remove emoji
+                                      budgetType: category.budgetType,
+                                      amount: category.amount
+                                    },
+                                    {
+                                      id: `${category.id}_child_${Date.now()}`,
+                                      name: '新子分类',
+                                      budgetType: 'weekly',
+                                      amount: 0
+                                    }
+                                  ]
+                                };
+                              }
+                              
+                              setBudgetCategories(updated);
+                              localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                            }}
+                            style={{
+                              padding: '0.4rem 0.8rem',
+                              background: COLORS.card,
+                              border: `1px solid ${COLORS.highlight}`,
+                              borderRadius: '0.35rem',
+                              color: COLORS.text,
+                              fontSize: '0.85rem',
+                              cursor: 'pointer',
+                              fontFamily: 'inherit'
+                            }}
+                          >
+                            + 添加子分类
+                          </button>
                         </div>
 
                         {/* Render children if parent and expanded */}
