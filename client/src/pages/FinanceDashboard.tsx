@@ -2595,11 +2595,7 @@ const FinanceDashboard = () => {
                   
                   {(() => {
                     const totalYearly = budgetCategories.reduce((sum: number, cat: any) => {
-                      return sum + (
-                        cat.budgetType === 'weekly' ? cat.amount * 52 :
-                        cat.budgetType === 'monthly' ? cat.amount * 12 :
-                        cat.amount
-                      );
+                      return sum + calculateYearlyAmount(cat);
                     }, 0);
                     const fireNumber = totalYearly * fireMultiplier;
                     const fireProgress = totalPortfolio > 0 ? (totalPortfolio / fireNumber) * 100 : 0;
