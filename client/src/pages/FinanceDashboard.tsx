@@ -4099,38 +4099,31 @@ const FinanceDashboard = () => {
                       }}
                     >
                       <option value="">选择类别...</option>
-                      {/* Render parent categories with their children as optgroups */}
-                      {budgetCategories.filter((cat: any) => cat.isParent && cat.children).map((parent: any) => (
-                        <optgroup key={parent.id} label={parent.name}>
-                          {parent.children.map((child: any) => (
-                            <option key={child.id} value={child.id}>
-                              {child.name}
+                      {/* Render all categories: parent categories and their children, plus standalone */}
+                      {budgetCategories.flatMap((cat: any) => {
+                        if (cat.isParent && cat.children) {
+                          // Parent category with children
+                          return [
+                            // Parent as selectable option
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </option>,
+                            // Children indented
+                            ...cat.children.map((child: any) => (
+                              <option key={child.id} value={child.id}>
+                                &nbsp;&nbsp;&nbsp;&nbsp;↳ {child.name}
+                              </option>
+                            ))
+                          ];
+                        } else {
+                          // Standalone category
+                          return (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
                             </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                      {/* Render standalone categories grouped by budget type */}
-                      <optgroup label="周预算">
-                        {budgetCategories.filter((cat: any) => !cat.isParent && cat.budgetType === 'weekly').map((cat: any) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="月预算">
-                        {budgetCategories.filter((cat: any) => !cat.isParent && cat.budgetType === 'monthly').map((cat: any) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="年预算">
-                        {budgetCategories.filter((cat: any) => !cat.isParent && cat.budgetType === 'yearly').map((cat: any) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </optgroup>
+                          );
+                        }
+                      })}
                     </select>
                   ) : (
                     <div style={{
