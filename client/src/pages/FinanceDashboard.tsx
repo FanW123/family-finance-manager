@@ -2835,11 +2835,17 @@ const FinanceDashboard = () => {
                                 }}
                                 onChange={(e) => {
                                   const updated = [...budgetCategories];
-                                  updated[index].amount = parseFloat(e.target.value) || 0;
+                                  const value = e.target.value;
+                                  // Allow empty string during editing, will convert to 0 on blur
+                                  updated[index].amount = value === '' ? 0 : parseFloat(value) || 0;
                                   setBudgetCategories(updated);
                                 }}
-                                onBlur={() => {
-                                  localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                                onBlur={(e) => {
+                                  const updated = [...budgetCategories];
+                                  // Ensure valid number on blur
+                                  updated[index].amount = parseFloat(e.target.value) || 0;
+                                  setBudgetCategories(updated);
+                                  localStorage.setItem('budgetCategories', JSON.stringify(updated));
                                 }}
                                 style={{
                                   flex: 1,
@@ -3027,11 +3033,17 @@ const FinanceDashboard = () => {
                                       }}
                                       onChange={(e) => {
                                         const updated = [...budgetCategories];
-                                        updated[index].children[childIndex].amount = parseFloat(e.target.value) || 0;
+                                        const value = e.target.value;
+                                        // Allow empty string during editing
+                                        updated[index].children[childIndex].amount = value === '' ? 0 : parseFloat(value) || 0;
                                         setBudgetCategories(updated);
                                       }}
-                                      onBlur={() => {
-                                        localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                                      onBlur={(e) => {
+                                        const updated = [...budgetCategories];
+                                        // Ensure valid number on blur
+                                        updated[index].children[childIndex].amount = parseFloat(e.target.value) || 0;
+                                        setBudgetCategories(updated);
+                                        localStorage.setItem('budgetCategories', JSON.stringify(updated));
                                       }}
                                       style={{
                                         flex: 1,
