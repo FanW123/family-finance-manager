@@ -2425,6 +2425,11 @@ const FinanceDashboard = () => {
                           <input
                             type="number"
                             value={category.amount}
+                            onFocus={(e) => {
+                              if (category.amount === 0) {
+                                e.target.select();
+                              }
+                            }}
                             onChange={(e) => {
                               const updated = [...budgetCategories];
                               updated[index].amount = parseFloat(e.target.value) || 0;
