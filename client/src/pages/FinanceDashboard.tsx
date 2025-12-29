@@ -308,6 +308,7 @@ const FinanceDashboard = () => {
   });
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
+  const [editingIncome, setEditingIncome] = useState<any>(null);
   const [newExpense, setNewExpense] = useState({ 
     category: '', 
     amount: '', 
@@ -570,6 +571,39 @@ const FinanceDashboard = () => {
         
         alert(`添加收入失败\n\n错误: ${errorMessage}${details}\n\n提示: ${hint}`);
       }
+    }
+  };
+
+  const updateIncome = async () => {
+    const finalSource = editingIncome.source === 'custom' ? editingIncome.customSource : editingIncome.source;
+    
+    if (finalSource && editingIncome.amount && editingIncome.date) {
+      try {
+        await api.put(`/incomes/${editingIncome.id}`, {
+          source: finalSource,
+          amount: parseFloat(editingIncome.amount),
+          description: editingIncome.description || '',
+          date: editingIncome.date
+        });
+        await loadData();
+        setEditingIncome(null);
+      } catch (error: any) {
+        console.error('Error updating income:', error);
+        const errorData = error?.response?.data || {};
+        const errorMessage = errorData.message || errorData.error || error?.message || '未知错误';
+        alert(`更新收入失败\n\n错误: ${errorMessage}`);
+      }
+    }
+  };
+
+  const deleteIncome = async (id: number) => {
+    if (!confirm('确定要删除这条收入吗？')) return;
+    try {
+      await api.delete(`/incomes/${id}`);
+      await loadData();
+    } catch (error: any) {
+        console.error('Error deleting income:', error);
+        alert('删除失败');
     }
   };
 
@@ -1992,6 +2026,98 @@ const FinanceDashboard = () => {
                   <div style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
                     本月实际收入
                   </div>
+
+                  {/* Income List */}
+                  {incomes.length > 0 && (
+                    <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: `1px solid ${COLORS.accent}` }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>收入明细</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {incomes
+                          .filter(income => {
+                            const incomeDate = new Date(income.date);
+                            return incomeDate.getMonth() + 1 === selectedMonth && incomeDate.getFullYear() === selectedYear;
+                          })
+                          .map((income) => (
+                            <div
+                              key={income.id}
+                              style={{
+                                background: COLORS.accent,
+                                borderRadius: '0.5rem',
+                                padding: '1rem',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                  <span style={{ fontSize: '1rem', fontWeight: '600' }}>
+                                    {income.source === 'salary' ? '💼 工资' :
+                                     income.source === 'bonus' ? '🎁 奖金' :
+                                     income.source === 'investment' ? '📈 投资收益' :
+                                     income.source === 'freelance' ? '💻 自由职业' :
+                                     income.source === 'rent' ? '🏠 租金收入' :
+                                     income.source === 'business' ? '🏢 生意收入' :
+                                     income.source === 'gift' ? '🎀 礼物' :
+                                     income.source === 'other' ? '📦 其他' :
+                                     `✏️ ${income.source}`}
+                                  </span>
+                                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.success }}>
+                                    ${parseFloat(income.amount).toLocaleString()}
+                                  </span>
+                                </div>
+                                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                  {new Date(income.date).toLocaleDateString('zh-CN')}
+                                  {income.description && ` · ${income.description}`}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                  onClick={() => {
+                                    setEditingIncome({
+                                      ...income,
+                                      source: income.source === 'custom' || !['salary', 'bonus', 'investment', 'freelance', 'rent', 'business', 'gift', 'other'].includes(income.source) 
+                                        ? 'custom' 
+                                        : income.source,
+                                      customSource: ['salary', 'bonus', 'investment', 'freelance', 'rent', 'business', 'gift', 'other'].includes(income.source) 
+                                        ? '' 
+                                        : income.source
+                                    });
+                                  }}
+                                  style={{
+                                    padding: '0.4rem 0.8rem',
+                                    background: COLORS.card,
+                                    border: `1px solid ${COLORS.highlight}`,
+                                    borderRadius: '0.35rem',
+                                    color: COLORS.text,
+                                    fontSize: '0.85rem',
+                                    cursor: 'pointer',
+                                    fontFamily: 'inherit'
+                                  }}
+                                >
+                                  编辑
+                                </button>
+                                <button
+                                  onClick={() => deleteIncome(income.id)}
+                                  style={{
+                                    padding: '0.4rem 0.8rem',
+                                    background: COLORS.card,
+                                    border: `1px solid ${COLORS.danger}`,
+                                    borderRadius: '0.35rem',
+                                    color: COLORS.danger,
+                                    fontSize: '0.85rem',
+                                    cursor: 'pointer',
+                                    fontFamily: 'inherit'
+                                  }}
+                                >
+                                  删除
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* 3. 本周预算追踪卡片 */}
@@ -4583,6 +4709,269 @@ const FinanceDashboard = () => {
                     }}
                   >
                     {loading ? '添加中...' : '添加收入'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Income Modal */}
+        {editingIncome && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '2rem',
+                borderBottom: `1px solid ${COLORS.accent}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>编辑收入</h2>
+                <button
+                  onClick={() => setEditingIncome(null)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: COLORS.text,
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Form Content */}
+              <div style={{ padding: '2rem' }}>
+                {/* Source Selection */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    收入来源
+                  </label>
+                  <select
+                    value={editingIncome.source}
+                    onChange={(e) => setEditingIncome({ ...editingIncome, source: e.target.value, customSource: e.target.value === 'custom' ? editingIncome.customSource : '' })}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="">选择收入来源...</option>
+                    <option value="salary">💼 工资</option>
+                    <option value="bonus">🎁 奖金</option>
+                    <option value="investment">📈 投资收益</option>
+                    <option value="freelance">💻 自由职业</option>
+                    <option value="rent">🏠 租金收入</option>
+                    <option value="business">🏢 生意收入</option>
+                    <option value="gift">🎀 礼物</option>
+                    <option value="other">📦 其他</option>
+                    <option value="custom">✏️ 自定义</option>
+                  </select>
+                </div>
+
+                {/* Custom Source Input */}
+                {editingIncome.source === 'custom' && (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                      自定义收入来源
+                    </label>
+                    <input
+                      type="text"
+                      value={editingIncome.customSource || ''}
+                      onChange={(e) => setEditingIncome({ ...editingIncome, customSource: e.target.value })}
+                      placeholder="例如：副业、兼职、版税..."
+                      autoFocus
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '1rem',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Amount */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    金额 (USD)
+                  </label>
+                  <input
+                    type="number"
+                    value={editingIncome.amount}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        setEditingIncome({ ...editingIncome, amount: '' });
+                        return;
+                      }
+                      const numValue = parseFloat(value);
+                      if (!isNaN(numValue) && numValue > 9999999999999.99) {
+                        alert('金额过大！最大支持：$9,999,999,999,999.99');
+                        return;
+                      }
+                      setEditingIncome({ ...editingIncome, amount: value });
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value;
+                      if (value && parseFloat(value) > 9999999999999.99) {
+                        setEditingIncome({ ...editingIncome, amount: '9999999999999.99' });
+                        alert('金额已自动调整为最大值：$9,999,999,999,999.99');
+                      }
+                    }}
+                    placeholder="0.00"
+                    max="9999999999999.99"
+                    step="0.01"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                  <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                    最大支持：$9,999,999,999,999.99
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    日期
+                  </label>
+                  <input
+                    type="date"
+                    value={editingIncome.date}
+                    onChange={(e) => setEditingIncome({ ...editingIncome, date: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Description */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    备注 (可选)
+                  </label>
+                  <input
+                    type="text"
+                    value={editingIncome.description || ''}
+                    onChange={(e) => setEditingIncome({ ...editingIncome, description: e.target.value })}
+                    placeholder="例如：月薪、年终奖..."
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    onClick={() => setEditingIncome(null)}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={updateIncome}
+                    disabled={
+                      loading || 
+                      !editingIncome.source || 
+                      (editingIncome.source === 'custom' && !editingIncome.customSource) ||
+                      !editingIncome.amount || 
+                      !editingIncome.date
+                    }
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      background: (
+                        !editingIncome.source || 
+                        (editingIncome.source === 'custom' && !editingIncome.customSource) ||
+                        !editingIncome.amount || 
+                        !editingIncome.date
+                      )
+                        ? COLORS.accent
+                        : `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      opacity: (
+                        !editingIncome.source || 
+                        (editingIncome.source === 'custom' && !editingIncome.customSource) ||
+                        !editingIncome.amount || 
+                        !editingIncome.date
+                      ) ? 0.5 : 1
+                    }}
+                  >
+                    {loading ? '更新中...' : '更新收入'}
                   </button>
                 </div>
               </div>

@@ -384,6 +384,86 @@ app.post('/incomes', async (req, res) => {
   }
 });
 
+// Update income
+app.put('/incomes/:id', async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const { id } = req.params;
+    const { amount, source, description, date } = req.body;
+
+    if (!amount || !source || !date) {
+      return res.status(400).json({ error: 'Amount, source, and date are required' });
+    }
+
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      return res.status(400).json({ error: 'Invalid amount. Must be a positive number.' });
+    }
+
+    if (amountNum > 9999999999999.99) {
+      return res.status(400).json({ 
+        error: 'Amount too large',
+        message: `金额过大。最大支持：$9,999,999,999,999.99`
+      });
+    }
+
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
+      .from('incomes')
+      .update({
+        amount: amountNum,
+        source,
+        description: description || '',
+        date,
+      })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating income:', error);
+      return res.status(500).json({ 
+        error: 'Failed to update income',
+        message: error.message
+      });
+    }
+
+    res.json({ id: data.id, message: 'Income updated successfully' });
+  } catch (error: any) {
+    console.error('Error updating income:', error);
+    res.status(500).json({ 
+      error: 'Failed to update income',
+      message: error?.message || '未知错误'
+    });
+  }
+});
+
+// Delete income
+app.delete('/incomes/:id', async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const { id } = req.params;
+
+    const sb = getSupabaseClient(req);
+    const { error } = await sb
+      .from('incomes')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error deleting income:', error);
+      return res.status(500).json({ error: 'Failed to delete income' });
+    }
+
+    res.json({ message: 'Income deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting income:', error);
+    res.status(500).json({ error: 'Failed to delete income' });
+  }
+});
+
 // Update expense
 app.put('/expenses/:id', async (req, res) => {
   try {
