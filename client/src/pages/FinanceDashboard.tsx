@@ -2555,7 +2555,7 @@ const FinanceDashboard = () => {
                   </div>
                 )}
 
-                {/* 5. FIRE支出分析卡片（Placeholder） */}
+                {/* 5. FIRE支出分析卡片 */}
                 <div style={{
                   background: COLORS.card,
                   borderRadius: '1rem',
@@ -2563,36 +2563,245 @@ const FinanceDashboard = () => {
                   marginBottom: '1.5rem',
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                 }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>FIRE支出分析</h3>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>FIRE支出分析</h3>
                   
-                  {/* 饼图 Placeholder */}
-                  <div style={{
-                    height: '200px',
-                    background: COLORS.accent,
-                    borderRadius: '0.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '1rem',
-                    color: COLORS.textMuted
-                  }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '1rem' }}>支出结构饼图</div>
-                      <div style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>(Coming Soon)</div>
-                    </div>
-                  </div>
+                  {/* Calculate expense data by category */}
+                  {(() => {
+                    // Get all trackable category IDs (including parent and child categories)
+                    const allCategoryIds = new Set<string>();
+                    budgetCategories?.forEach((cat: any) => {
+                      if (cat.isParent && cat.children) {
+                        allCategoryIds.add(cat.id);
+                        cat.children.forEach((child: any) => {
+                          allCategoryIds.add(child.id);
+                        });
+                      } else {
+                        allCategoryIds.add(cat.id);
+                      }
+                    });
 
-                  {/* Transaction List Placeholder */}
-                  <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>交易明细</h4>
-                  <div style={{
-                    padding: '2rem',
-                    background: COLORS.accent,
-                    borderRadius: '0.5rem',
-                    textAlign: 'center',
-                    color: COLORS.textMuted
-                  }}>
-                    <div>暂无交易记录</div>
-                  </div>
+                    // Group expenses by category
+                    const expensesByCategory: Record<string, { name: string; amount: number; count: number }> = {};
+                    
+                    filteredExpenses.forEach(expense => {
+                      const categoryId = expense.category;
+                      if (!allCategoryIds.has(categoryId)) return;
+                      
+                      // Find category name
+                      let categoryName = '未分类';
+                      budgetCategories?.forEach((cat: any) => {
+                        if (cat.id === categoryId) {
+                          categoryName = cat.name;
+                        } else if (cat.isParent && cat.children) {
+                          const child = cat.children.find((c: any) => c.id === categoryId);
+                          if (child) {
+                            categoryName = `${cat.name} - ${child.name}`;
+                          }
+                        }
+                      });
+                      
+                      if (!expensesByCategory[categoryId]) {
+                        expensesByCategory[categoryId] = {
+                          name: categoryName,
+                          amount: 0,
+                          count: 0
+                        };
+                      }
+                      expensesByCategory[categoryId].amount += expense.amount;
+                      expensesByCategory[categoryId].count += 1;
+                    });
+
+                    // Convert to array for pie chart
+                    const pieData = Object.values(expensesByCategory)
+                      .filter(item => item.amount > 0)
+                      .sort((a, b) => b.amount - a.amount)
+                      .map((item, index) => ({
+                        name: item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name,
+                        fullName: item.name,
+                        value: item.amount,
+                        count: item.count,
+                        color: [
+                          COLORS.highlight,
+                          COLORS.success,
+                          COLORS.warning,
+                          COLORS.danger,
+                          '#9b59b6',
+                          '#3498db',
+                          '#e74c3c',
+                          '#f39c12',
+                          '#1abc9c',
+                          '#34495e'
+                        ][index % 10]
+                      }));
+
+                    const totalExpenses = pieData.reduce((sum, item) => sum + item.value, 0);
+
+                    return (
+                      <>
+                        {/* Pie Chart */}
+                        {pieData.length > 0 ? (
+                          <div style={{ marginBottom: '2rem' }}>
+                            <div style={{ 
+                              height: '300px', 
+                              marginBottom: '1rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}>
+                              <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                  <Pie
+                                    data={pieData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                                    outerRadius={100}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                  >
+                                    {pieData.map((entry, index) => (
+                                      <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                  </Pie>
+                                  <Tooltip 
+                                    formatter={(value: number, name: string, props: any) => [
+                                      `$${value.toLocaleString()}`,
+                                      props.payload.fullName || name
+                                    ]}
+                                  />
+                                </PieChart>
+                              </ResponsiveContainer>
+                            </div>
+                            
+                            {/* Category Summary */}
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                              gap: '1rem',
+                              marginTop: '1.5rem'
+                            }}>
+                              {pieData.map((item, index) => (
+                                <div
+                                  key={index}
+                                  style={{
+                                    background: COLORS.accent,
+                                    borderRadius: '0.5rem',
+                                    padding: '1rem'
+                                  }}
+                                >
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '0.5rem',
+                                    marginBottom: '0.5rem'
+                                  }}>
+                                    <div style={{
+                                      width: '12px',
+                                      height: '12px',
+                                      borderRadius: '50%',
+                                      background: item.color
+                                    }} />
+                                    <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>
+                                      {item.fullName}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.success }}>
+                                    ${item.value.toLocaleString()}
+                                  </div>
+                                  <div style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
+                                    {((item.value / totalExpenses) * 100).toFixed(1)}% · {item.count} 笔
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{
+                            height: '200px',
+                            background: COLORS.accent,
+                            borderRadius: '0.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: COLORS.textMuted,
+                            marginBottom: '1rem'
+                          }}>
+                            <div style={{ textAlign: 'center' }}>
+                              <div style={{ fontSize: '1rem' }}>暂无支出数据</div>
+                              <div style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                                添加支出后即可查看分析
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Transaction List */}
+                        <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: `1px solid ${COLORS.accent}` }}>
+                          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>交易明细</h4>
+                          {filteredExpenses.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }}>
+                              {filteredExpenses
+                                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                .map((expense) => {
+                                  // Find category name
+                                  let categoryName = '未分类';
+                                  budgetCategories?.forEach((cat: any) => {
+                                    if (cat.id === expense.category) {
+                                      categoryName = cat.name;
+                                    } else if (cat.isParent && cat.children) {
+                                      const child = cat.children.find((c: any) => c.id === expense.category);
+                                      if (child) {
+                                        categoryName = `${cat.name} - ${child.name}`;
+                                      }
+                                    }
+                                  });
+
+                                  return (
+                                    <div
+                                      key={expense.id}
+                                      style={{
+                                        background: COLORS.accent,
+                                        borderRadius: '0.5rem',
+                                        padding: '1rem',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                      }}
+                                    >
+                                      <div style={{ flex: 1 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                          <span style={{ fontSize: '1rem', fontWeight: '600' }}>
+                                            {categoryName}
+                                          </span>
+                                          <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.danger }}>
+                                            ${expense.amount.toLocaleString()}
+                                          </span>
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                          {new Date(expense.date).toLocaleDateString('zh-CN')}
+                                          {expense.description && ` · ${expense.description}`}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          ) : (
+                            <div style={{
+                              padding: '2rem',
+                              background: COLORS.accent,
+                              borderRadius: '0.5rem',
+                              textAlign: 'center',
+                              color: COLORS.textMuted
+                            }}>
+                              <div>暂无交易记录</div>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             )}
