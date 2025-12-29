@@ -3026,54 +3026,136 @@ const FinanceDashboard = () => {
                       <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>💡 智能支出洞察</h3>
                       
                       {insights.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                          {insights.map((insight, index) => (
-                            <div
-                              key={index}
-                              style={{
-                                background: insight.type === 'danger' ? `${COLORS.danger}20` :
-                                           insight.type === 'warning' ? `${COLORS.warning}20` :
-                                           insight.type === 'success' ? `${COLORS.success}20` :
-                                           `${COLORS.highlight}20`,
-                                border: `1px solid ${
-                                  insight.type === 'danger' ? COLORS.danger :
-                                  insight.type === 'warning' ? COLORS.warning :
-                                  insight.type === 'success' ? COLORS.success :
-                                  COLORS.highlight
-                                }`,
-                                borderRadius: '0.75rem',
-                                padding: '1.25rem',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '0.5rem'
-                              }}
-                            >
-                              <div style={{ 
-                                fontSize: '1rem', 
-                                fontWeight: '600',
-                                color: insight.type === 'danger' ? COLORS.danger :
-                                       insight.type === 'warning' ? COLORS.warning :
-                                       insight.type === 'success' ? COLORS.success :
-                                       COLORS.highlight
-                              }}>
-                                {insight.title}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+                          {insights.map((insight, index) => {
+                            const getColorScheme = () => {
+                              switch(insight.type) {
+                                case 'danger':
+                                  return {
+                                    bg: COLORS.card,
+                                    border: COLORS.danger,
+                                    titleColor: COLORS.danger,
+                                    iconBg: `${COLORS.danger}20`
+                                  };
+                                case 'warning':
+                                  return {
+                                    bg: COLORS.card,
+                                    border: COLORS.warning,
+                                    titleColor: COLORS.warning,
+                                    iconBg: `${COLORS.warning}20`
+                                  };
+                                case 'success':
+                                  return {
+                                    bg: COLORS.card,
+                                    border: COLORS.success,
+                                    titleColor: COLORS.success,
+                                    iconBg: `${COLORS.success}20`
+                                  };
+                                default:
+                                  return {
+                                    bg: COLORS.card,
+                                    border: COLORS.highlight,
+                                    titleColor: COLORS.highlight,
+                                    iconBg: `${COLORS.highlight}20`
+                                  };
+                              }
+                            };
+                            
+                            const colors = getColorScheme();
+                            
+                            return (
+                              <div
+                                key={index}
+                                style={{
+                                  background: colors.bg,
+                                  border: `2px solid ${colors.border}`,
+                                  borderRadius: '0.75rem',
+                                  padding: '1.5rem',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '0.75rem',
+                                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                  cursor: 'default'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(-2px)';
+                                  e.currentTarget.style.boxShadow = `0 4px 12px ${colors.border}40`;
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                  e.currentTarget.style.boxShadow = 'none';
+                                }}
+                              >
+                                <div style={{ 
+                                  display: 'flex',
+                                  alignItems: 'flex-start',
+                                  gap: '0.75rem'
+                                }}>
+                                  <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '0.5rem',
+                                    background: colors.iconBg,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    fontSize: '1.2rem'
+                                  }}>
+                                    {insight.type === 'danger' ? '⚠️' :
+                                     insight.type === 'warning' ? '⚠️' :
+                                     insight.type === 'success' ? '✅' :
+                                     '💡'}
+                                  </div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ 
+                                      fontSize: '1rem', 
+                                      fontWeight: '600',
+                                      color: colors.titleColor,
+                                      marginBottom: '0.5rem',
+                                      lineHeight: '1.4'
+                                    }}>
+                                      {insight.title}
+                                    </div>
+                                    <div style={{ 
+                                      fontSize: '0.9rem', 
+                                      color: COLORS.text,
+                                      lineHeight: '1.5'
+                                    }}>
+                                      {insight.message}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                              <div style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                                {insight.message}
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <div style={{
-                          padding: '2rem',
+                          padding: '3rem 2rem',
                           background: COLORS.accent,
-                          borderRadius: '0.5rem',
+                          borderRadius: '0.75rem',
                           textAlign: 'center',
-                          color: COLORS.textMuted
+                          border: `2px solid ${COLORS.success}40`
                         }}>
-                          <div style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>✅ 本月支出表现良好</div>
-                          <div style={{ fontSize: '0.85rem' }}>没有发现需要特别关注的支出问题</div>
+                          <div style={{ 
+                            fontSize: '2rem', 
+                            marginBottom: '1rem' 
+                          }}>✅</div>
+                          <div style={{ 
+                            fontSize: '1.1rem', 
+                            fontWeight: '600',
+                            color: COLORS.text,
+                            marginBottom: '0.5rem' 
+                          }}>
+                            本月支出表现良好
+                          </div>
+                          <div style={{ 
+                            fontSize: '0.9rem', 
+                            color: COLORS.textMuted 
+                          }}>
+                            没有发现需要特别关注的支出问题
+                          </div>
                         </div>
                       )}
                     </div>
