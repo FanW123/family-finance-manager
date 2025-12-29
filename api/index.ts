@@ -305,13 +305,39 @@ app.post('/incomes', async (req, res) => {
       return res.status(400).json({ error: 'Amount, source, and date are required' });
     }
 
+    // Validate amount is a valid number
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      return res.status(400).json({ error: 'Invalid amount. Must be a positive number.' });
+    }
+
+    // Check if amount is too large (DECIMAL(15,2) max is 9999999999999.99)
+    if (amountNum > 9999999999999.99) {
+      return res.status(400).json({ 
+        error: 'Amount too large',
+        message: `金额过大。最大支持：$9,999,999,999,999.99`,
+        maxAmount: 9999999999999.99
+      });
+    }
+
     const sb = getSupabaseClient(req);
+    
+    // First check if table exists by trying to query it
+    const tableCheck = await sb.from('incomes').select('id').limit(1);
+    if (tableCheck.error && tableCheck.error.code === '42P01') {
+      return res.status(500).json({ 
+        error: 'Table does not exist',
+        message: 'incomes表不存在',
+        hint: '请在Supabase中执行create_incomes_table.sql脚本创建表'
+      });
+    }
+
     const { data, error } = await sb
       .from('incomes')
       .insert([
         {
           user_id: userId,
-          amount,
+          amount: amountNum,
           source,
           description: description || '',
           date,
@@ -322,11 +348,28 @@ app.post('/incomes', async (req, res) => {
 
     if (error) {
       console.error('Error adding income:', error);
+      
+      // Check for specific error types
+      let errorMessage = error.message;
+      let hint = '请确保数据库中的incomes表已创建';
+      
+      if (error.code === '23514' || error.message.includes('check constraint')) {
+        errorMessage = '数据验证失败：金额可能超出范围';
+        hint = '请确保金额在有效范围内（最大：$9,999,999,999,999.99）';
+      } else if (error.code === '23505' || error.message.includes('unique')) {
+        errorMessage = '数据已存在';
+        hint = '该记录可能已存在';
+      } else if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        errorMessage = '数据库表不存在';
+        hint = '请在Supabase中执行create_incomes_table.sql脚本创建表';
+      }
+      
       return res.status(500).json({ 
         error: 'Failed to add income',
-        message: error.message,
+        message: errorMessage,
         details: error.details,
-        hint: error.hint || '请确保数据库中的incomes表已创建'
+        hint: error.hint || hint,
+        code: error.code
       });
     }
 
@@ -335,7 +378,8 @@ app.post('/incomes', async (req, res) => {
     console.error('Error adding income:', error);
     res.status(500).json({ 
       error: 'Failed to add income',
-      message: error?.message || '未知错误'
+      message: error?.message || '未知错误',
+      stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
     });
   }
 });

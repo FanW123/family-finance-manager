@@ -563,8 +563,12 @@ const FinanceDashboard = () => {
         setShowAddIncome(false);
       } catch (error: any) {
         console.error('Error adding income:', error);
-        const errorMessage = error?.response?.data?.error || error?.message || '未知错误';
-        alert(`添加收入失败: ${errorMessage}\n\n提示：请确保数据库中的incomes表已创建。`);
+        const errorData = error?.response?.data || {};
+        const errorMessage = errorData.message || errorData.error || error?.message || '未知错误';
+        const hint = errorData.hint || '请确保数据库中的incomes表已创建';
+        const details = errorData.details ? `\n详情: ${errorData.details}` : '';
+        
+        alert(`添加收入失败\n\n错误: ${errorMessage}${details}\n\n提示: ${hint}`);
       }
     }
   };
@@ -4438,8 +4442,31 @@ const FinanceDashboard = () => {
                   <input
                     type="number"
                     value={newIncome.amount}
-                    onChange={(e) => setNewIncome({ ...newIncome, amount: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow empty string for editing
+                      if (value === '') {
+                        setNewIncome({ ...newIncome, amount: '' });
+                        return;
+                      }
+                      const numValue = parseFloat(value);
+                      // Check if value is too large (max: 9999999999999.99)
+                      if (!isNaN(numValue) && numValue > 9999999999999.99) {
+                        alert('金额过大！最大支持：$9,999,999,999,999.99');
+                        return;
+                      }
+                      setNewIncome({ ...newIncome, amount: value });
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value;
+                      if (value && parseFloat(value) > 9999999999999.99) {
+                        setNewIncome({ ...newIncome, amount: '9999999999999.99' });
+                        alert('金额已自动调整为最大值：$9,999,999,999,999.99');
+                      }
+                    }}
                     placeholder="0.00"
+                    max="9999999999999.99"
+                    step="0.01"
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -4451,6 +4478,9 @@ const FinanceDashboard = () => {
                       fontFamily: 'inherit'
                     }}
                   />
+                  <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                    最大支持：$9,999,999,999,999.99
+                  </div>
                 </div>
 
                 {/* Date */}
