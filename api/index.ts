@@ -322,13 +322,21 @@ app.post('/incomes', async (req, res) => {
 
     if (error) {
       console.error('Error adding income:', error);
-      return res.status(500).json({ error: 'Failed to add income' });
+      return res.status(500).json({ 
+        error: 'Failed to add income',
+        message: error.message,
+        details: error.details,
+        hint: error.hint || '请确保数据库中的incomes表已创建'
+      });
     }
 
     res.json({ id: data.id, message: 'Income added successfully' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error adding income:', error);
-    res.status(500).json({ error: 'Failed to add income' });
+    res.status(500).json({ 
+      error: 'Failed to add income',
+      message: error?.message || '未知错误'
+    });
   }
 });
 

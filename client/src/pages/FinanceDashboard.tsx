@@ -549,9 +549,10 @@ const FinanceDashboard = () => {
         await loadData();
         setNewIncome({ source: '', customSource: '', amount: '', date: new Date().toISOString().split('T')[0], description: '' });
         setShowAddIncome(false);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error adding income:', error);
-        alert('添加收入失败');
+        const errorMessage = error?.response?.data?.error || error?.message || '未知错误';
+        alert(`添加收入失败: ${errorMessage}\n\n提示：请确保数据库中的incomes表已创建。`);
       }
     }
   };
