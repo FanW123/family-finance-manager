@@ -2830,62 +2830,102 @@ const FinanceDashboard = () => {
                         </div>
 
                         {!isParent && (
-                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <select
-                              value={category.budgetType}
-                              onChange={(e) => {
+                          <>
+                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                              <select
+                                value={category.budgetType}
+                                onChange={(e) => {
+                                  const updated = [...budgetCategories];
+                                  updated[index].budgetType = e.target.value;
+                                  setBudgetCategories(updated);
+                                  localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                }}
+                                style={{
+                                  padding: '0.5rem',
+                                  background: COLORS.card,
+                                  border: 'none',
+                                  borderRadius: '0.5rem',
+                                  color: COLORS.text,
+                                  fontSize: '0.9rem',
+                                  fontFamily: 'inherit',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <option value="weekly">周预算</option>
+                                <option value="monthly">月预算</option>
+                                <option value="yearly">年预算</option>
+                              </select>
+
+                              <input
+                                type="number"
+                                value={category.amount}
+                                onFocus={(e) => {
+                                  if (category.amount === 0) {
+                                    e.target.select();
+                                  }
+                                }}
+                                onChange={(e) => {
+                                  const updated = [...budgetCategories];
+                                  updated[index].amount = parseFloat(e.target.value) || 0;
+                                  setBudgetCategories(updated);
+                                }}
+                                onBlur={() => {
+                                  localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '0.5rem',
+                                  background: COLORS.card,
+                                  border: 'none',
+                                  borderRadius: '0.5rem',
+                                  color: COLORS.text,
+                                  fontSize: '1rem',
+                                  fontFamily: 'inherit'
+                                }}
+                              />
+                              <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                                /{category.budgetType === 'weekly' ? '周' : category.budgetType === 'monthly' ? '月' : '年'}
+                              </span>
+                            </div>
+                            
+                            {/* Convert to parent button */}
+                            <button
+                              onClick={() => {
                                 const updated = [...budgetCategories];
-                                updated[index].budgetType = e.target.value;
+                                // Convert to parent category, keep original as first child
+                                updated[index] = {
+                                  id: category.id,
+                                  name: category.name,
+                                  isParent: true,
+                                  expanded: true,
+                                  children: [
+                                    {
+                                      id: `${category.id}_default`,
+                                      name: '默认',
+                                      budgetType: category.budgetType,
+                                      amount: category.amount
+                                    }
+                                  ]
+                                };
                                 setBudgetCategories(updated);
                                 localStorage.setItem('budgetCategories', JSON.stringify(updated));
                               }}
                               style={{
-                                padding: '0.5rem',
-                                background: COLORS.card,
-                                border: 'none',
-                                borderRadius: '0.5rem',
-                                color: COLORS.text,
-                                fontSize: '0.9rem',
+                                padding: '0.4rem 0.8rem',
+                                background: 'none',
+                                border: `1px dashed ${COLORS.highlight}`,
+                                borderRadius: '0.35rem',
+                                color: COLORS.highlight,
+                                fontSize: '0.8rem',
+                                cursor: 'pointer',
                                 fontFamily: 'inherit',
-                                cursor: 'pointer'
+                                width: '100%',
+                                marginTop: '0.5rem'
                               }}
                             >
-                              <option value="weekly">周预算</option>
-                              <option value="monthly">月预算</option>
-                              <option value="yearly">年预算</option>
-                            </select>
-
-                            <input
-                              type="number"
-                              value={category.amount}
-                              onFocus={(e) => {
-                                if (category.amount === 0) {
-                                  e.target.select();
-                                }
-                              }}
-                              onChange={(e) => {
-                                const updated = [...budgetCategories];
-                                updated[index].amount = parseFloat(e.target.value) || 0;
-                                setBudgetCategories(updated);
-                              }}
-                              onBlur={() => {
-                                localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
-                              }}
-                              style={{
-                                flex: 1,
-                                padding: '0.5rem',
-                                background: COLORS.card,
-                                border: 'none',
-                                borderRadius: '0.5rem',
-                                color: COLORS.text,
-                                fontSize: '1rem',
-                                fontFamily: 'inherit'
-                              }}
-                            />
-                            <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                              /{category.budgetType === 'weekly' ? '周' : category.budgetType === 'monthly' ? '月' : '年'}
-                            </span>
-                          </div>
+                              + 转换为父分类（可添加子分类）
+                            </button>
+                          </>
                         )}
 
                         <div style={{ 
