@@ -1838,89 +1838,115 @@ const FinanceDashboard = () => {
                 </div>
 
                 {/* 3. 本周预算追踪卡片 */}
-                <div style={{
-                  background: COLORS.card,
-                  borderRadius: '1rem',
-                  padding: '2rem',
-                  marginBottom: '1.5rem',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-                }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>本周预算追踪</h3>
-                  {Object.entries(weeklyBudgets).map(([category, data]: [string, any]) => {
-                    const percentage = (data.spent / data.limit) * 100;
-                    const categoryInfo = EXPENSE_CATEGORIES.weekly.categories.find(c => c.value === category);
-                    const categoryLabel = categoryInfo ? categoryInfo.label : category;
-                    
-                    return (
-                      <div key={category} style={{ marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                          <span style={{ fontSize: '0.9rem' }}>{categoryLabel}</span>
-                          <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                            ${data.spent} / ${data.limit}
-                          </span>
-                        </div>
-                        <div style={{
-                          width: '100%',
-                          height: '6px',
-                          background: COLORS.accent,
-                          borderRadius: '3px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            width: `${Math.min(percentage, 100)}%`,
-                            height: '100%',
-                            background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
-                            transition: 'width 0.3s ease'
-                          }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                {budgetCategories && budgetCategories.filter((cat: any) => cat.budgetType === 'weekly').length > 0 && (
+                  <div style={{
+                    background: COLORS.card,
+                    borderRadius: '1rem',
+                    padding: '2rem',
+                    marginBottom: '1.5rem',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>本周预算追踪</h3>
+                    {budgetCategories
+                      .filter((cat: any) => cat.budgetType === 'weekly')
+                      .map((category: any) => {
+                        // Calculate actual spent from expenses
+                        const weekStart = new Date();
+                        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                        weekStart.setHours(0, 0, 0, 0);
+                        
+                        const spent = expenses
+                          .filter(exp => {
+                            const expDate = new Date(exp.date);
+                            return expDate >= weekStart && exp.category === category.id;
+                          })
+                          .reduce((sum, exp) => sum + exp.amount, 0);
+                        
+                        const percentage = (spent / category.amount) * 100;
+                        
+                        return (
+                          <div key={category.id} style={{ marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                              <span style={{ fontSize: '0.9rem' }}>{category.name}</span>
+                              <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                ${spent.toFixed(0)} / ${category.amount}
+                              </span>
+                            </div>
+                            <div style={{
+                              width: '100%',
+                              height: '6px',
+                              background: COLORS.accent,
+                              borderRadius: '3px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${Math.min(percentage, 100)}%`,
+                                height: '100%',
+                                background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                                transition: 'width 0.3s ease'
+                              }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
 
                 {/* 4. 年度预算追踪卡片 */}
-                <div style={{
-                  background: COLORS.card,
-                  borderRadius: '1rem',
-                  padding: '2rem',
-                  marginBottom: '1.5rem',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-                }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>年度预算追踪</h3>
-                  {Object.entries(annualBudgets).map(([category, data]: [string, any]) => {
-                    const percentage = (data.spent / data.limit) * 100;
-                    const categoryInfo = EXPENSE_CATEGORIES.yearly.categories.find(c => c.value === category);
-                    const categoryLabel = categoryInfo ? categoryInfo.label : category;
-                    
-                    return (
-                      <div key={category} style={{ marginBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ fontSize: '0.95rem' }}>{categoryLabel}</span>
-                          <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                            ${data.spent.toLocaleString()} / ${data.limit.toLocaleString()}
-                          </span>
-                        </div>
-                        <div style={{
-                          width: '100%',
-                          height: '8px',
-                          background: COLORS.accent,
-                          borderRadius: '4px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            width: `${Math.min(percentage, 100)}%`,
-                            height: '100%',
-                            background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
-                            transition: 'width 0.3s ease'
-                          }} />
-                        </div>
-                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
-                          {percentage.toFixed(0)}% 已使用
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                {budgetCategories && budgetCategories.filter((cat: any) => cat.budgetType === 'yearly').length > 0 && (
+                  <div style={{
+                    background: COLORS.card,
+                    borderRadius: '1rem',
+                    padding: '2rem',
+                    marginBottom: '1.5rem',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>年度预算追踪</h3>
+                    {budgetCategories
+                      .filter((cat: any) => cat.budgetType === 'yearly')
+                      .map((category: any) => {
+                        // Calculate actual spent from expenses (this year)
+                        const yearStart = new Date(new Date().getFullYear(), 0, 1);
+                        
+                        const spent = expenses
+                          .filter(exp => {
+                            const expDate = new Date(exp.date);
+                            return expDate >= yearStart && exp.category === category.id;
+                          })
+                          .reduce((sum, exp) => sum + exp.amount, 0);
+                        
+                        const percentage = (spent / category.amount) * 100;
+                        
+                        return (
+                          <div key={category.id} style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                              <span style={{ fontSize: '0.95rem' }}>{category.name}</span>
+                              <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                                ${spent.toLocaleString()} / ${category.amount.toLocaleString()}
+                              </span>
+                            </div>
+                            <div style={{
+                              width: '100%',
+                              height: '8px',
+                              background: COLORS.accent,
+                              borderRadius: '4px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${Math.min(percentage, 100)}%`,
+                                height: '100%',
+                                background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                                transition: 'width 0.3s ease'
+                              }} />
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                              {percentage.toFixed(0)}% 已使用
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
 
                 {/* 5. FIRE支出分析卡片（Placeholder） */}
                 <div style={{
@@ -3444,32 +3470,68 @@ const FinanceDashboard = () => {
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
                     支出类别
                   </label>
-                  <select
-                    value={newExpense.category}
-                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      background: COLORS.accent,
-                      border: 'none',
-                      borderRadius: '0.5rem',
-                      color: COLORS.text,
-                      fontSize: '1rem',
-                      fontFamily: 'inherit',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value="">选择类别...</option>
-                    {Object.entries(EXPENSE_CATEGORIES).map(([periodKey, period]) => (
-                      <optgroup key={periodKey} label={period.label}>
-                        {period.categories.map(cat => (
-                          <option key={cat.value} value={cat.value}>
-                            {cat.label}
+                  {budgetCategories && budgetCategories.length > 0 ? (
+                    <select
+                      value={newExpense.category}
+                      onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '1rem',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">选择类别...</option>
+                      <optgroup label="周预算">
+                        {budgetCategories.filter((cat: any) => cat.budgetType === 'weekly').map((cat: any) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
                           </option>
                         ))}
                       </optgroup>
-                    ))}
-                  </select>
+                      <optgroup label="年预算">
+                        {budgetCategories.filter((cat: any) => cat.budgetType === 'yearly').map((cat: any) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  ) : (
+                    <div style={{
+                      padding: '1rem',
+                      background: COLORS.accent,
+                      borderRadius: '0.5rem',
+                      textAlign: 'center',
+                      color: COLORS.textMuted
+                    }}>
+                      <p style={{ marginBottom: '0.5rem' }}>请先在"预算管理"中设置分类</p>
+                      <button
+                        onClick={() => {
+                          setShowAddExpense(false);
+                          setActiveTab('budget');
+                        }}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: COLORS.highlight,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        去设置
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Amount */}
