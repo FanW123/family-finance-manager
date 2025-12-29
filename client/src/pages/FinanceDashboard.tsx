@@ -114,8 +114,29 @@ const BUDGET_TEMPLATES = {
       { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'monthly', amount: 600 },
       { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'monthly', amount: 400 },
       { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'monthly', amount: 250 },
-      { id: 'pets', name: '🐕 宠物相关', budgetType: 'monthly', amount: 250 },
-      { id: 'beauty', name: '💄 美容护肤', budgetType: 'monthly', amount: 800 },
+      { 
+        id: 'pets', 
+        name: '🐕 宠物相关', 
+        isParent: true,
+        expanded: true,
+        children: [
+          { id: 'pet_insurance', name: '宠物保险', budgetType: 'yearly', amount: 1200 },
+          { id: 'pet_food', name: '宠物食物', budgetType: 'weekly', amount: 30 },
+          { id: 'pet_medical', name: '宠物医疗', budgetType: 'yearly', amount: 500 },
+          { id: 'pet_grooming', name: '宠物美容', budgetType: 'monthly', amount: 80 }
+        ]
+      },
+      { 
+        id: 'beauty', 
+        name: '💄 美容护肤', 
+        isParent: true,
+        expanded: true,
+        children: [
+          { id: 'skincare', name: '护肤品', budgetType: 'monthly', amount: 300 },
+          { id: 'cosmetics', name: '彩妆', budgetType: 'monthly', amount: 200 },
+          { id: 'aesthetic', name: '医美', budgetType: 'yearly', amount: 8000 }
+        ]
+      },
       { id: 'housing', name: '🏠 住房居住', budgetType: 'yearly', amount: 60000 },
       { id: 'travel', name: '✈️ 旅行度假', budgetType: 'yearly', amount: 20000 },
       { id: 'healthcare', name: '💊 医疗健康', budgetType: 'yearly', amount: 10000 },
@@ -132,8 +153,29 @@ const BUDGET_TEMPLATES = {
       { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'monthly', amount: 400 },
       { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'monthly', amount: 280 },
       { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'monthly', amount: 200 },
-      { id: 'pets', name: '🐕 宠物相关', budgetType: 'monthly', amount: 160 },
-      { id: 'beauty', name: '💄 美容护肤', budgetType: 'monthly', amount: 500 },
+      { 
+        id: 'pets', 
+        name: '🐕 宠物相关', 
+        isParent: true,
+        expanded: true,
+        children: [
+          { id: 'pet_insurance', name: '宠物保险', budgetType: 'yearly', amount: 800 },
+          { id: 'pet_food', name: '宠物食物', budgetType: 'weekly', amount: 20 },
+          { id: 'pet_medical', name: '宠物医疗', budgetType: 'yearly', amount: 300 },
+          { id: 'pet_grooming', name: '宠物美容', budgetType: 'monthly', amount: 60 }
+        ]
+      },
+      { 
+        id: 'beauty', 
+        name: '💄 美容护肤', 
+        isParent: true,
+        expanded: true,
+        children: [
+          { id: 'skincare', name: '护肤品', budgetType: 'monthly', amount: 200 },
+          { id: 'cosmetics', name: '彩妆', budgetType: 'monthly', amount: 150 },
+          { id: 'aesthetic', name: '医美', budgetType: 'yearly', amount: 5000 }
+        ]
+      },
       { id: 'housing', name: '🏠 住房居住', budgetType: 'yearly', amount: 36000 },
       { id: 'travel', name: '✈️ 旅行度假', budgetType: 'yearly', amount: 12000 },
       { id: 'healthcare', name: '💊 医疗健康', budgetType: 'yearly', amount: 6000 },
@@ -150,8 +192,29 @@ const BUDGET_TEMPLATES = {
       { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'monthly', amount: 240 },
       { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'monthly', amount: 200 },
       { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'monthly', amount: 150 },
-      { id: 'pets', name: '🐕 宠物相关', budgetType: 'monthly', amount: 120 },
-      { id: 'beauty', name: '💄 美容护肤', budgetType: 'monthly', amount: 333 },
+      { 
+        id: 'pets', 
+        name: '🐕 宠物相关', 
+        isParent: true,
+        expanded: true,
+        children: [
+          { id: 'pet_insurance', name: '宠物保险', budgetType: 'yearly', amount: 600 },
+          { id: 'pet_food', name: '宠物食物', budgetType: 'weekly', amount: 15 },
+          { id: 'pet_medical', name: '宠物医疗', budgetType: 'yearly', amount: 200 },
+          { id: 'pet_grooming', name: '宠物美容', budgetType: 'monthly', amount: 40 }
+        ]
+      },
+      { 
+        id: 'beauty', 
+        name: '💄 美容护肤', 
+        isParent: true,
+        expanded: true,
+        children: [
+          { id: 'skincare', name: '护肤品', budgetType: 'monthly', amount: 150 },
+          { id: 'cosmetics', name: '彩妆', budgetType: 'monthly', amount: 100 },
+          { id: 'aesthetic', name: '医美', budgetType: 'yearly', amount: 3000 }
+        ]
+      },
       { id: 'housing', name: '🏠 住房居住', budgetType: 'yearly', amount: 24000 },
       { id: 'travel', name: '✈️ 旅行度假', budgetType: 'yearly', amount: 8000 },
       { id: 'healthcare', name: '💊 医疗健康', budgetType: 'yearly', amount: 4000 },
@@ -159,6 +222,45 @@ const BUDGET_TEMPLATES = {
       { id: 'family', name: '👨‍👩‍👧 家人支持', budgetType: 'yearly', amount: 12000 }
     ]
   }
+};
+
+// Helper function to calculate yearly amount for a category or subcategory
+const calculateYearlyAmount = (cat: any): number => {
+  if (cat.isParent && cat.children) {
+    return cat.children.reduce((sum: number, child: any) => sum + calculateYearlyAmount(child), 0);
+  }
+  return cat.budgetType === 'weekly' ? cat.amount * 52 :
+         cat.budgetType === 'monthly' ? cat.amount * 12 :
+         cat.amount;
+};
+
+// Helper function to get all trackable categories (flattens parent-child structure)
+const getAllTrackableCategories = (categories: any[], budgetType?: string): any[] => {
+  const result: any[] = [];
+  
+  categories.forEach(cat => {
+    if (cat.isParent && cat.children) {
+      // Add parent as a group summary
+      const childrenOfType = budgetType 
+        ? cat.children.filter((c: any) => c.budgetType === budgetType)
+        : cat.children;
+      
+      if (childrenOfType.length > 0) {
+        result.push({
+          ...cat,
+          isGroupSummary: true,
+          trackableChildren: childrenOfType
+        });
+      }
+    } else if (!cat.isParent) {
+      // Add standalone category
+      if (!budgetType || cat.budgetType === budgetType) {
+        result.push(cat);
+      }
+    }
+  });
+  
+  return result;
 };
 
 interface Expense {
@@ -1838,7 +1940,7 @@ const FinanceDashboard = () => {
                 </div>
 
                 {/* 3. 本周预算追踪卡片 */}
-                {budgetCategories && budgetCategories.filter((cat: any) => cat.budgetType === 'weekly').length > 0 && (
+                {budgetCategories && getAllTrackableCategories(budgetCategories, 'weekly').length > 0 && (
                   <div style={{
                     background: COLORS.card,
                     borderRadius: '1rem',
@@ -1847,29 +1949,97 @@ const FinanceDashboard = () => {
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                   }}>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>本周预算追踪</h3>
-                    {budgetCategories
-                      .filter((cat: any) => cat.budgetType === 'weekly')
-                      .map((category: any) => {
-                        // Calculate actual spent from expenses
-                        const weekStart = new Date();
-                        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-                        weekStart.setHours(0, 0, 0, 0);
+                    {getAllTrackableCategories(budgetCategories, 'weekly').map((item: any) => {
+                      const weekStart = new Date();
+                      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                      weekStart.setHours(0, 0, 0, 0);
+                      
+                      if (item.isGroupSummary && item.trackableChildren) {
+                        // Parent category with children
+                        const totalBudget = item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
+                        const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
+                          return sum + expenses
+                            .filter(exp => {
+                              const expDate = new Date(exp.date);
+                              return expDate >= weekStart && exp.category === child.id;
+                            })
+                            .reduce((s, e) => s + e.amount, 0);
+                        }, 0);
+                        const totalPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
                         
+                        return (
+                          <div key={item.id} style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: COLORS.textMuted }}>
+                              {item.name}
+                            </div>
+                            {item.trackableChildren.map((child: any) => {
+                              const spent = expenses
+                                .filter(exp => {
+                                  const expDate = new Date(exp.date);
+                                  return expDate >= weekStart && exp.category === child.id;
+                                })
+                                .reduce((sum, exp) => sum + exp.amount, 0);
+                              
+                              const percentage = (spent / child.amount) * 100;
+                              
+                              return (
+                                <div key={child.id} style={{ marginBottom: '0.75rem', paddingLeft: '1rem' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                                    <span style={{ fontSize: '0.85rem' }}>{child.name}</span>
+                                    <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
+                                      ${spent.toFixed(0)} / ${child.amount}
+                                    </span>
+                                  </div>
+                                  <div style={{
+                                    width: '100%',
+                                    height: '5px',
+                                    background: COLORS.accent,
+                                    borderRadius: '2.5px',
+                                    overflow: 'hidden'
+                                  }}>
+                                    <div style={{
+                                      width: `${Math.min(percentage, 100)}%`,
+                                      height: '100%',
+                                      background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                                      transition: 'width 0.3s ease'
+                                    }} />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            <div style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              marginTop: '0.5rem',
+                              paddingTop: '0.5rem',
+                              borderTop: `1px solid ${COLORS.accent}`,
+                              fontSize: '0.9rem',
+                              fontWeight: '600'
+                            }}>
+                              <span>总计</span>
+                              <span style={{ color: totalPercentage > 90 ? COLORS.danger : totalPercentage > 70 ? COLORS.warning : COLORS.success }}>
+                                ${totalSpent.toFixed(0)} / ${totalBudget}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      } else {
+                        // Standalone category
                         const spent = expenses
                           .filter(exp => {
                             const expDate = new Date(exp.date);
-                            return expDate >= weekStart && exp.category === category.id;
+                            return expDate >= weekStart && exp.category === item.id;
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
                         
-                        const percentage = (spent / category.amount) * 100;
+                        const percentage = (spent / item.amount) * 100;
                         
                         return (
-                          <div key={category.id} style={{ marginBottom: '1rem' }}>
+                          <div key={item.id} style={{ marginBottom: '1rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                              <span style={{ fontSize: '0.9rem' }}>{category.name}</span>
+                              <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
                               <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                ${spent.toFixed(0)} / ${category.amount}
+                                ${spent.toFixed(0)} / ${item.amount}
                               </span>
                             </div>
                             <div style={{
@@ -1888,12 +2058,13 @@ const FinanceDashboard = () => {
                             </div>
                           </div>
                         );
-                      })}
+                      }
+                    })}
                   </div>
                 )}
 
                 {/* 4. 月度预算追踪卡片 */}
-                {budgetCategories && budgetCategories.filter((cat: any) => cat.budgetType === 'monthly').length > 0 && (
+                {budgetCategories && getAllTrackableCategories(budgetCategories, 'monthly').length > 0 && (
                   <div style={{
                     background: COLORS.card,
                     borderRadius: '1rem',
@@ -1902,29 +2073,97 @@ const FinanceDashboard = () => {
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                   }}>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>本月预算追踪</h3>
-                    {budgetCategories
-                      .filter((cat: any) => cat.budgetType === 'monthly')
-                      .map((category: any) => {
-                        // Calculate actual spent from expenses (this month)
-                        const monthStart = new Date();
-                        monthStart.setDate(1);
-                        monthStart.setHours(0, 0, 0, 0);
+                    {getAllTrackableCategories(budgetCategories, 'monthly').map((item: any) => {
+                      const monthStart = new Date();
+                      monthStart.setDate(1);
+                      monthStart.setHours(0, 0, 0, 0);
+                      
+                      if (item.isGroupSummary && item.trackableChildren) {
+                        // Parent category with children
+                        const totalBudget = item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
+                        const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
+                          return sum + expenses
+                            .filter(exp => {
+                              const expDate = new Date(exp.date);
+                              return expDate >= monthStart && exp.category === child.id;
+                            })
+                            .reduce((s, e) => s + e.amount, 0);
+                        }, 0);
+                        const totalPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
                         
+                        return (
+                          <div key={item.id} style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: COLORS.textMuted }}>
+                              {item.name}
+                            </div>
+                            {item.trackableChildren.map((child: any) => {
+                              const spent = expenses
+                                .filter(exp => {
+                                  const expDate = new Date(exp.date);
+                                  return expDate >= monthStart && exp.category === child.id;
+                                })
+                                .reduce((sum, exp) => sum + exp.amount, 0);
+                              
+                              const percentage = (spent / child.amount) * 100;
+                              
+                              return (
+                                <div key={child.id} style={{ marginBottom: '0.75rem', paddingLeft: '1rem' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                                    <span style={{ fontSize: '0.85rem' }}>{child.name}</span>
+                                    <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
+                                      ${spent.toFixed(0)} / ${child.amount}
+                                    </span>
+                                  </div>
+                                  <div style={{
+                                    width: '100%',
+                                    height: '5px',
+                                    background: COLORS.accent,
+                                    borderRadius: '2.5px',
+                                    overflow: 'hidden'
+                                  }}>
+                                    <div style={{
+                                      width: `${Math.min(percentage, 100)}%`,
+                                      height: '100%',
+                                      background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                                      transition: 'width 0.3s ease'
+                                    }} />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            <div style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              marginTop: '0.5rem',
+                              paddingTop: '0.5rem',
+                              borderTop: `1px solid ${COLORS.accent}`,
+                              fontSize: '0.9rem',
+                              fontWeight: '600'
+                            }}>
+                              <span>总计</span>
+                              <span style={{ color: totalPercentage > 90 ? COLORS.danger : totalPercentage > 70 ? COLORS.warning : COLORS.success }}>
+                                ${totalSpent.toFixed(0)} / ${totalBudget}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      } else {
+                        // Standalone category
                         const spent = expenses
                           .filter(exp => {
                             const expDate = new Date(exp.date);
-                            return expDate >= monthStart && exp.category === category.id;
+                            return expDate >= monthStart && exp.category === item.id;
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
                         
-                        const percentage = (spent / category.amount) * 100;
+                        const percentage = (spent / item.amount) * 100;
                         
                         return (
-                          <div key={category.id} style={{ marginBottom: '1rem' }}>
+                          <div key={item.id} style={{ marginBottom: '1rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                              <span style={{ fontSize: '0.9rem' }}>{category.name}</span>
+                              <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
                               <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                ${spent.toFixed(0)} / ${category.amount}
+                                ${spent.toFixed(0)} / ${item.amount}
                               </span>
                             </div>
                             <div style={{
@@ -1943,12 +2182,13 @@ const FinanceDashboard = () => {
                             </div>
                           </div>
                         );
-                      })}
+                      }
+                    })}
                   </div>
                 )}
 
                 {/* 5. 年度预算追踪卡片 */}
-                {budgetCategories && budgetCategories.filter((cat: any) => cat.budgetType === 'yearly').length > 0 && (
+                {budgetCategories && getAllTrackableCategories(budgetCategories, 'yearly').length > 0 && (
                   <div style={{
                     background: COLORS.card,
                     borderRadius: '1rem',
@@ -1957,27 +2197,101 @@ const FinanceDashboard = () => {
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                   }}>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>年度预算追踪</h3>
-                    {budgetCategories
-                      .filter((cat: any) => cat.budgetType === 'yearly')
-                      .map((category: any) => {
-                        // Calculate actual spent from expenses (this year)
-                        const yearStart = new Date(new Date().getFullYear(), 0, 1);
+                    {getAllTrackableCategories(budgetCategories, 'yearly').map((item: any) => {
+                      const yearStart = new Date(new Date().getFullYear(), 0, 1);
+                      
+                      if (item.isGroupSummary && item.trackableChildren) {
+                        // Parent category with children
+                        const totalBudget = item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
+                        const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
+                          return sum + expenses
+                            .filter(exp => {
+                              const expDate = new Date(exp.date);
+                              return expDate >= yearStart && exp.category === child.id;
+                            })
+                            .reduce((s, e) => s + e.amount, 0);
+                        }, 0);
+                        const totalPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
                         
+                        return (
+                          <div key={item.id} style={{ marginBottom: '2rem' }}>
+                            <div style={{ fontSize: '1.05rem', fontWeight: '600', marginBottom: '1rem', color: COLORS.textMuted }}>
+                              {item.name}
+                            </div>
+                            {item.trackableChildren.map((child: any) => {
+                              const spent = expenses
+                                .filter(exp => {
+                                  const expDate = new Date(exp.date);
+                                  return expDate >= yearStart && exp.category === child.id;
+                                })
+                                .reduce((sum, exp) => sum + exp.amount, 0);
+                              
+                              const percentage = (spent / child.amount) * 100;
+                              
+                              return (
+                                <div key={child.id} style={{ marginBottom: '1rem', paddingLeft: '1rem' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                                    <span style={{ fontSize: '0.9rem' }}>{child.name}</span>
+                                    <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                      ${spent.toLocaleString()} / ${child.amount.toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div style={{
+                                    width: '100%',
+                                    height: '7px',
+                                    background: COLORS.accent,
+                                    borderRadius: '3.5px',
+                                    overflow: 'hidden'
+                                  }}>
+                                    <div style={{
+                                      width: `${Math.min(percentage, 100)}%`,
+                                      height: '100%',
+                                      background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                                      transition: 'width 0.3s ease'
+                                    }} />
+                                  </div>
+                                  <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                                    {percentage.toFixed(0)}% 已使用
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            <div style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              marginTop: '0.75rem',
+                              paddingTop: '0.75rem',
+                              borderTop: `2px solid ${COLORS.accent}`,
+                              fontSize: '1rem',
+                              fontWeight: '700'
+                            }}>
+                              <span>总计</span>
+                              <span style={{ color: totalPercentage > 90 ? COLORS.danger : totalPercentage > 70 ? COLORS.warning : COLORS.success }}>
+                                ${totalSpent.toLocaleString()} / ${totalBudget.toLocaleString()}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.25rem', textAlign: 'right' }}>
+                              {totalPercentage.toFixed(0)}% 已使用
+                            </div>
+                          </div>
+                        );
+                      } else {
+                        // Standalone category
                         const spent = expenses
                           .filter(exp => {
                             const expDate = new Date(exp.date);
-                            return expDate >= yearStart && exp.category === category.id;
+                            return expDate >= yearStart && exp.category === item.id;
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
                         
-                        const percentage = (spent / category.amount) * 100;
+                        const percentage = (spent / item.amount) * 100;
                         
                         return (
-                          <div key={category.id} style={{ marginBottom: '1.5rem' }}>
+                          <div key={item.id} style={{ marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                              <span style={{ fontSize: '0.95rem' }}>{category.name}</span>
+                              <span style={{ fontSize: '0.95rem' }}>{item.name}</span>
                               <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                                ${spent.toLocaleString()} / ${category.amount.toLocaleString()}
+                                ${spent.toLocaleString()} / ${item.amount.toLocaleString()}
                               </span>
                             </div>
                             <div style={{
@@ -1999,7 +2313,8 @@ const FinanceDashboard = () => {
                             </div>
                           </div>
                         );
-                      })}
+                      }
+                    })}
                   </div>
                 )}
 
@@ -2201,11 +2516,7 @@ const FinanceDashboard = () => {
                 }}>
                   {Object.entries(BUDGET_TEMPLATES).map(([key, template]) => {
                     const totalYearly = template.categories.reduce((sum, cat) => {
-                      return sum + (
-                        cat.budgetType === 'weekly' ? cat.amount * 52 :
-                        cat.budgetType === 'monthly' ? cat.amount * 12 :
-                        cat.amount
-                      );
+                      return sum + calculateYearlyAmount(cat);
                     }, 0);
                     
                     return (
@@ -2378,40 +2689,66 @@ const FinanceDashboard = () => {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>我的预算分类</h2>
-                    <button
-                      onClick={() => {
-                        const newCategory = {
-                          id: `custom_${Date.now()}`,
-                          name: '🆕 新分类',
-                          budgetType: 'weekly',
-                          amount: 0
-                        };
-                        const updated = [...budgetCategories, newCategory];
-                        setBudgetCategories(updated);
-                        localStorage.setItem('budgetCategories', JSON.stringify(updated));
-                      }}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit'
-                      }}
-                    >
-                      + 新增分类
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => {
+                          const newCategory = {
+                            id: `custom_${Date.now()}`,
+                            name: '🆕 新分类',
+                            budgetType: 'weekly',
+                            amount: 0
+                          };
+                          const updated = [...budgetCategories, newCategory];
+                          setBudgetCategories(updated);
+                          localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                        }}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        + 新增分类
+                      </button>
+                      <button
+                        onClick={() => {
+                          const newCategory = {
+                            id: `parent_${Date.now()}`,
+                            name: '📁 新父分类',
+                            isParent: true,
+                            expanded: true,
+                            children: []
+                          };
+                          const updated = [...budgetCategories, newCategory];
+                          setBudgetCategories(updated);
+                          localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                        }}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: COLORS.accent,
+                          border: `2px solid ${COLORS.highlight}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        + 新增父分类
+                      </button>
+                    </div>
                   </div>
 
                   {budgetCategories.map((category: any, index: number) => {
-                    const yearlyAmount = (
-                      category.budgetType === 'weekly' ? category.amount * 52 :
-                      category.budgetType === 'monthly' ? category.amount * 12 :
-                      category.amount
-                    );
+                    const yearlyAmount = calculateYearlyAmount(category);
+                    const isParent = category.isParent && category.children;
                     
                     return (
                       <div
@@ -2424,30 +2761,57 @@ const FinanceDashboard = () => {
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                          <input
-                            type="text"
-                            value={category.name}
-                            onChange={(e) => {
-                              const updated = [...budgetCategories];
-                              updated[index].name = e.target.value;
-                              setBudgetCategories(updated);
-                            }}
-                            onBlur={() => {
-                              localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
-                            }}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: COLORS.text,
-                              fontSize: '1.2rem',
-                              fontWeight: '600',
-                              fontFamily: 'inherit',
-                              width: '200px'
-                            }}
-                          />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+                            {isParent && (
+                              <button
+                                onClick={() => {
+                                  const updated = [...budgetCategories];
+                                  updated[index].expanded = !updated[index].expanded;
+                                  setBudgetCategories(updated);
+                                  localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                }}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: COLORS.text,
+                                  fontSize: '1rem',
+                                  cursor: 'pointer',
+                                  padding: '0',
+                                  width: '24px',
+                                  height: '24px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                {category.expanded ? '▼' : '▶'}
+                              </button>
+                            )}
+                            <input
+                              type="text"
+                              value={category.name}
+                              onChange={(e) => {
+                                const updated = [...budgetCategories];
+                                updated[index].name = e.target.value;
+                                setBudgetCategories(updated);
+                              }}
+                              onBlur={() => {
+                                localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                              }}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: COLORS.text,
+                                fontSize: '1.2rem',
+                                fontWeight: '600',
+                                fontFamily: 'inherit',
+                                width: '200px'
+                              }}
+                            />
+                          </div>
                           <button
                             onClick={() => {
-                              if (confirm(`确定要删除"${category.name}"吗？`)) {
+                              if (confirm(`确定要删除"${category.name}"吗？${isParent ? '\n这将同时删除所有子分类。' : ''}`)) {
                                 const updated = budgetCategories.filter((_: any, i: number) => i !== index);
                                 setBudgetCategories(updated);
                                 localStorage.setItem('budgetCategories', JSON.stringify(updated));
@@ -2465,71 +2829,233 @@ const FinanceDashboard = () => {
                           </button>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-                          <select
-                            value={category.budgetType}
-                            onChange={(e) => {
-                              const updated = [...budgetCategories];
-                              updated[index].budgetType = e.target.value;
-                              setBudgetCategories(updated);
-                              localStorage.setItem('budgetCategories', JSON.stringify(updated));
-                            }}
-                            style={{
-                              padding: '0.5rem',
-                              background: COLORS.card,
-                              border: 'none',
-                              borderRadius: '0.5rem',
-                              color: COLORS.text,
-                              fontSize: '0.9rem',
-                              fontFamily: 'inherit',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <option value="weekly">周预算</option>
-                            <option value="monthly">月预算</option>
-                            <option value="yearly">年预算</option>
-                          </select>
+                        {!isParent && (
+                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <select
+                              value={category.budgetType}
+                              onChange={(e) => {
+                                const updated = [...budgetCategories];
+                                updated[index].budgetType = e.target.value;
+                                setBudgetCategories(updated);
+                                localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                              }}
+                              style={{
+                                padding: '0.5rem',
+                                background: COLORS.card,
+                                border: 'none',
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '0.9rem',
+                                fontFamily: 'inherit',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <option value="weekly">周预算</option>
+                              <option value="monthly">月预算</option>
+                              <option value="yearly">年预算</option>
+                            </select>
 
-                          <input
-                            type="number"
-                            value={category.amount}
-                            onFocus={(e) => {
-                              if (category.amount === 0) {
-                                e.target.select();
-                              }
-                            }}
-                            onChange={(e) => {
-                              const updated = [...budgetCategories];
-                              updated[index].amount = parseFloat(e.target.value) || 0;
-                              setBudgetCategories(updated);
-                            }}
-                            onBlur={() => {
-                              localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
-                            }}
-                            style={{
-                              flex: 1,
-                              padding: '0.5rem',
-                              background: COLORS.card,
-                              border: 'none',
-                              borderRadius: '0.5rem',
-                              color: COLORS.text,
-                              fontSize: '1rem',
-                              fontFamily: 'inherit'
-                            }}
-                          />
-                          <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                            /{category.budgetType === 'weekly' ? '周' : category.budgetType === 'monthly' ? '月' : '年'}
-                          </span>
-                        </div>
+                            <input
+                              type="number"
+                              value={category.amount}
+                              onFocus={(e) => {
+                                if (category.amount === 0) {
+                                  e.target.select();
+                                }
+                              }}
+                              onChange={(e) => {
+                                const updated = [...budgetCategories];
+                                updated[index].amount = parseFloat(e.target.value) || 0;
+                                setBudgetCategories(updated);
+                              }}
+                              onBlur={() => {
+                                localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '0.5rem',
+                                background: COLORS.card,
+                                border: 'none',
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '1rem',
+                                fontFamily: 'inherit'
+                              }}
+                            />
+                            <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                              /{category.budgetType === 'weekly' ? '周' : category.budgetType === 'monthly' ? '月' : '年'}
+                            </span>
+                          </div>
+                        )}
 
-                        <div style={{
+                        <div style={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
                           fontSize: '1.1rem',
                           fontWeight: '600',
                           color: COLORS.success,
                           marginTop: '0.5rem'
                         }}>
-                          → ${yearlyAmount.toLocaleString()} / 年
+                          <span>→ ${yearlyAmount.toLocaleString()} / 年</span>
+                          {isParent && (
+                            <button
+                              onClick={() => {
+                                const newChild = {
+                                  id: `${category.id}_child_${Date.now()}`,
+                                  name: '新子分类',
+                                  budgetType: 'weekly',
+                                  amount: 0
+                                };
+                                const updated = [...budgetCategories];
+                                updated[index].children.push(newChild);
+                                setBudgetCategories(updated);
+                                localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                              }}
+                              style={{
+                                padding: '0.4rem 0.8rem',
+                                background: COLORS.card,
+                                border: `1px solid ${COLORS.highlight}`,
+                                borderRadius: '0.35rem',
+                                color: COLORS.text,
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                fontFamily: 'inherit'
+                              }}
+                            >
+                              + 添加子分类
+                            </button>
+                          )}
                         </div>
+
+                        {/* Render children if parent and expanded */}
+                        {isParent && category.expanded && category.children && category.children.length > 0 && (
+                          <div style={{ 
+                            marginTop: '1rem', 
+                            paddingLeft: '2rem',
+                            borderLeft: `2px solid ${COLORS.highlight}30`
+                          }}>
+                            {category.children.map((child: any, childIndex: number) => {
+                              const childYearlyAmount = calculateYearlyAmount(child);
+                              
+                              return (
+                                <div
+                                  key={child.id}
+                                  style={{
+                                    background: COLORS.card,
+                                    borderRadius: '0.5rem',
+                                    padding: '1rem',
+                                    marginBottom: '0.75rem'
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                                    <input
+                                      type="text"
+                                      value={child.name}
+                                      onChange={(e) => {
+                                        const updated = [...budgetCategories];
+                                        updated[index].children[childIndex].name = e.target.value;
+                                        setBudgetCategories(updated);
+                                      }}
+                                      onBlur={() => {
+                                        localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                                      }}
+                                      style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: COLORS.text,
+                                        fontSize: '1rem',
+                                        fontWeight: '500',
+                                        fontFamily: 'inherit',
+                                        flex: 1
+                                      }}
+                                    />
+                                    <button
+                                      onClick={() => {
+                                        if (confirm(`确定要删除"${child.name}"吗？`)) {
+                                          const updated = [...budgetCategories];
+                                          updated[index].children = updated[index].children.filter((_: any, i: number) => i !== childIndex);
+                                          setBudgetCategories(updated);
+                                          localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                        }
+                                      }}
+                                      style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: COLORS.danger,
+                                        fontSize: '1rem',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      🗑️
+                                    </button>
+                                  </div>
+
+                                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <select
+                                      value={child.budgetType}
+                                      onChange={(e) => {
+                                        const updated = [...budgetCategories];
+                                        updated[index].children[childIndex].budgetType = e.target.value;
+                                        setBudgetCategories(updated);
+                                        localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                      }}
+                                      style={{
+                                        padding: '0.4rem',
+                                        background: COLORS.accent,
+                                        border: 'none',
+                                        borderRadius: '0.25rem',
+                                        color: COLORS.text,
+                                        fontSize: '0.85rem',
+                                        fontFamily: 'inherit',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      <option value="weekly">周预算</option>
+                                      <option value="monthly">月预算</option>
+                                      <option value="yearly">年预算</option>
+                                    </select>
+
+                                    <input
+                                      type="number"
+                                      value={child.amount}
+                                      onFocus={(e) => {
+                                        if (child.amount === 0) {
+                                          e.target.select();
+                                        }
+                                      }}
+                                      onChange={(e) => {
+                                        const updated = [...budgetCategories];
+                                        updated[index].children[childIndex].amount = parseFloat(e.target.value) || 0;
+                                        setBudgetCategories(updated);
+                                      }}
+                                      onBlur={() => {
+                                        localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                                      }}
+                                      style={{
+                                        flex: 1,
+                                        padding: '0.4rem',
+                                        background: COLORS.accent,
+                                        border: 'none',
+                                        borderRadius: '0.25rem',
+                                        color: COLORS.text,
+                                        fontSize: '0.9rem',
+                                        fontFamily: 'inherit'
+                                      }}
+                                    />
+                                    <span style={{ color: COLORS.textMuted, fontSize: '0.85rem', minWidth: '30px' }}>
+                                      /{child.budgetType === 'weekly' ? '周' : child.budgetType === 'monthly' ? '月' : '年'}
+                                    </span>
+                                  </div>
+
+                                  <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                    → ${childYearlyAmount.toLocaleString()} / 年
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -3560,22 +4086,33 @@ const FinanceDashboard = () => {
                       }}
                     >
                       <option value="">选择类别...</option>
+                      {/* Render parent categories with their children as optgroups */}
+                      {budgetCategories.filter((cat: any) => cat.isParent && cat.children).map((parent: any) => (
+                        <optgroup key={parent.id} label={parent.name}>
+                          {parent.children.map((child: any) => (
+                            <option key={child.id} value={child.id}>
+                              {child.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                      {/* Render standalone categories grouped by budget type */}
                       <optgroup label="周预算">
-                        {budgetCategories.filter((cat: any) => cat.budgetType === 'weekly').map((cat: any) => (
+                        {budgetCategories.filter((cat: any) => !cat.isParent && cat.budgetType === 'weekly').map((cat: any) => (
                           <option key={cat.id} value={cat.id}>
                             {cat.name}
                           </option>
                         ))}
                       </optgroup>
                       <optgroup label="月预算">
-                        {budgetCategories.filter((cat: any) => cat.budgetType === 'monthly').map((cat: any) => (
+                        {budgetCategories.filter((cat: any) => !cat.isParent && cat.budgetType === 'monthly').map((cat: any) => (
                           <option key={cat.id} value={cat.id}>
                             {cat.name}
                           </option>
                         ))}
                       </optgroup>
                       <optgroup label="年预算">
-                        {budgetCategories.filter((cat: any) => cat.budgetType === 'yearly').map((cat: any) => (
+                        {budgetCategories.filter((cat: any) => !cat.isParent && cat.budgetType === 'yearly').map((cat: any) => (
                           <option key={cat.id} value={cat.id}>
                             {cat.name}
                           </option>
