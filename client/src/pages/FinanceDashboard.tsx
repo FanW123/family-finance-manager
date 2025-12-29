@@ -1076,16 +1076,18 @@ const FinanceDashboard = () => {
                   <div style={{
                     background: `linear-gradient(90deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
                     height: '100%',
-                    width: `${Math.min((totalPortfolio / fireNumber) * 100, 100)}%`,
+                    width: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
                     transition: 'width 0.3s ease',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
+                    justifyContent: 'flex-start',
+                    paddingLeft: '0.5rem',
                     color: COLORS.text,
                     fontWeight: '700',
-                    fontSize: '1rem'
+                    fontSize: '0.95rem',
+                    whiteSpace: 'nowrap'
                   }}>
-                    {totalPortfolio > 0 && `${((totalPortfolio / fireNumber) * 100).toFixed(1)}%`}
+                    {totalPortfolio > 0 && fireNumber > 0 && `${((totalPortfolio / fireNumber) * 100).toFixed(2)}%`}
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: '600' }}>
@@ -1147,7 +1149,7 @@ const FinanceDashboard = () => {
                   color: COLORS.success,
                   marginBottom: '0.75rem'
                 }}>
-                  {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(1)}%` : '0%'}
+                  {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(2)}%` : '0.00%'}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
                   当前: ${(totalPortfolio / 1000).toFixed(1)}K
