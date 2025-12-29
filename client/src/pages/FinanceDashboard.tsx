@@ -2819,9 +2819,9 @@ const FinanceDashboard = () => {
                                   cursor: 'pointer'
                                 }}
                               >
-                                <option value="weekly">周预算</option>
-                                <option value="monthly">月预算</option>
-                                <option value="yearly">年预算</option>
+                                <option value="weekly">周</option>
+                                <option value="monthly">月</option>
+                                <option value="yearly">年</option>
                               </select>
 
                               <input
@@ -3018,9 +3018,9 @@ const FinanceDashboard = () => {
                                         cursor: 'pointer'
                                       }}
                                     >
-                                      <option value="weekly">周预算</option>
-                                      <option value="monthly">月预算</option>
-                                      <option value="yearly">年预算</option>
+                                      <option value="weekly">周</option>
+                                      <option value="monthly">月</option>
+                                      <option value="yearly">年</option>
                                     </select>
 
                                     <input
