@@ -316,6 +316,7 @@ const FinanceDashboard = () => {
   });
   const [newIncome, setNewIncome] = useState({
     source: '',
+    customSource: '',
     amount: '',
     date: new Date().toISOString().split('T')[0],
     description: ''
@@ -535,16 +536,18 @@ const FinanceDashboard = () => {
   };
 
   const addIncome = async () => {
-    if (newIncome.source && newIncome.amount && newIncome.date) {
+    const finalSource = newIncome.source === 'custom' ? newIncome.customSource : newIncome.source;
+    
+    if (finalSource && newIncome.amount && newIncome.date) {
       try {
         await api.post('/incomes', {
-          source: newIncome.source,
+          source: finalSource,
           amount: parseFloat(newIncome.amount),
           description: newIncome.description || '',
           date: newIncome.date
         });
         await loadData();
-        setNewIncome({ source: '', amount: '', date: new Date().toISOString().split('T')[0], description: '' });
+        setNewIncome({ source: '', customSource: '', amount: '', date: new Date().toISOString().split('T')[0], description: '' });
         setShowAddIncome(false);
       } catch (error) {
         console.error('Error adding income:', error);
@@ -4376,8 +4379,35 @@ const FinanceDashboard = () => {
                     <option value="business">🏢 生意收入</option>
                     <option value="gift">🎀 礼物</option>
                     <option value="other">📦 其他</option>
+                    <option value="custom">✏️ 自定义</option>
                   </select>
                 </div>
+
+                {/* Custom Source Input - shown when custom is selected */}
+                {newIncome.source === 'custom' && (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                      自定义收入来源
+                    </label>
+                    <input
+                      type="text"
+                      value={newIncome.customSource}
+                      onChange={(e) => setNewIncome({ ...newIncome, customSource: e.target.value })}
+                      placeholder="例如：副业、兼职、版税..."
+                      autoFocus
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '1rem',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                )}
 
                 {/* Amount */}
                 <div style={{ marginBottom: '1.5rem' }}>
@@ -4468,11 +4498,22 @@ const FinanceDashboard = () => {
                   </button>
                   <button
                     onClick={addIncome}
-                    disabled={loading || !newIncome.source || !newIncome.amount || !newIncome.date}
+                    disabled={
+                      loading || 
+                      !newIncome.source || 
+                      (newIncome.source === 'custom' && !newIncome.customSource) ||
+                      !newIncome.amount || 
+                      !newIncome.date
+                    }
                     style={{
                       flex: 1,
                       padding: '0.75rem',
-                      background: !newIncome.source || !newIncome.amount || !newIncome.date
+                      background: (
+                        !newIncome.source || 
+                        (newIncome.source === 'custom' && !newIncome.customSource) ||
+                        !newIncome.amount || 
+                        !newIncome.date
+                      )
                         ? COLORS.accent
                         : `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
                       border: 'none',
@@ -4482,7 +4523,12 @@ const FinanceDashboard = () => {
                       fontWeight: '600',
                       cursor: 'pointer',
                       fontFamily: 'inherit',
-                      opacity: !newIncome.source || !newIncome.amount || !newIncome.date ? 0.5 : 1
+                      opacity: (
+                        !newIncome.source || 
+                        (newIncome.source === 'custom' && !newIncome.customSource) ||
+                        !newIncome.amount || 
+                        !newIncome.date
+                      ) ? 0.5 : 1
                     }}
                   >
                     {loading ? '添加中...' : '添加收入'}
