@@ -170,6 +170,27 @@ const FinanceDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [viewMode, setViewMode] = useState<'current' | 'trends'>('current');
+  const [expensesSubTab, setExpensesSubTab] = useState<'overview' | 'trends'>('overview');
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'day'>('month');
+  
+  // Weekly and Annual Budget tracking
+  const [weeklyBudgets] = useState(() => {
+    const saved = localStorage.getItem('weeklyBudgets');
+    return saved ? JSON.parse(saved) : {
+      food: { spent: 70, limit: 100 },
+      transport: { spent: 30, limit: 50 },
+      lifestyle: { spent: 20, limit: 80 }
+    };
+  });
+  
+  const [annualBudgets] = useState(() => {
+    const saved = localStorage.getItem('annualBudgets');
+    return saved ? JSON.parse(saved) : {
+      housing: { spent: 36000, limit: 48000 },
+      travel: { spent: 5000, limit: 15000 },
+      education: { spent: 0, limit: 10000 }
+    };
+  });
   
   // Investment management states
   const [showAddInvestment, setShowAddInvestment] = useState(false);
