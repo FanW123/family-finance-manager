@@ -1073,21 +1073,25 @@ const FinanceDashboard = () => {
                   overflow: 'hidden',
                   marginBottom: '0.5rem'
                 }}>
+                  {/* Progress Bar */}
                   <div style={{
                     background: `linear-gradient(90deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
                     height: '100%',
                     width: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
-                    transition: 'width 0.3s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start',
-                    paddingLeft: '0.5rem',
+                    transition: 'width 0.3s ease'
+                  }} />
+                  {/* Percentage Text - Always Visible */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
                     color: COLORS.text,
                     fontWeight: '700',
-                    fontSize: '0.95rem',
-                    whiteSpace: 'nowrap'
+                    fontSize: '1rem',
+                    textShadow: '0 1px 3px rgba(0,0,0,0.5)'
                   }}>
-                    {totalPortfolio > 0 && fireNumber > 0 && `${((totalPortfolio / fireNumber) * 100).toFixed(2)}%`}
+                    {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(2)}%` : '0.00%'}
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: '600' }}>
