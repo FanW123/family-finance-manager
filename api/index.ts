@@ -261,6 +261,77 @@ app.post('/expenses', async (req, res) => {
   }
 });
 
+// Get all incomes
+app.get('/incomes', async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const { month, year } = req.query;
+
+    const sb = getSupabaseClient(req);
+    let query = sb.from('incomes').select('*').eq('user_id', userId);
+
+    if (month && year) {
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+      const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+      query = query.gte('date', startDate).lte('date', endDate);
+    }
+
+    query = query.order('date', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error querying incomes:', error);
+      return res.status(500).json({
+        error: 'Failed to query incomes',
+        message: error.message,
+      });
+    }
+
+    res.json(data || []);
+  } catch (error) {
+    console.error('Error querying incomes:', error);
+    res.status(500).json({ error: 'Failed to query incomes' });
+  }
+});
+
+// Add income
+app.post('/incomes', async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const { amount, source, description, date } = req.body;
+
+    if (!amount || !source || !date) {
+      return res.status(400).json({ error: 'Amount, source, and date are required' });
+    }
+
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
+      .from('incomes')
+      .insert([
+        {
+          user_id: userId,
+          amount,
+          source,
+          description: description || '',
+          date,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding income:', error);
+      return res.status(500).json({ error: 'Failed to add income' });
+    }
+
+    res.json({ id: data.id, message: 'Income added successfully' });
+  } catch (error) {
+    console.error('Error adding income:', error);
+    res.status(500).json({ error: 'Failed to add income' });
+  }
+});
+
 // Update expense
 app.put('/expenses/:id', async (req, res) => {
   try {
@@ -269,7 +340,7 @@ app.put('/expenses/:id', async (req, res) => {
     const { amount, category, description, date } = req.body;
 
     const sb = getSupabaseClient(req);
-    const { data, error } = await sb
+    const { data, error} = await sb
       .from('expenses')
       .update({
         amount,
