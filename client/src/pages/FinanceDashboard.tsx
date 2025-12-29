@@ -4100,39 +4100,28 @@ const FinanceDashboard = () => {
                     >
                       <option value="">选择类别...</option>
                       
-                      {/* Group by budget type */}
-                      {['weekly', 'monthly', 'yearly'].map(budgetType => {
-                        const groupLabel = budgetType === 'weekly' ? '周预算' : budgetType === 'monthly' ? '月预算' : '年预算';
-                        
-                        // Get all categories/subcategories for this budget type
-                        const items = budgetCategories.flatMap((cat: any) => {
-                          if (cat.isParent && cat.children) {
-                            // Check if parent has children of this budget type
-                            const childrenOfType = cat.children.filter((c: any) => c.budgetType === budgetType);
-                            if (childrenOfType.length > 0) {
-                              return [
-                                { id: cat.id, name: cat.name, isParent: true },
-                                ...childrenOfType.map((c: any) => ({ id: c.id, name: `↳ ${c.name}`, isChild: true }))
-                              ];
-                            }
-                            return [];
-                          } else if (cat.budgetType === budgetType) {
-                            return [{ id: cat.id, name: cat.name }];
-                          }
-                          return [];
-                        });
-                        
-                        if (items.length === 0) return null;
-                        
-                        return (
-                          <optgroup key={budgetType} label={groupLabel}>
-                            {items.map((item: any) => (
-                              <option key={item.id} value={item.id}>
-                                {item.name}
+                      {/* Render all categories in order, parent categories can be selected */}
+                      {budgetCategories.flatMap((cat: any) => {
+                        if (cat.isParent && cat.children) {
+                          // Parent category with children
+                          return [
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </option>,
+                            ...cat.children.map((child: any) => (
+                              <option key={child.id} value={child.id}>
+                                &nbsp;&nbsp;&nbsp;&nbsp;↳ {child.name}
                               </option>
-                            ))}
-                          </optgroup>
-                        );
+                            ))
+                          ];
+                        } else {
+                          // Standalone category
+                          return (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </option>
+                          );
+                        }
                       })}
                     </select>
                   ) : (
