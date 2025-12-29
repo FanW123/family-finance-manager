@@ -111,11 +111,11 @@ const BUDGET_TEMPLATES = {
     categories: [
       { id: 'food_dining', name: '🍽️ 餐饮饮食', budgetType: 'weekly', amount: 200 },
       { id: 'transportation', name: '🚗 交通出行', budgetType: 'weekly', amount: 80 },
-      { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'weekly', amount: 150 },
-      { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'weekly', amount: 100 },
-      { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'yearly', amount: 3000 },
-      { id: 'pets', name: '🐕 宠物相关', budgetType: 'weekly', amount: 60 },
-      { id: 'beauty', name: '💄 美容护肤', budgetType: 'yearly', amount: 10000 },
+      { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'monthly', amount: 600 },
+      { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'monthly', amount: 400 },
+      { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'monthly', amount: 250 },
+      { id: 'pets', name: '🐕 宠物相关', budgetType: 'monthly', amount: 250 },
+      { id: 'beauty', name: '💄 美容护肤', budgetType: 'monthly', amount: 800 },
       { id: 'housing', name: '🏠 住房居住', budgetType: 'yearly', amount: 60000 },
       { id: 'travel', name: '✈️ 旅行度假', budgetType: 'yearly', amount: 20000 },
       { id: 'healthcare', name: '💊 医疗健康', budgetType: 'yearly', amount: 10000 },
@@ -129,11 +129,11 @@ const BUDGET_TEMPLATES = {
     categories: [
       { id: 'food_dining', name: '🍽️ 餐饮饮食', budgetType: 'weekly', amount: 130 },
       { id: 'transportation', name: '🚗 交通出行', budgetType: 'weekly', amount: 50 },
-      { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'weekly', amount: 100 },
-      { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'weekly', amount: 70 },
-      { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'yearly', amount: 2400 },
-      { id: 'pets', name: '🐕 宠物相关', budgetType: 'weekly', amount: 40 },
-      { id: 'beauty', name: '💄 美容护肤', budgetType: 'yearly', amount: 6000 },
+      { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'monthly', amount: 400 },
+      { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'monthly', amount: 280 },
+      { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'monthly', amount: 200 },
+      { id: 'pets', name: '🐕 宠物相关', budgetType: 'monthly', amount: 160 },
+      { id: 'beauty', name: '💄 美容护肤', budgetType: 'monthly', amount: 500 },
       { id: 'housing', name: '🏠 住房居住', budgetType: 'yearly', amount: 36000 },
       { id: 'travel', name: '✈️ 旅行度假', budgetType: 'yearly', amount: 12000 },
       { id: 'healthcare', name: '💊 医疗健康', budgetType: 'yearly', amount: 6000 },
@@ -147,11 +147,11 @@ const BUDGET_TEMPLATES = {
     categories: [
       { id: 'food_dining', name: '🍽️ 餐饮饮食', budgetType: 'weekly', amount: 80 },
       { id: 'transportation', name: '🚗 交通出行', budgetType: 'weekly', amount: 30 },
-      { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'weekly', amount: 60 },
-      { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'weekly', amount: 50 },
-      { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'yearly', amount: 1800 },
-      { id: 'pets', name: '🐕 宠物相关', budgetType: 'weekly', amount: 30 },
-      { id: 'beauty', name: '💄 美容护肤', budgetType: 'yearly', amount: 4000 },
+      { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'monthly', amount: 240 },
+      { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'monthly', amount: 200 },
+      { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'monthly', amount: 150 },
+      { id: 'pets', name: '🐕 宠物相关', budgetType: 'monthly', amount: 120 },
+      { id: 'beauty', name: '💄 美容护肤', budgetType: 'monthly', amount: 333 },
       { id: 'housing', name: '🏠 住房居住', budgetType: 'yearly', amount: 24000 },
       { id: 'travel', name: '✈️ 旅行度假', budgetType: 'yearly', amount: 8000 },
       { id: 'healthcare', name: '💊 医疗健康', budgetType: 'yearly', amount: 4000 },
@@ -1892,7 +1892,62 @@ const FinanceDashboard = () => {
                   </div>
                 )}
 
-                {/* 4. 年度预算追踪卡片 */}
+                {/* 4. 月度预算追踪卡片 */}
+                {budgetCategories && budgetCategories.filter((cat: any) => cat.budgetType === 'monthly').length > 0 && (
+                  <div style={{
+                    background: COLORS.card,
+                    borderRadius: '1rem',
+                    padding: '2rem',
+                    marginBottom: '1.5rem',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>本月预算追踪</h3>
+                    {budgetCategories
+                      .filter((cat: any) => cat.budgetType === 'monthly')
+                      .map((category: any) => {
+                        // Calculate actual spent from expenses (this month)
+                        const monthStart = new Date();
+                        monthStart.setDate(1);
+                        monthStart.setHours(0, 0, 0, 0);
+                        
+                        const spent = expenses
+                          .filter(exp => {
+                            const expDate = new Date(exp.date);
+                            return expDate >= monthStart && exp.category === category.id;
+                          })
+                          .reduce((sum, exp) => sum + exp.amount, 0);
+                        
+                        const percentage = (spent / category.amount) * 100;
+                        
+                        return (
+                          <div key={category.id} style={{ marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                              <span style={{ fontSize: '0.9rem' }}>{category.name}</span>
+                              <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                ${spent.toFixed(0)} / ${category.amount}
+                              </span>
+                            </div>
+                            <div style={{
+                              width: '100%',
+                              height: '6px',
+                              background: COLORS.accent,
+                              borderRadius: '3px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${Math.min(percentage, 100)}%`,
+                                height: '100%',
+                                background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                                transition: 'width 0.3s ease'
+                              }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+
+                {/* 5. 年度预算追踪卡片 */}
                 {budgetCategories && budgetCategories.filter((cat: any) => cat.budgetType === 'yearly').length > 0 && (
                   <div style={{
                     background: COLORS.card,
@@ -2146,7 +2201,11 @@ const FinanceDashboard = () => {
                 }}>
                   {Object.entries(BUDGET_TEMPLATES).map(([key, template]) => {
                     const totalYearly = template.categories.reduce((sum, cat) => {
-                      return sum + (cat.budgetType === 'weekly' ? cat.amount * 52 : cat.amount);
+                      return sum + (
+                        cat.budgetType === 'weekly' ? cat.amount * 52 :
+                        cat.budgetType === 'monthly' ? cat.amount * 12 :
+                        cat.amount
+                      );
                     }, 0);
                     
                     return (
@@ -2225,7 +2284,11 @@ const FinanceDashboard = () => {
                   
                   {(() => {
                     const totalYearly = budgetCategories.reduce((sum: number, cat: any) => {
-                      return sum + (cat.budgetType === 'weekly' ? cat.amount * 52 : cat.amount);
+                      return sum + (
+                        cat.budgetType === 'weekly' ? cat.amount * 52 :
+                        cat.budgetType === 'monthly' ? cat.amount * 12 :
+                        cat.amount
+                      );
                     }, 0);
                     const fireNumber = totalYearly * fireMultiplier;
                     const fireProgress = totalPortfolio > 0 ? (totalPortfolio / fireNumber) * 100 : 0;
@@ -2344,7 +2407,11 @@ const FinanceDashboard = () => {
                   </div>
 
                   {budgetCategories.map((category: any, index: number) => {
-                    const yearlyAmount = category.budgetType === 'weekly' ? category.amount * 52 : category.amount;
+                    const yearlyAmount = (
+                      category.budgetType === 'weekly' ? category.amount * 52 :
+                      category.budgetType === 'monthly' ? category.amount * 12 :
+                      category.amount
+                    );
                     
                     return (
                       <div
@@ -2419,6 +2486,7 @@ const FinanceDashboard = () => {
                             }}
                           >
                             <option value="weekly">周预算</option>
+                            <option value="monthly">月预算</option>
                             <option value="yearly">年预算</option>
                           </select>
 
@@ -2450,7 +2518,7 @@ const FinanceDashboard = () => {
                             }}
                           />
                           <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                            /{category.budgetType === 'weekly' ? '周' : '年'}
+                            /{category.budgetType === 'weekly' ? '周' : category.budgetType === 'monthly' ? '月' : '年'}
                           </span>
                         </div>
 
@@ -3494,6 +3562,13 @@ const FinanceDashboard = () => {
                       <option value="">选择类别...</option>
                       <optgroup label="周预算">
                         {budgetCategories.filter((cat: any) => cat.budgetType === 'weekly').map((cat: any) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="月预算">
+                        {budgetCategories.filter((cat: any) => cat.budgetType === 'monthly').map((cat: any) => (
                           <option key={cat.id} value={cat.id}>
                             {cat.name}
                           </option>
