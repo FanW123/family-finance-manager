@@ -309,6 +309,7 @@ const FinanceDashboard = () => {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
   const [editingIncome, setEditingIncome] = useState<any>(null);
+  const [incomeDetailsExpanded, setIncomeDetailsExpanded] = useState(false);
   const [newExpense, setNewExpense] = useState({ 
     category: '', 
     amount: '', 
@@ -2027,97 +2028,152 @@ const FinanceDashboard = () => {
                     本月实际收入
                   </div>
 
-                  {/* Income List */}
-                  {incomes.length > 0 && (
-                    <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: `1px solid ${COLORS.accent}` }}>
-                      <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>收入明细</h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {incomes
-                          .filter(income => {
-                            const incomeDate = new Date(income.date);
-                            return incomeDate.getMonth() + 1 === selectedMonth && incomeDate.getFullYear() === selectedYear;
-                          })
-                          .map((income) => (
-                            <div
-                              key={income.id}
-                              style={{
-                                background: COLORS.accent,
-                                borderRadius: '0.5rem',
-                                padding: '1rem',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                              }}
-                            >
-                              <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                  <span style={{ fontSize: '1rem', fontWeight: '600' }}>
-                                    {income.source === 'salary' ? '💼 工资' :
-                                     income.source === 'bonus' ? '🎁 奖金' :
-                                     income.source === 'investment' ? '📈 投资收益' :
-                                     income.source === 'freelance' ? '💻 自由职业' :
-                                     income.source === 'rent' ? '🏠 租金收入' :
-                                     income.source === 'business' ? '🏢 生意收入' :
-                                     income.source === 'gift' ? '🎀 礼物' :
-                                     income.source === 'other' ? '📦 其他' :
-                                     `✏️ ${income.source}`}
-                                  </span>
-                                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.success }}>
-                                    ${parseFloat(income.amount).toLocaleString()}
-                                  </span>
+                  {/* Income List - Collapsible */}
+                  {incomes.length > 0 && (() => {
+                    const currentMonthIncomes = incomes.filter(income => {
+                      const incomeDate = new Date(income.date);
+                      return incomeDate.getMonth() + 1 === selectedMonth && incomeDate.getFullYear() === selectedYear;
+                    });
+                    
+                    return currentMonthIncomes.length > 0 ? (
+                      <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: `1px solid ${COLORS.accent}` }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
+                          marginBottom: incomeDetailsExpanded ? '1rem' : '0',
+                          cursor: 'pointer'
+                        }}>
+                          <div 
+                            onClick={() => setIncomeDetailsExpanded(!incomeDetailsExpanded)}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}
+                          >
+                            <span style={{ fontSize: '1rem', fontWeight: '600' }}>收入明细</span>
+                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                              ({currentMonthIncomes.length} 条)
+                            </span>
+                            <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
+                              {incomeDetailsExpanded ? '▼' : '▶'}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIncomeDetailsExpanded(true);
+                              // Open edit modal for the first income, or could show a list to select
+                              if (currentMonthIncomes.length > 0) {
+                                const firstIncome = currentMonthIncomes[0];
+                                setEditingIncome({
+                                  ...firstIncome,
+                                  source: firstIncome.source === 'custom' || !['salary', 'bonus', 'investment', 'freelance', 'rent', 'business', 'gift', 'other'].includes(firstIncome.source) 
+                                    ? 'custom' 
+                                    : firstIncome.source,
+                                  customSource: ['salary', 'bonus', 'investment', 'freelance', 'rent', 'business', 'gift', 'other'].includes(firstIncome.source) 
+                                    ? '' 
+                                    : firstIncome.source
+                                });
+                              }
+                            }}
+                            style={{
+                              padding: '0.4rem 0.6rem',
+                              background: 'none',
+                              border: 'none',
+                              color: COLORS.highlight,
+                              fontSize: '1.2rem',
+                              cursor: 'pointer',
+                              fontFamily: 'inherit'
+                            }}
+                            title="编辑收入"
+                          >
+                            ✏️
+                          </button>
+                        </div>
+                        
+                        {incomeDetailsExpanded && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {currentMonthIncomes.map((income) => (
+                              <div
+                                key={income.id}
+                                style={{
+                                  background: COLORS.accent,
+                                  borderRadius: '0.5rem',
+                                  padding: '1rem',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center'
+                                }}
+                              >
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                    <span style={{ fontSize: '1rem', fontWeight: '600' }}>
+                                      {income.source === 'salary' ? '💼 工资' :
+                                       income.source === 'bonus' ? '🎁 奖金' :
+                                       income.source === 'investment' ? '📈 投资收益' :
+                                       income.source === 'freelance' ? '💻 自由职业' :
+                                       income.source === 'rent' ? '🏠 租金收入' :
+                                       income.source === 'business' ? '🏢 生意收入' :
+                                       income.source === 'gift' ? '🎀 礼物' :
+                                       income.source === 'other' ? '📦 其他' :
+                                       `✏️ ${income.source}`}
+                                    </span>
+                                    <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.success }}>
+                                      ${parseFloat(income.amount).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                    {new Date(income.date).toLocaleDateString('zh-CN')}
+                                    {income.description && ` · ${income.description}`}
+                                  </div>
                                 </div>
-                                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                  {new Date(income.date).toLocaleDateString('zh-CN')}
-                                  {income.description && ` · ${income.description}`}
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                  <button
+                                    onClick={() => {
+                                      setEditingIncome({
+                                        ...income,
+                                        source: income.source === 'custom' || !['salary', 'bonus', 'investment', 'freelance', 'rent', 'business', 'gift', 'other'].includes(income.source) 
+                                          ? 'custom' 
+                                          : income.source,
+                                        customSource: ['salary', 'bonus', 'investment', 'freelance', 'rent', 'business', 'gift', 'other'].includes(income.source) 
+                                          ? '' 
+                                          : income.source
+                                      });
+                                    }}
+                                    style={{
+                                      padding: '0.4rem 0.8rem',
+                                      background: COLORS.card,
+                                      border: `1px solid ${COLORS.highlight}`,
+                                      borderRadius: '0.35rem',
+                                      color: COLORS.text,
+                                      fontSize: '0.85rem',
+                                      cursor: 'pointer',
+                                      fontFamily: 'inherit'
+                                    }}
+                                  >
+                                    编辑
+                                  </button>
+                                  <button
+                                    onClick={() => deleteIncome(income.id)}
+                                    style={{
+                                      padding: '0.4rem 0.8rem',
+                                      background: COLORS.card,
+                                      border: `1px solid ${COLORS.danger}`,
+                                      borderRadius: '0.35rem',
+                                      color: COLORS.danger,
+                                      fontSize: '0.85rem',
+                                      cursor: 'pointer',
+                                      fontFamily: 'inherit'
+                                    }}
+                                  >
+                                    删除
+                                  </button>
                                 </div>
                               </div>
-                              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button
-                                  onClick={() => {
-                                    setEditingIncome({
-                                      ...income,
-                                      source: income.source === 'custom' || !['salary', 'bonus', 'investment', 'freelance', 'rent', 'business', 'gift', 'other'].includes(income.source) 
-                                        ? 'custom' 
-                                        : income.source,
-                                      customSource: ['salary', 'bonus', 'investment', 'freelance', 'rent', 'business', 'gift', 'other'].includes(income.source) 
-                                        ? '' 
-                                        : income.source
-                                    });
-                                  }}
-                                  style={{
-                                    padding: '0.4rem 0.8rem',
-                                    background: COLORS.card,
-                                    border: `1px solid ${COLORS.highlight}`,
-                                    borderRadius: '0.35rem',
-                                    color: COLORS.text,
-                                    fontSize: '0.85rem',
-                                    cursor: 'pointer',
-                                    fontFamily: 'inherit'
-                                  }}
-                                >
-                                  编辑
-                                </button>
-                                <button
-                                  onClick={() => deleteIncome(income.id)}
-                                  style={{
-                                    padding: '0.4rem 0.8rem',
-                                    background: COLORS.card,
-                                    border: `1px solid ${COLORS.danger}`,
-                                    borderRadius: '0.35rem',
-                                    color: COLORS.danger,
-                                    fontSize: '0.85rem',
-                                    cursor: 'pointer',
-                                    fontFamily: 'inherit'
-                                  }}
-                                >
-                                  删除
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    ) : null;
+                  })()}
                 </div>
 
                 {/* 3. 本周预算追踪卡片 */}
