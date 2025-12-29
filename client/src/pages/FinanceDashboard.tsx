@@ -1650,7 +1650,7 @@ const FinanceDashboard = () => {
                     fontFamily: 'inherit'
                   }}
                 >
-                  {tab === 'overview' ? 'Tab-1支出一览' : 'Tab-2趋势分析'}
+                  {tab === 'overview' ? '支出一览' : '趋势分析'}
                 </button>
               ))}
             </div>
