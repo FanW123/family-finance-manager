@@ -328,7 +328,7 @@ const FinanceDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [viewMode, setViewMode] = useState<'current' | 'trends'>('current');
-  const [expensesSubTab, setExpensesSubTab] = useState<'overview' | 'trends'>('overview');
+  const [expensesSubTab, setExpensesSubTab] = useState<'overview' | 'insights'>('overview');
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'day'>('month');
   
   // Budget tracking states
@@ -1880,10 +1880,10 @@ const FinanceDashboard = () => {
               marginBottom: '2rem',
               borderBottom: `2px solid ${COLORS.accent}`
             }}>
-              {['overview', 'trends'].map((tab) => (
+              {['overview', 'insights'].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setExpensesSubTab(tab as 'overview' | 'trends')}
+                  onClick={() => setExpensesSubTab(tab as 'overview' | 'insights')}
                   style={{
                     background: 'none',
                     border: 'none',
@@ -1897,7 +1897,7 @@ const FinanceDashboard = () => {
                     fontFamily: 'inherit'
                   }}
                 >
-                  {tab === 'overview' ? '支出一览' : '趋势分析'}
+                  {tab === 'overview' ? '支出一览' : '支出洞察'}
                 </button>
               ))}
             </div>
@@ -2806,87 +2806,281 @@ const FinanceDashboard = () => {
               </div>
             )}
 
-            {/* Tab-2: 趋势分析 */}
-            {expensesSubTab === 'trends' && (
+            {/* Tab-2: 支出洞察 */}
+            {expensesSubTab === 'insights' && (
               <div>
-                {/* Time Range Selector */}
-                <div style={{
-                  background: COLORS.card,
-                  borderRadius: '1rem',
-                  padding: '1.5rem',
-                  marginBottom: '2rem',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '1rem'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>选择月份:</span>
-                    <select
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                      style={{
-                        padding: '0.6rem 1rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '0.95rem',
-                        fontFamily: 'inherit',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                        <option key={m} value={m}>{m}月</option>
-                      ))}
-                    </select>
-                    <select
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                      style={{
-                        padding: '0.6rem 1rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '0.95rem',
-                        fontFamily: 'inherit',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028].map(y => (
-                        <option key={y} value={y}>{y}年</option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Smart Insights */}
+                {(() => {
+                  // Calculate insights
+                  const insights: Array<{ type: 'warning' | 'info' | 'success' | 'danger'; title: string; message: string; action?: string }> = [];
+                  
+                  // 1. Budget overrun check
+                  const currentMonthExpenses = expenses.filter(exp => {
+                    const expDate = new Date(exp.date);
+                    return expDate.getMonth() + 1 === selectedMonth && expDate.getFullYear() === selectedYear;
+                  });
+                  
+                  // Check weekly budgets
+                  const weekStart = new Date();
+                  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                  weekStart.setHours(0, 0, 0, 0);
+                  
+                  const weeklyExpenses = currentMonthExpenses.filter(exp => {
+                    const expDate = new Date(exp.date);
+                    return expDate >= weekStart;
+                  });
+                  
+                  getAllTrackableCategories(budgetCategories || [], 'weekly').forEach((cat: any) => {
+                    if (cat.isGroupSummary && cat.trackableChildren) {
+                      const totalBudget = cat.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
+                      const totalSpent = cat.trackableChildren.reduce((sum: number, child: any) => {
+                        return sum + weeklyExpenses
+                          .filter(exp => exp.category === child.id)
+                          .reduce((s, e) => s + e.amount, 0);
+                      }, 0);
+                      const percentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+                      
+                      if (percentage > 100) {
+                        insights.push({
+                          type: 'danger',
+                          title: `⚠️ ${cat.name} 本周超预算`,
+                          message: `已支出 $${totalSpent.toFixed(0)}，超出预算 $${(totalSpent - totalBudget).toFixed(0)} (${(percentage - 100).toFixed(1)}%)`
+                        });
+                      } else if (percentage > 80) {
+                        insights.push({
+                          type: 'warning',
+                          title: `⚠️ ${cat.name} 本周接近预算上限`,
+                          message: `已支出 $${totalSpent.toFixed(0)} / $${totalBudget} (${percentage.toFixed(1)}%)，剩余 $${(totalBudget - totalSpent).toFixed(0)}`
+                        });
+                      }
+                    } else if (!cat.isGroupSummary) {
+                      const spent = weeklyExpenses
+                        .filter(exp => exp.category === cat.id)
+                        .reduce((sum, exp) => sum + exp.amount, 0);
+                      const percentage = cat.amount > 0 ? (spent / cat.amount) * 100 : 0;
+                      
+                      if (percentage > 100) {
+                        insights.push({
+                          type: 'danger',
+                          title: `⚠️ ${cat.name} 本周超预算`,
+                          message: `已支出 $${spent.toFixed(0)}，超出预算 $${(spent - cat.amount).toFixed(0)} (${(percentage - 100).toFixed(1)}%)`
+                        });
+                      } else if (percentage > 80) {
+                        insights.push({
+                          type: 'warning',
+                          title: `⚠️ ${cat.name} 本周接近预算上限`,
+                          message: `已支出 $${spent.toFixed(0)} / $${cat.amount} (${percentage.toFixed(1)}%)，剩余 $${(cat.amount - spent).toFixed(0)}`
+                        });
+                      }
+                    }
+                  });
+                  
+                  // Check monthly budgets
+                  getAllTrackableCategories(budgetCategories || [], 'monthly').forEach((cat: any) => {
+                    if (cat.isGroupSummary && cat.trackableChildren) {
+                      const totalBudget = cat.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
+                      const totalSpent = cat.trackableChildren.reduce((sum: number, child: any) => {
+                        return sum + currentMonthExpenses
+                          .filter(exp => exp.category === child.id)
+                          .reduce((s, e) => s + e.amount, 0);
+                      }, 0);
+                      const percentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+                      
+                      if (percentage > 100) {
+                        insights.push({
+                          type: 'danger',
+                          title: `⚠️ ${cat.name} 本月超预算`,
+                          message: `已支出 $${totalSpent.toFixed(0)}，超出预算 $${(totalSpent - totalBudget).toFixed(0)} (${(percentage - 100).toFixed(1)}%)`
+                        });
+                      } else if (percentage > 80) {
+                        insights.push({
+                          type: 'warning',
+                          title: `⚠️ ${cat.name} 本月接近预算上限`,
+                          message: `已支出 $${totalSpent.toFixed(0)} / $${totalBudget} (${percentage.toFixed(1)}%)，剩余 $${(totalBudget - totalSpent).toFixed(0)}`
+                        });
+                      }
+                    } else if (!cat.isGroupSummary) {
+                      const spent = currentMonthExpenses
+                        .filter(exp => exp.category === cat.id)
+                        .reduce((sum, exp) => sum + exp.amount, 0);
+                      const percentage = cat.amount > 0 ? (spent / cat.amount) * 100 : 0;
+                      
+                      if (percentage > 100) {
+                        insights.push({
+                          type: 'danger',
+                          title: `⚠️ ${cat.name} 本月超预算`,
+                          message: `已支出 $${spent.toFixed(0)}，超出预算 $${(spent - cat.amount).toFixed(0)} (${(percentage - 100).toFixed(1)}%)`
+                        });
+                      } else if (percentage > 80) {
+                        insights.push({
+                          type: 'warning',
+                          title: `⚠️ ${cat.name} 本月接近预算上限`,
+                          message: `已支出 $${spent.toFixed(0)} / $${cat.amount} (${percentage.toFixed(1)}%)，剩余 $${(cat.amount - spent).toFixed(0)}`
+                        });
+                      }
+                    }
+                  });
+                  
+                  // 2. Spending trend analysis
+                  const last3Months = [];
+                  for (let i = 2; i >= 0; i--) {
+                    const date = new Date(selectedYear, selectedMonth - 1 - i, 1);
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    const monthData = monthlyAggregation[monthKey] || { total: 0 };
+                    last3Months.push(monthData.total);
+                  }
+                  
+                  if (last3Months.length === 3 && last3Months[0] > 0 && last3Months[1] > 0) {
+                    const trend = ((last3Months[2] - last3Months[1]) / last3Months[1]) * 100;
+                    if (Math.abs(trend) > 20) {
+                      insights.push({
+                        type: trend > 0 ? 'warning' : 'success',
+                        title: trend > 0 ? '📈 支出显著增加' : '📉 支出显著下降',
+                        message: `本月支出较上月${trend > 0 ? '增加' : '减少'} ${Math.abs(trend).toFixed(1)}% ($${Math.abs(last3Months[2] - last3Months[1]).toLocaleString()})`
+                      });
+                    }
+                  }
+                  
+                  // 3. FIRE progress impact
+                  const currentMonthTotal = currentMonthExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+                  const avgMonthlyExpense = expenses
+                    .filter(exp => {
+                      const expDate = new Date(exp.date);
+                      const oneYearAgo = new Date();
+                      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                      return expDate >= oneYearAgo;
+                    })
+                    .reduce((sum, exp) => sum + exp.amount, 0) / 12;
+                  
+                  if (currentMonthTotal > avgMonthlyExpense * 1.2) {
+                    const extraSpending = currentMonthTotal - avgMonthlyExpense;
+                    const fireImpact = extraSpending * 12 * fireMultiplier;
+                    insights.push({
+                      type: 'info',
+                      title: '🎯 本月支出对FIRE目标的影响',
+                      message: `本月支出比平均高 $${extraSpending.toFixed(0)}，如果持续，将增加FIRE目标约 $${fireImpact.toLocaleString()}`
+                    });
+                  }
+                  
+                  // 4. Savings rate analysis
+                  const currentMonthIncome = incomes
+                    .filter(income => {
+                      const incomeDate = new Date(income.date);
+                      return incomeDate.getMonth() + 1 === selectedMonth && incomeDate.getFullYear() === selectedYear;
+                    })
+                    .reduce((sum, income) => sum + (parseFloat(income.amount) || 0), 0);
+                  
+                  if (currentMonthIncome > 0) {
+                    const savingsRate = ((currentMonthIncome - currentMonthTotal) / currentMonthIncome) * 100;
+                    if (savingsRate < 20) {
+                      insights.push({
+                        type: 'warning',
+                        title: '💰 储蓄率偏低',
+                        message: `本月储蓄率仅 ${savingsRate.toFixed(1)}%，建议提高到至少50%以加速FIRE进程`
+                      });
+                    } else if (savingsRate >= 50) {
+                      insights.push({
+                        type: 'success',
+                        title: '🎉 储蓄率优秀',
+                        message: `本月储蓄率达到 ${savingsRate.toFixed(1)}%，继续保持！`
+                      });
+                    }
+                  }
+                  
+                  // 5. Large expense detection
+                  const largeExpenses = currentMonthExpenses
+                    .filter(exp => exp.amount > 500)
+                    .sort((a, b) => b.amount - a.amount)
+                    .slice(0, 3);
+                  
+                  if (largeExpenses.length > 0) {
+                    largeExpenses.forEach(exp => {
+                      let categoryName = '未分类';
+                      budgetCategories?.forEach((cat: any) => {
+                        if (cat.id === exp.category) {
+                          categoryName = cat.name;
+                        } else if (cat.isParent && cat.children) {
+                          const child = cat.children.find((c: any) => c.id === exp.category);
+                          if (child) {
+                            categoryName = `${cat.name} - ${child.name}`;
+                          }
+                        }
+                      });
+                      
+                      insights.push({
+                        type: 'info',
+                        title: `💸 大额支出: ${categoryName}`,
+                        message: `${new Date(exp.date).toLocaleDateString('zh-CN')} 支出 $${exp.amount.toLocaleString()}${exp.description ? ` - ${exp.description}` : ''}`
+                      });
+                    });
+                  }
+                  
+                  return (
+                    <div style={{
+                      background: COLORS.card,
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      marginBottom: '2rem',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                    }}>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>💡 智能支出洞察</h3>
+                      
+                      {insights.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                          {insights.map((insight, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                background: insight.type === 'danger' ? `${COLORS.danger}20` :
+                                           insight.type === 'warning' ? `${COLORS.warning}20` :
+                                           insight.type === 'success' ? `${COLORS.success}20` :
+                                           `${COLORS.highlight}20`,
+                                border: `1px solid ${
+                                  insight.type === 'danger' ? COLORS.danger :
+                                  insight.type === 'warning' ? COLORS.warning :
+                                  insight.type === 'success' ? COLORS.success :
+                                  COLORS.highlight
+                                }`,
+                                borderRadius: '0.75rem',
+                                padding: '1.25rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.5rem'
+                              }}
+                            >
+                              <div style={{ 
+                                fontSize: '1rem', 
+                                fontWeight: '600',
+                                color: insight.type === 'danger' ? COLORS.danger :
+                                       insight.type === 'warning' ? COLORS.warning :
+                                       insight.type === 'success' ? COLORS.success :
+                                       COLORS.highlight
+                              }}>
+                                {insight.title}
+                              </div>
+                              <div style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                                {insight.message}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{
+                          padding: '2rem',
+                          background: COLORS.accent,
+                          borderRadius: '0.5rem',
+                          textAlign: 'center',
+                          color: COLORS.textMuted
+                        }}>
+                          <div style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>✅ 本月支出表现良好</div>
+                          <div style={{ fontSize: '0.85rem' }}>没有发现需要特别关注的支出问题</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>时间范围:</span>
-                    <select
-                      value={timeRange}
-                      onChange={(e) => setTimeRange(e.target.value as 'week' | 'month' | 'year' | 'day')}
-                      style={{
-                        padding: '0.6rem 1rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '0.95rem',
-                        fontFamily: 'inherit',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="day">当日详情</option>
-                      <option value="week">本周详情</option>
-                      <option value="month">当月详情</option>
-                      <option value="year">年度详情</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Placeholder for Charts and Transaction List */}
+                {/* Monthly Summary Table */}
                 <div style={{
                   background: COLORS.card,
                   borderRadius: '1rem',
@@ -2894,32 +3088,6 @@ const FinanceDashboard = () => {
                   marginBottom: '2rem',
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                 }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>
-                    {timeRange === 'day' && '当日'}
-                    {timeRange === 'week' && '本周'}
-                    {timeRange === 'month' && '当月'}
-                    {timeRange === 'year' && '年度'}
-                    支出趋势
-                  </h3>
-                  
-                  {/* Chart Placeholder */}
-                  <div style={{
-                    height: '300px',
-                    background: COLORS.accent,
-                    borderRadius: '0.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '2rem',
-                    color: COLORS.textMuted
-                  }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '1rem' }}>趋势图表</div>
-                      <div style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>(Coming Soon)</div>
-                    </div>
-                  </div>
-
-                  {/* Monthly Summary Table */}
                   {(() => {
                     
                     // Generate last 12 months data
