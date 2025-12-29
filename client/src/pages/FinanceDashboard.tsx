@@ -2861,15 +2861,8 @@ const FinanceDashboard = () => {
                                 value={category.amount}
                                 onFocus={(e) => {
                                   if (category.amount === 0) {
-                                    // Select all text and ensure it works across browsers
-                                    e.target.select();
-                                    // Also set selection range for better compatibility
+                                    // Only select on focus, not on click, to allow manual editing
                                     setTimeout(() => e.target.select(), 0);
-                                  }
-                                }}
-                                onClick={(e) => {
-                                  if (category.amount === 0) {
-                                    (e.target as HTMLInputElement).select();
                                   }
                                 }}
                                 onChange={(e) => {
@@ -3072,13 +3065,7 @@ const FinanceDashboard = () => {
                                       value={child.amount}
                                       onFocus={(e) => {
                                         if (child.amount === 0) {
-                                          e.target.select();
                                           setTimeout(() => e.target.select(), 0);
-                                        }
-                                      }}
-                                      onClick={(e) => {
-                                        if (child.amount === 0) {
-                                          (e.target as HTMLInputElement).select();
                                         }
                                       }}
                                       onChange={(e) => {
