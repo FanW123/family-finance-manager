@@ -1781,7 +1781,50 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
 
-                {/* 3. 年度预算追踪卡片 */}
+                {/* 3. 本周预算追踪卡片 */}
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>本周预算追踪</h3>
+                  {Object.entries(weeklyBudgets).map(([category, data]: [string, any]) => {
+                    const percentage = (data.spent / data.limit) * 100;
+                    const categoryNames: Record<string, string> = {
+                      food: '餐饮',
+                      transport: '交通',
+                      lifestyle: '生活方式'
+                    };
+                    return (
+                      <div key={category} style={{ marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                          <span style={{ fontSize: '0.9rem' }}>{categoryNames[category]}</span>
+                          <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                            ${data.spent} / ${data.limit}
+                          </span>
+                        </div>
+                        <div style={{
+                          width: '100%',
+                          height: '6px',
+                          background: COLORS.accent,
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${Math.min(percentage, 100)}%`,
+                            height: '100%',
+                            background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 4. 年度预算追踪卡片 */}
                 <div style={{
                   background: COLORS.card,
                   borderRadius: '1rem',
@@ -1827,7 +1870,7 @@ const FinanceDashboard = () => {
                   })}
                 </div>
 
-                {/* 4. FIRE支出分析卡片（Placeholder） */}
+                {/* 5. FIRE支出分析卡片（Placeholder） */}
                 <div style={{
                   background: COLORS.card,
                   borderRadius: '1rem',
@@ -1854,68 +1897,17 @@ const FinanceDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Sub-tabs: Budget Tracking (本周) | Transaction */}
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', borderBottom: `1px solid ${COLORS.accent}` }}>
-                    <button style={{
-                      padding: '0.5rem 1rem',
-                      background: 'none',
-                      border: 'none',
-                      borderBottom: `2px solid ${COLORS.highlight}`,
-                      color: COLORS.highlight,
-                      fontSize: '0.95rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit'
-                    }}>
-                      Budget Tracking (本周)
-                    </button>
-                    <button style={{
-                      padding: '0.5rem 1rem',
-                      background: 'none',
-                      border: 'none',
-                      color: COLORS.textMuted,
-                      fontSize: '0.95rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit'
-                    }}>
-                      Transaction
-                    </button>
+                  {/* Transaction List Placeholder */}
+                  <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>交易明细</h4>
+                  <div style={{
+                    padding: '2rem',
+                    background: COLORS.accent,
+                    borderRadius: '0.5rem',
+                    textAlign: 'center',
+                    color: COLORS.textMuted
+                  }}>
+                    <div>暂无交易记录</div>
                   </div>
-
-                  {/* Weekly Budget Tracking */}
-                  {Object.entries(weeklyBudgets).map(([category, data]: [string, any]) => {
-                    const percentage = (data.spent / data.limit) * 100;
-                    const categoryNames: Record<string, string> = {
-                      food: '餐饮',
-                      transport: '交通',
-                      lifestyle: '生活方式'
-                    };
-                    return (
-                      <div key={category} style={{ marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                          <span style={{ fontSize: '0.9rem' }}>{categoryNames[category]}</span>
-                          <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                            ${data.spent} / ${data.limit}
-                          </span>
-                        </div>
-                        <div style={{
-                          width: '100%',
-                          height: '6px',
-                          background: COLORS.accent,
-                          borderRadius: '3px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            width: `${Math.min(percentage, 100)}%`,
-                            height: '100%',
-                            background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
-                            transition: 'width 0.3s ease'
-                          }} />
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             )}
