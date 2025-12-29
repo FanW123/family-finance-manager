@@ -2919,17 +2919,151 @@ const FinanceDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Transaction List Placeholder */}
-                  <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>交易明细</h4>
-                  <div style={{
-                    padding: '2rem',
-                    background: COLORS.accent,
-                    borderRadius: '0.5rem',
-                    textAlign: 'center',
-                    color: COLORS.textMuted
-                  }}>
-                    <div>暂无交易记录</div>
-                  </div>
+                  {/* Monthly Summary Table */}
+                  {(() => {
+                    
+                    // Generate last 12 months data
+                    const months = [];
+                    const currentDate = new Date();
+                    for (let i = 11; i >= 0; i--) {
+                      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                      const monthData = monthlyAggregation[monthKey] || { total: 0, count: 0, byGroup: {} };
+                      
+                      // Calculate essential and optional expenses
+                      const monthExpenses = expenses.filter(exp => {
+                        const expDate = new Date(exp.date);
+                        return expDate.getMonth() === date.getMonth() && 
+                               expDate.getFullYear() === date.getFullYear();
+                      });
+                      
+                      let essential = 0;
+                      let optional = 0;
+                      
+                      monthExpenses.forEach(exp => {
+                        // Check if category is essential
+                        let isEssential = false;
+                        budgetCategories?.forEach((cat: any) => {
+                          if (cat.id === exp.category) {
+                            isEssential = cat.name.includes('住房') || cat.name.includes('医疗') || 
+                                         cat.name.includes('交通') || cat.name.includes('餐饮');
+                          } else if (cat.isParent && cat.children) {
+                            const child = cat.children.find((c: any) => c.id === exp.category);
+                            if (child) {
+                              isEssential = cat.name.includes('住房') || cat.name.includes('医疗') || 
+                                           cat.name.includes('交通') || cat.name.includes('餐饮');
+                            }
+                          }
+                        });
+                        
+                        if (isEssential) {
+                          essential += exp.amount;
+                        } else {
+                          optional += exp.amount;
+                        }
+                      });
+                      
+                      months.push({
+                        month: date.toLocaleDateString('zh-CN', { year: '2-digit', month: '2-digit' }),
+                        monthKey,
+                        total: monthData.total,
+                        essential,
+                        optional,
+                        savings: 0, // Can be calculated later if needed
+                        count: monthData.count
+                      });
+                    }
+
+                    return (
+                      <div style={{ marginBottom: '2rem' }}>
+                        <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>月度支出汇总</h4>
+                        <div style={{
+                          background: COLORS.accent,
+                          borderRadius: '0.5rem',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr',
+                            gap: '1px',
+                            background: COLORS.card
+                          }}>
+                            {/* Header */}
+                            <div style={{ background: COLORS.card, padding: '0.75rem', fontWeight: '600', fontSize: '0.9rem' }}>月份</div>
+                            <div style={{ background: COLORS.card, padding: '0.75rem', fontWeight: '600', fontSize: '0.9rem', textAlign: 'right' }}>总支出</div>
+                            <div style={{ background: COLORS.card, padding: '0.75rem', fontWeight: '600', fontSize: '0.9rem', textAlign: 'right' }}>必需</div>
+                            <div style={{ background: COLORS.card, padding: '0.75rem', fontWeight: '600', fontSize: '0.9rem', textAlign: 'right' }}>可选</div>
+                            <div style={{ background: COLORS.card, padding: '0.75rem', fontWeight: '600', fontSize: '0.9rem', textAlign: 'right' }}>储蓄</div>
+                            <div style={{ background: COLORS.card, padding: '0.75rem', fontWeight: '600', fontSize: '0.9rem', textAlign: 'right' }}>笔数</div>
+                            
+                            {/* Rows */}
+                            {months.map((month, index) => (
+                              <div key={month.monthKey} style={{ display: 'contents' }}>
+                                <div style={{ 
+                                  background: COLORS.accent, 
+                                  padding: '0.75rem', 
+                                  fontSize: '0.9rem',
+                                  borderTop: index === 0 ? 'none' : `1px solid ${COLORS.card}`
+                                }}>
+                                  {month.month}
+                                </div>
+                                <div style={{ 
+                                  background: COLORS.accent, 
+                                  padding: '0.75rem', 
+                                  fontSize: '0.9rem',
+                                  textAlign: 'right',
+                                  fontWeight: '600',
+                                  borderTop: index === 0 ? 'none' : `1px solid ${COLORS.card}`
+                                }}>
+                                  ${month.total.toLocaleString()}
+                                </div>
+                                <div style={{ 
+                                  background: COLORS.accent, 
+                                  padding: '0.75rem', 
+                                  fontSize: '0.9rem',
+                                  textAlign: 'right',
+                                  color: COLORS.danger,
+                                  borderTop: index === 0 ? 'none' : `1px solid ${COLORS.card}`
+                                }}>
+                                  ${month.essential.toLocaleString()}
+                                </div>
+                                <div style={{ 
+                                  background: COLORS.accent, 
+                                  padding: '0.75rem', 
+                                  fontSize: '0.9rem',
+                                  textAlign: 'right',
+                                  color: COLORS.warning,
+                                  borderTop: index === 0 ? 'none' : `1px solid ${COLORS.card}`
+                                }}>
+                                  ${month.optional.toLocaleString()}
+                                </div>
+                                <div style={{ 
+                                  background: COLORS.accent, 
+                                  padding: '0.75rem', 
+                                  fontSize: '0.9rem',
+                                  textAlign: 'right',
+                                  color: COLORS.success,
+                                  borderTop: index === 0 ? 'none' : `1px solid ${COLORS.card}`
+                                }}>
+                                  ${month.savings.toLocaleString()}
+                                </div>
+                                <div style={{ 
+                                  background: COLORS.accent, 
+                                  padding: '0.75rem', 
+                                  fontSize: '0.9rem',
+                                  textAlign: 'right',
+                                  color: COLORS.textMuted,
+                                  borderTop: index === 0 ? 'none' : `1px solid ${COLORS.card}`
+                                }}>
+                                  {month.count}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
