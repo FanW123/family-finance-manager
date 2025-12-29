@@ -3012,7 +3012,10 @@ const FinanceDashboard = () => {
                                     />
                                     <button
                                       onClick={() => {
-                                        if (confirm(`确定要删除"${child.name}"吗？`)) {
+                                        // If it's a "默认" child with 0 amount, delete without confirmation
+                                        const shouldConfirm = !(child.name === '默认' && child.amount === 0);
+                                        
+                                        if (!shouldConfirm || confirm(`确定要删除"${child.name}"吗？`)) {
                                           const updated = [...budgetCategories];
                                           updated[index].children = updated[index].children.filter((_: any, i: number) => i !== childIndex);
                                           setBudgetCategories(updated);
