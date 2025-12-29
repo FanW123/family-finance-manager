@@ -69,60 +69,36 @@ const CITY_COSTS = {
   ]
 };
 
-// FIRE-focused expense categories
+// Expense categories by budget cycle
 const EXPENSE_CATEGORIES = {
-  essential: {
-    label: '必需支出（退休后继续）',
-    color: '#e94560',
-    categories: [
-      { value: 'housing', label: '住房 - 房贷/租金' },
-      { value: 'utilities', label: '水电煤网' },
-      { value: 'food_groceries', label: '食品杂货' },
-      { value: 'insurance_health', label: '医疗保险' },
-      { value: 'insurance_other', label: '汽车/人身保险' },
-      { value: 'property_tax', label: '房产税' }
-    ]
-  },
-  workRelated: {
-    label: '工作相关（退休后消失）',
+  weekly: {
+    label: '周预算',
     color: '#00d9ff',
     categories: [
-      { value: 'commute', label: '通勤交通' },
-      { value: 'work_meals', label: '工作餐饮' },
-      { value: 'work_clothing', label: '职业装' },
-      { value: 'work_tools', label: '职业发展/培训' }
+      { value: 'food_dining', label: '🍽️ 餐饮饮食', description: '食品杂货 + 外出就餐' },
+      { value: 'transportation', label: '🚗 交通出行', description: '通勤 + 打车 + 加油 + 停车' }
     ]
   },
-  discretionary: {
-    label: '可选支出',
+  monthly: {
+    label: '月预算',
     color: '#ffd369',
     categories: [
-      { value: 'dining_out', label: '外出就餐' },
-      { value: 'entertainment', label: '娱乐休闲' },
-      { value: 'travel', label: '旅行度假' },
-      { value: 'shopping', label: '购物消费' },
-      { value: 'subscriptions', label: '订阅服务' }
+      { value: 'shopping', label: '🛍️ 购物消费', description: '服装 + 日用品 + 电子产品' },
+      { value: 'entertainment', label: '🎮 娱乐休闲', description: '电影 + 健身 + 游戏' },
+      { value: 'subscriptions', label: '💳 订阅服务', description: 'Cursor + Claude + Netflix + Apple等' },
+      { value: 'pets', label: '🐕 宠物相关', description: '食物 + 用品 + 医疗' },
+      { value: 'beauty', label: '💄 美容护肤', description: '护肤品 + 彩妆 + 医美' }
     ]
   },
-  savingsInvestment: {
-    label: '储蓄与投资',
-    color: '#06ffa5',
+  yearly: {
+    label: '年预算',
+    color: '#e94560',
     categories: [
-      { value: 'savings_401k', label: '401(k)供款' },
-      { value: 'savings_ira', label: 'IRA供款' },
-      { value: 'savings_taxable', label: '应税投资账户' },
-      { value: 'savings_hsa', label: 'HSA供款' },
-      { value: 'savings_emergency', label: '紧急储备金' }
-    ]
-  },
-  debt: {
-    label: '债务偿还',
-    color: '#9d4edd',
-    categories: [
-      { value: 'debt_student', label: '学生贷款' },
-      { value: 'debt_car', label: '车贷' },
-      { value: 'debt_credit', label: '信用卡还款' },
-      { value: 'debt_other', label: '其他债务' }
+      { value: 'housing', label: '🏠 住房居住', description: '房租/房贷 + 物业 + 水电网' },
+      { value: 'travel', label: '✈️ 旅行度假', description: '机票 + 酒店 + 景点' },
+      { value: 'healthcare', label: '💊 医疗健康', description: '医疗保险 + 看病 + 体检' },
+      { value: 'education', label: '📚 教育发展', description: '课程 + 书籍 + 培训' },
+      { value: 'family', label: '👨‍👩‍👧 家人支持', description: '父母生活费 + 医疗 + 其他' }
     ]
   }
 };
@@ -174,13 +150,23 @@ const FinanceDashboard = () => {
   const [expensesSubTab, setExpensesSubTab] = useState<'overview' | 'trends'>('overview');
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'day'>('month');
   
-  // Weekly and Annual Budget tracking
+  // Budget tracking states
   const [weeklyBudgets] = useState(() => {
     const saved = localStorage.getItem('weeklyBudgets');
     return saved ? JSON.parse(saved) : {
-      food: { spent: 70, limit: 100 },
-      transport: { spent: 30, limit: 50 },
-      lifestyle: { spent: 20, limit: 80 }
+      food_dining: { spent: 70, limit: 100 },
+      transportation: { spent: 30, limit: 50 }
+    };
+  });
+  
+  const [monthlyBudgets] = useState(() => {
+    const saved = localStorage.getItem('monthlyBudgets');
+    return saved ? JSON.parse(saved) : {
+      shopping: { spent: 200, limit: 500 },
+      entertainment: { spent: 150, limit: 300 },
+      subscriptions: { spent: 100, limit: 200 },
+      pets: { spent: 80, limit: 150 },
+      beauty: { spent: 300, limit: 600 }
     };
   });
   
@@ -189,7 +175,9 @@ const FinanceDashboard = () => {
     return saved ? JSON.parse(saved) : {
       housing: { spent: 36000, limit: 48000 },
       travel: { spent: 5000, limit: 15000 },
-      education: { spent: 0, limit: 10000 }
+      healthcare: { spent: 2000, limit: 8000 },
+      education: { spent: 0, limit: 10000 },
+      family: { spent: 12000, limit: 24000 }
     };
   });
   
@@ -1792,15 +1780,13 @@ const FinanceDashboard = () => {
                   <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>本周预算追踪</h3>
                   {Object.entries(weeklyBudgets).map(([category, data]: [string, any]) => {
                     const percentage = (data.spent / data.limit) * 100;
-                    const categoryNames: Record<string, string> = {
-                      food: '餐饮',
-                      transport: '交通',
-                      lifestyle: '生活方式'
-                    };
+                    const categoryInfo = EXPENSE_CATEGORIES.weekly.categories.find(c => c.value === category);
+                    const categoryLabel = categoryInfo ? categoryInfo.label : category;
+                    
                     return (
                       <div key={category} style={{ marginBottom: '1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                          <span style={{ fontSize: '0.9rem' }}>{categoryNames[category]}</span>
+                          <span style={{ fontSize: '0.9rem' }}>{categoryLabel}</span>
                           <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                             ${data.spent} / ${data.limit}
                           </span>
@@ -1835,15 +1821,13 @@ const FinanceDashboard = () => {
                   <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>年度预算追踪</h3>
                   {Object.entries(annualBudgets).map(([category, data]: [string, any]) => {
                     const percentage = (data.spent / data.limit) * 100;
-                    const categoryNames: Record<string, string> = {
-                      housing: '住房',
-                      travel: '旅行',
-                      education: '教育'
-                    };
+                    const categoryInfo = EXPENSE_CATEGORIES.yearly.categories.find(c => c.value === category);
+                    const categoryLabel = categoryInfo ? categoryInfo.label : category;
+                    
                     return (
                       <div key={category} style={{ marginBottom: '1.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ fontSize: '0.95rem' }}>{categoryNames[category]}</span>
+                          <span style={{ fontSize: '0.95rem' }}>{categoryLabel}</span>
                           <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
                             ${data.spent.toLocaleString()} / ${data.limit.toLocaleString()}
                           </span>
@@ -2987,6 +2971,203 @@ const FinanceDashboard = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Add Expense Modal */}
+        {showAddExpense && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '2rem',
+                borderBottom: `1px solid ${COLORS.accent}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>添加支出</h2>
+                <button
+                  onClick={() => setShowAddExpense(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: COLORS.text,
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Form Content */}
+              <div style={{ padding: '2rem' }}>
+                {/* Category Selection */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    支出类别
+                  </label>
+                  <select
+                    value={newExpense.category}
+                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="">选择类别...</option>
+                    {Object.entries(EXPENSE_CATEGORIES).map(([periodKey, period]) => (
+                      <optgroup key={periodKey} label={period.label}>
+                        {period.categories.map(cat => (
+                          <option key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Amount */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    金额 (USD)
+                  </label>
+                  <input
+                    type="number"
+                    value={newExpense.amount}
+                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                    placeholder="0.00"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Date */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    日期
+                  </label>
+                  <input
+                    type="date"
+                    value={newExpense.date}
+                    onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Description */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    备注 (可选)
+                  </label>
+                  <input
+                    type="text"
+                    value={newExpense.description}
+                    onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                    placeholder="例如：午餐、地铁卡充值..."
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    onClick={() => setShowAddExpense(false)}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={addExpense}
+                    disabled={loading || !newExpense.category || !newExpense.amount || !newExpense.date}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      background: !newExpense.category || !newExpense.amount || !newExpense.date
+                        ? COLORS.accent
+                        : `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: !newExpense.category || !newExpense.amount || !newExpense.date ? 'not-allowed' : 'pointer',
+                      opacity: !newExpense.category || !newExpense.amount || !newExpense.date ? 0.5 : 1,
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    {loading ? '添加中...' : '添加支出'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
