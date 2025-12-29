@@ -9,6 +9,7 @@ const COLORS = {
   highlight: '#e94560',
   success: '#00d9ff',
   warning: '#ffd369',
+  danger: '#e94560',
   stocks: '#e94560',
   bonds: '#00d9ff',
   cash: '#ffd369',
@@ -1619,7 +1620,39 @@ const FinanceDashboard = () => {
         {/* Expenses Tab */}
         {activeTab === 'expenses' && (
           <div>
-            {/* Month/Year Selector and View Switcher */}
+            {/* Sub-Tab Navigation */}
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              marginBottom: '2rem',
+              borderBottom: `2px solid ${COLORS.accent}`
+            }}>
+              {['overview', 'trends'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setExpensesSubTab(tab as 'overview' | 'trends')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: expensesSubTab === tab ? COLORS.highlight : COLORS.textMuted,
+                    padding: '1rem 1.5rem',
+                    fontSize: '1.1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    borderBottom: expensesSubTab === tab ? `3px solid ${COLORS.highlight}` : 'none',
+                    transition: 'all 0.3s ease',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  {tab === 'overview' ? 'Tab-1支出一览' : 'Tab-2趋势分析'}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab-1: 支出一览 */}
+            {expensesSubTab === 'overview' && (
+              <div>
+                {/* Month/Year Selector */}
             <div style={{
               background: COLORS.card,
               borderRadius: '1rem',
@@ -1671,535 +1704,342 @@ const FinanceDashboard = () => {
                   ))}
                 </select>
               </div>
-              
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  onClick={() => setViewMode('current')}
-                  style={{
-                    padding: '0.6rem 1.2rem',
-                    background: viewMode === 'current' ? `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)` : COLORS.accent,
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    color: COLORS.text,
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit'
-                  }}
-                >
-                  当月详情
-                </button>
-                <button
-                  onClick={() => setViewMode('trends')}
-                  style={{
-                    padding: '0.6rem 1.2rem',
-                    background: viewMode === 'trends' ? `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)` : COLORS.accent,
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    color: COLORS.text,
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit'
-                  }}
-                >
-                  趋势分析
-                </button>
-              </div>
             </div>
 
-            {/* Current Month View */}
-            {viewMode === 'current' && (
-              <>
-
-            {/* Monthly Income Input */}
-            <div style={{
-              background: COLORS.card,
-              borderRadius: '1rem',
-              padding: '2rem',
-              marginBottom: '2rem',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-            }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
-                月收入（税后）
-              </label>
-              <input
-                type="number"
-                value={monthlyIncome || ''}
-                onChange={(e) => {
-                  const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                  setMonthlyIncome(isNaN(value) ? 0 : value);
-                  localStorage.setItem('monthlyIncome', (isNaN(value) ? 0 : value).toString());
-                }}
-                placeholder="输入月收入..."
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  background: COLORS.accent,
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  color: COLORS.text,
-                  fontSize: '1.2rem',
-                  fontWeight: '600',
-                  fontFamily: 'inherit'
-                }}
-              />
-            </div>
-
-            {/* FIRE Metrics */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '1.5rem',
-              marginBottom: '2rem'
-            }}>
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                border: `2px solid ${COLORS.success}`
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  储蓄率
-                </div>
-                <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.success }}>
-                  {actualSavingsRate.toFixed(1)}%
-                </div>
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
-                  目标: ≥50%
-                </div>
-              </div>
-
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  必需支出/月
-                </div>
-                <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.highlight }}>
-                  ${essentialExpenses.toLocaleString()}
-                </div>
-              </div>
-
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  退休后总支出
-                </div>
-                <div style={{ fontSize: '2rem', fontWeight: '700' }}>
-                  ${retirementExpenses.toLocaleString()}
-                </div>
-              </div>
-
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  FIRE数字 ({fireMultiplier.toFixed(1)}x)
-                </div>
-                <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.warning }}>
-                  ${fireNumber.toLocaleString()}
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-              gap: '2rem',
-              marginBottom: '2rem'
-            }}>
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '2rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  本月总支出
-                </div>
-                <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.highlight }}>
-                  ${totalExpenses.toLocaleString()}
-                </div>
-              </div>
-
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '2rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <button
-                  onClick={() => setShowAddExpense(!showAddExpense)}
-                  style={{
-                    background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                    border: 'none',
-                    color: 'white',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.5rem',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    width: '100%',
-                    fontFamily: 'inherit'
-                  }}
-                >
-                  {showAddExpense ? '取消' : '+ 添加支出'}
-                </button>
-
-                {showAddExpense && (
-                  <div style={{ marginTop: '1rem' }}>
-                    <select
-                      value={newExpense.category}
-                      onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        marginBottom: '0.5rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontFamily: 'inherit',
-                        fontSize: '1rem'
-                      }}
-                    >
-                      <option value="">选择类别...</option>
-                      {Object.entries(EXPENSE_CATEGORIES).map(([key, group]) => (
-                        <optgroup key={key} label={group.label}>
-                          {group.categories.map(cat => (
-                            <option key={cat.value} value={cat.value}>
-                              {cat.label}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      placeholder="金额"
-                      value={newExpense.amount}
-                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        marginBottom: '0.5rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontFamily: 'inherit'
-                      }}
-                    />
-                    <input
-                      type="date"
-                      value={newExpense.date}
-                      onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        marginBottom: '0.5rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontFamily: 'inherit'
-                      }}
-                    />
+                {/* 1. 本月当前支出卡片 (上) */}
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '600' }}>本月当前支出</h3>
                     <button
-                      onClick={addExpense}
+                      onClick={() => setShowAddExpense(true)}
                       style={{
-                        background: COLORS.success,
+                        padding: '0.5rem 1rem',
+                        background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
                         border: 'none',
-                        color: COLORS.background,
-                        padding: '0.75rem',
                         borderRadius: '0.5rem',
+                        color: COLORS.text,
                         fontSize: '0.9rem',
                         fontWeight: '600',
                         cursor: 'pointer',
-                        width: '100%',
                         fontFamily: 'inherit'
                       }}
                     >
-                      确认添加
+                      ➕ 添加支出
                     </button>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Expense Chart by FIRE Groups */}
-            {currentMonthTotal > 0 && (
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '2rem',
-                marginBottom: '2rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>FIRE支出分析</h3>
-                
-                <div className="fire-expense-analysis-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                  <div className="fire-chart-container">
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: '必需支出', value: essentialExpenses, color: COLORS.highlight },
-                            { name: '工作相关', value: workRelatedExpenses, color: COLORS.bonds },
-                            { name: '可选支出', value: discretionaryExpenses, color: COLORS.warning },
-                            { name: '储蓄投资', value: savingsInvestment, color: COLORS.success },
-                            { name: '债务偿还', value: debtPayments, color: '#9d4edd' }
-                          ].filter(item => item.value > 0)}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {[
-                            { name: '必需支出', value: essentialExpenses, color: COLORS.highlight },
-                            { name: '工作相关', value: workRelatedExpenses, color: COLORS.bonds },
-                            { name: '可选支出', value: discretionaryExpenses, color: COLORS.warning },
-                            { name: '储蓄投资', value: savingsInvestment, color: COLORS.success },
-                            { name: '债务偿还', value: debtPayments, color: '#9d4edd' }
-                          ].filter(item => item.value > 0).map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ background: COLORS.accent, border: 'none', borderRadius: '0.5rem' }}
-                          formatter={(value) => `$${value}`}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.danger, marginBottom: '0.5rem' }}>
+                    ${currentMonthTotal.toLocaleString()}
                   </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1rem' }}>
-                    {[
-                      { label: '必需支出（退休后继续）', value: essentialExpenses, color: COLORS.highlight },
-                      { label: '工作相关（退休后消失）', value: workRelatedExpenses, color: COLORS.bonds },
-                      { label: '可选支出（可削减）', value: discretionaryExpenses, color: COLORS.warning },
-                      { label: '储蓄投资', value: savingsInvestment, color: COLORS.success },
-                      { label: '债务偿还', value: debtPayments, color: '#9d4edd' }
-                    ].filter(item => item.value > 0).map((item, idx) => (
-                      <div key={idx} style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '0.75rem',
-                        background: COLORS.accent,
-                        borderRadius: '0.5rem',
-                        borderLeft: `4px solid ${item.color}`
-                      }}>
-                        <span style={{ fontSize: '0.9rem' }}>{item.label}</span>
-                        <span style={{ fontWeight: '700', fontSize: '1.1rem' }}>${item.value.toLocaleString()}</span>
-                      </div>
-                    ))}
+                  <div style={{ fontSize: '0.9rem', color: monthOverMonthChange >= 0 ? COLORS.danger : COLORS.success }}>
+                    较上月 {monthOverMonthChange >= 0 ? '↑' : '↓'} {Math.abs(monthOverMonthChange).toFixed(1)}%
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* Expense List */}
-            <div style={{
-              background: COLORS.card,
-              borderRadius: '1rem',
-              padding: '2rem',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-            }}>
-              <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>
-                支出明细（{selectedYear}年{selectedMonth}月）
-              </h3>
-              {filteredExpenses.length === 0 ? (
-                <p style={{ color: COLORS.textMuted }}>本月暂无支出记录</p>
-              ) : (
-                <div>
-                  {filteredExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(expense => {
-                    const group = getCategoryGroup(expense.category);
-                    const groupInfo = EXPENSE_CATEGORIES[group as keyof typeof EXPENSE_CATEGORIES];
-                    const groupColor = groupInfo?.color || COLORS.textMuted;
-                    const groupLabel = groupInfo?.label || '其他';
-                    
-                    return (
-                      <div key={expense.id} style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '1rem',
-                        marginBottom: '0.5rem',
-                        background: COLORS.accent,
+                {/* 2. 本月当前收入卡片 (下) */}
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '600' }}>本月当前收入</h3>
+                    <button
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                        border: 'none',
                         borderRadius: '0.5rem',
-                        borderLeft: `4px solid ${groupColor}`
-                      }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: '600' }}>{expense.description || expense.category}</div>
-                          <div style={{ fontSize: '0.75rem', color: groupColor, marginTop: '0.25rem' }}>
-                            {groupLabel}
-                          </div>
-                          <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>{expense.date}</div>
+                        color: COLORS.text,
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      ➕ 添加收入
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.success, marginBottom: '0.5rem' }}>
+                    ${monthlyIncome.toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    税后收入
+                  </div>
+                </div>
+
+                {/* 3. 年度预算追踪卡片 */}
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>年度预算追踪</h3>
+                  {Object.entries(annualBudgets).map(([category, data]: [string, any]) => {
+                    const percentage = (data.spent / data.limit) * 100;
+                    const categoryNames: Record<string, string> = {
+                      housing: '住房',
+                      travel: '旅行',
+                      education: '教育'
+                    };
+                    return (
+                      <div key={category} style={{ marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <span style={{ fontSize: '0.95rem' }}>{categoryNames[category]}</span>
+                          <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                            ${data.spent.toLocaleString()} / ${data.limit.toLocaleString()}
+                          </span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          <div style={{ fontSize: '1.2rem', fontWeight: '600' }}>${expense.amount}</div>
-                          <button
-                            onClick={() => deleteExpense(expense.id)}
-                            style={{
-                              background: 'none',
-                              border: `1px solid ${COLORS.highlight}`,
-                              color: COLORS.highlight,
-                              padding: '0.4rem 0.8rem',
-                              borderRadius: '0.3rem',
-                              cursor: 'pointer',
-                              fontSize: '0.85rem',
-                              fontFamily: 'inherit'
-                            }}
-                          >
-                            删除
-                          </button>
+                        <div style={{
+                          width: '100%',
+                          height: '8px',
+                          background: COLORS.accent,
+                          borderRadius: '4px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${Math.min(percentage, 100)}%`,
+                            height: '100%',
+                            background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                          {percentage.toFixed(0)}% 已使用
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              )}
-            </div>
-              </>
+
+                {/* 4. FIRE支出分析卡片（Placeholder） */}
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>FIRE支出分析</h3>
+                  
+                  {/* 饼图 Placeholder */}
+                  <div style={{
+                    height: '200px',
+                    background: COLORS.accent,
+                    borderRadius: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '1rem',
+                    color: COLORS.textMuted
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '1rem' }}>支出结构饼图</div>
+                      <div style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>(Coming Soon)</div>
+                    </div>
+                  </div>
+
+                  {/* Sub-tabs: Budget Tracking (本周) | Transaction */}
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', borderBottom: `1px solid ${COLORS.accent}` }}>
+                    <button style={{
+                      padding: '0.5rem 1rem',
+                      background: 'none',
+                      border: 'none',
+                      borderBottom: `2px solid ${COLORS.highlight}`,
+                      color: COLORS.highlight,
+                      fontSize: '0.95rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}>
+                      Budget Tracking (本周)
+                    </button>
+                    <button style={{
+                      padding: '0.5rem 1rem',
+                      background: 'none',
+                      border: 'none',
+                      color: COLORS.textMuted,
+                      fontSize: '0.95rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}>
+                      Transaction
+                    </button>
+                  </div>
+
+                  {/* Weekly Budget Tracking */}
+                  {Object.entries(weeklyBudgets).map(([category, data]: [string, any]) => {
+                    const percentage = (data.spent / data.limit) * 100;
+                    const categoryNames: Record<string, string> = {
+                      food: '餐饮',
+                      transport: '交通',
+                      lifestyle: '生活方式'
+                    };
+                    return (
+                      <div key={category} style={{ marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                          <span style={{ fontSize: '0.9rem' }}>{categoryNames[category]}</span>
+                          <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                            ${data.spent} / ${data.limit}
+                          </span>
+                        </div>
+                        <div style={{
+                          width: '100%',
+                          height: '6px',
+                          background: COLORS.accent,
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${Math.min(percentage, 100)}%`,
+                            height: '100%',
+                            background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
 
-            {/* Trends View */}
-            {viewMode === 'trends' && (
-              <>
-                {/* Monthly Trend Chart */}
-                <div className="card-mobile" style={{
+            {/* Tab-2: 趋势分析 */}
+            {expensesSubTab === 'trends' && (
+              <div>
+                {/* Time Range Selector */}
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '1.5rem',
+                  marginBottom: '2rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '1rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>选择月份:</span>
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                      style={{
+                        padding: '0.6rem 1rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '0.95rem',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                        <option key={m} value={m}>{m}月</option>
+                      ))}
+                    </select>
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                      style={{
+                        padding: '0.6rem 1rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '0.95rem',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028].map(y => (
+                        <option key={y} value={y}>{y}年</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>时间范围:</span>
+                    <select
+                      value={timeRange}
+                      onChange={(e) => setTimeRange(e.target.value as 'week' | 'month' | 'year' | 'day')}
+                      style={{
+                        padding: '0.6rem 1rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '0.95rem',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="day">当日详情</option>
+                      <option value="week">本周详情</option>
+                      <option value="month">当月详情</option>
+                      <option value="year">年度详情</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Placeholder for Charts and Transaction List */}
+                <div style={{
                   background: COLORS.card,
                   borderRadius: '1rem',
                   padding: '2rem',
                   marginBottom: '2rem',
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                 }}>
-                  <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>
-                    月度支出趋势（最近12个月）
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>
+                    {timeRange === 'day' && '当日'}
+                    {timeRange === 'week' && '本周'}
+                    {timeRange === 'month' && '当月'}
+                    {timeRange === 'year' && '年度'}
+                    支出趋势
                   </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={trendData}>
-                      <XAxis dataKey="month" stroke={COLORS.textMuted} />
-                      <YAxis stroke={COLORS.textMuted} />
-                      <Tooltip 
-                        contentStyle={{ background: COLORS.accent, border: 'none', borderRadius: '0.5rem' }}
-                        formatter={(value: number) => `$${value.toLocaleString()}`}
-                      />
-                      <Legend />
-                      <Line type="monotone" dataKey="total" stroke={COLORS.highlight} strokeWidth={3} name="总支出" />
-                      <Line type="monotone" dataKey="essential" stroke={COLORS.bonds} strokeWidth={2} name="必需" />
-                      <Line type="monotone" dataKey="discretionary" stroke={COLORS.warning} strokeWidth={2} name="可选" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                  
+                  {/* Chart Placeholder */}
+                  <div style={{
+                    height: '300px',
+                    background: COLORS.accent,
+                    borderRadius: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '2rem',
+                    color: COLORS.textMuted
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '1rem' }}>趋势图表</div>
+                      <div style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>(Coming Soon)</div>
+                    </div>
+                  </div>
 
-                {/* Monthly Breakdown Table */}
-                <div className="card-mobile" style={{
-                  background: COLORS.card,
-                  borderRadius: '1rem',
-                  padding: '2rem',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-                }}>
-                  <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>
-                    月度汇总
-                  </h3>
-                  <div className="trends-table-container" style={{ overflowX: 'auto' }}>
-                    <table className="trends-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ borderBottom: `2px solid ${COLORS.accent}` }}>
-                          <th style={{ padding: '1rem', textAlign: 'left', color: COLORS.textMuted, fontSize: '0.9rem' }}>月份</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>总支出</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>必需</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>可选</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', color: COLORS.textMuted, fontSize: '0.9rem' }}>储蓄</th>
-                          <th style={{ padding: '1rem', textAlign: 'center', color: COLORS.textMuted, fontSize: '0.9rem' }}>笔数</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {trendData.slice().reverse().map((monthData, idx) => (
-                          <tr key={idx} style={{ borderBottom: `1px solid ${COLORS.accent}` }}>
-                            <td style={{ padding: '1rem', fontWeight: '600' }}>{monthData.month}</td>
-                            <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '700', fontSize: '1.1rem' }}>
-                              ${monthData.total.toLocaleString()}
-                            </td>
-                            <td style={{ padding: '1rem', textAlign: 'right', color: COLORS.bonds }}>
-                              ${monthData.essential.toLocaleString()}
-                            </td>
-                            <td style={{ padding: '1rem', textAlign: 'right', color: COLORS.warning }}>
-                              ${monthData.discretionary.toLocaleString()}
-                            </td>
-                            <td style={{ padding: '1rem', textAlign: 'right', color: COLORS.success }}>
-                              ${monthData.savings.toLocaleString()}
-                            </td>
-                            <td style={{ padding: '1rem', textAlign: 'center', color: COLORS.textMuted }}>
-                              {monthlyAggregation[monthData.monthKey]?.count || 0}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  {/* Transaction List Placeholder */}
+                  <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>交易明细</h4>
+                  <div style={{
+                    padding: '2rem',
+                    background: COLORS.accent,
+                    borderRadius: '0.5rem',
+                    textAlign: 'center',
+                    color: COLORS.textMuted
+                  }}>
+                    <div>暂无交易记录</div>
                   </div>
                 </div>
-
-                {/* Average Analysis */}
-                <div className="card-mobile" style={{
-                  background: COLORS.card,
-                  borderRadius: '1rem',
-                  padding: '2rem',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-                }}>
-                  <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>
-                    平均分析（最近12个月）
-                  </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                    {(() => {
-                      const validMonths = trendData.filter(m => m.total > 0);
-                      const avgTotal = validMonths.length > 0 ? validMonths.reduce((sum, m) => sum + m.total, 0) / validMonths.length : 0;
-                      const avgEssential = validMonths.length > 0 ? validMonths.reduce((sum, m) => sum + m.essential, 0) / validMonths.length : 0;
-                      const avgDiscretionary = validMonths.length > 0 ? validMonths.reduce((sum, m) => sum + m.discretionary, 0) / validMonths.length : 0;
-                      
-                      return (
-                        <>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>月均总支出</div>
-                            <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.highlight }}>
-                              ${avgTotal.toLocaleString(undefined, {maximumFractionDigits: 0})}
-                            </div>
-                          </div>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>月均必需支出</div>
-                            <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.bonds }}>
-                              ${avgEssential.toLocaleString(undefined, {maximumFractionDigits: 0})}
-                            </div>
-                          </div>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>月均可选支出</div>
-                            <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.warning }}>
-                              ${avgDiscretionary.toLocaleString(undefined, {maximumFractionDigits: 0})}
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </>
+              </div>
             )}
           </div>
         )}
