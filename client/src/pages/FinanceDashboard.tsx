@@ -103,6 +103,64 @@ const EXPENSE_CATEGORIES = {
   }
 };
 
+// Budget templates by location
+const BUDGET_TEMPLATES = {
+  'sf-bay': {
+    name: '🏙️ 旧金山湾区',
+    description: '高消费城市',
+    categories: [
+      { id: 'food_dining', name: '🍽️ 餐饮饮食', budgetType: 'weekly', amount: 200 },
+      { id: 'transportation', name: '🚗 交通出行', budgetType: 'weekly', amount: 80 },
+      { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'weekly', amount: 150 },
+      { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'weekly', amount: 100 },
+      { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'yearly', amount: 3000 },
+      { id: 'pets', name: '🐕 宠物相关', budgetType: 'weekly', amount: 60 },
+      { id: 'beauty', name: '💄 美容护肤', budgetType: 'yearly', amount: 10000 },
+      { id: 'housing', name: '🏠 住房居住', budgetType: 'yearly', amount: 60000 },
+      { id: 'travel', name: '✈️ 旅行度假', budgetType: 'yearly', amount: 20000 },
+      { id: 'healthcare', name: '💊 医疗健康', budgetType: 'yearly', amount: 10000 },
+      { id: 'education', name: '📚 教育发展', budgetType: 'yearly', amount: 12000 },
+      { id: 'family', name: '👨‍👩‍👧 家人支持', budgetType: 'yearly', amount: 24000 }
+    ]
+  },
+  'mid-tier': {
+    name: '🌆 中等消费城市',
+    description: '西雅图、波士顿等',
+    categories: [
+      { id: 'food_dining', name: '🍽️ 餐饮饮食', budgetType: 'weekly', amount: 130 },
+      { id: 'transportation', name: '🚗 交通出行', budgetType: 'weekly', amount: 50 },
+      { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'weekly', amount: 100 },
+      { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'weekly', amount: 70 },
+      { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'yearly', amount: 2400 },
+      { id: 'pets', name: '🐕 宠物相关', budgetType: 'weekly', amount: 40 },
+      { id: 'beauty', name: '💄 美容护肤', budgetType: 'yearly', amount: 6000 },
+      { id: 'housing', name: '🏠 住房居住', budgetType: 'yearly', amount: 36000 },
+      { id: 'travel', name: '✈️ 旅行度假', budgetType: 'yearly', amount: 12000 },
+      { id: 'healthcare', name: '💊 医疗健康', budgetType: 'yearly', amount: 6000 },
+      { id: 'education', name: '📚 教育发展', budgetType: 'yearly', amount: 8000 },
+      { id: 'family', name: '👨‍👩‍👧 家人支持', budgetType: 'yearly', amount: 18000 }
+    ]
+  },
+  'low-cost': {
+    name: '🏡 低消费生活',
+    description: '远程工作、小城市',
+    categories: [
+      { id: 'food_dining', name: '🍽️ 餐饮饮食', budgetType: 'weekly', amount: 80 },
+      { id: 'transportation', name: '🚗 交通出行', budgetType: 'weekly', amount: 30 },
+      { id: 'shopping', name: '🛍️ 购物消费', budgetType: 'weekly', amount: 60 },
+      { id: 'entertainment', name: '🎮 娱乐休闲', budgetType: 'weekly', amount: 50 },
+      { id: 'subscriptions', name: '💳 订阅服务', budgetType: 'yearly', amount: 1800 },
+      { id: 'pets', name: '🐕 宠物相关', budgetType: 'weekly', amount: 30 },
+      { id: 'beauty', name: '💄 美容护肤', budgetType: 'yearly', amount: 4000 },
+      { id: 'housing', name: '🏠 住房居住', budgetType: 'yearly', amount: 24000 },
+      { id: 'travel', name: '✈️ 旅行度假', budgetType: 'yearly', amount: 8000 },
+      { id: 'healthcare', name: '💊 医疗健康', budgetType: 'yearly', amount: 4000 },
+      { id: 'education', name: '📚 教育发展', budgetType: 'yearly', amount: 5000 },
+      { id: 'family', name: '👨‍👩‍👧 家人支持', budgetType: 'yearly', amount: 12000 }
+    ]
+  }
+};
+
 interface Expense {
   id: number;
   category: string;
@@ -134,6 +192,16 @@ const FinanceDashboard = () => {
     stocks: 40,
     bonds: 40,
     cash: 20
+  });
+  
+  // User custom budget categories
+  const [budgetCategories, setBudgetCategories] = useState(() => {
+    const saved = localStorage.getItem('budgetCategories');
+    return saved ? JSON.parse(saved) : null; // null means not set up yet
+  });
+  
+  const [showBudgetWizard, setShowBudgetWizard] = useState(() => {
+    return !localStorage.getItem('budgetCategories');
   });
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [newExpense, setNewExpense] = useState({ 
@@ -996,7 +1064,7 @@ const FinanceDashboard = () => {
           marginBottom: '2rem',
           borderBottom: `1px solid ${COLORS.accent}`
         }}>
-          {['dashboard', 'expenses', 'portfolio', 'rebalance'].map(tab => (
+          {['dashboard', 'expenses', 'budget', 'portfolio', 'rebalance'].map(tab => (
             <button
               key={tab}
               className="tab-button-mobile"
@@ -1014,7 +1082,7 @@ const FinanceDashboard = () => {
                 fontFamily: 'inherit'
               }}
             >
-              {tab === 'dashboard' ? 'FIRE总览' : tab === 'expenses' ? '月度支出' : tab === 'portfolio' ? '投资组合' : '再平衡建议'}
+              {tab === 'dashboard' ? 'FIRE总览' : tab === 'expenses' ? '收支管理' : tab === 'budget' ? '预算管理' : tab === 'portfolio' ? '投资组合' : '再平衡建议'}
             </button>
           ))}
         </div>
@@ -2020,6 +2088,352 @@ const FinanceDashboard = () => {
                   }}>
                     <div>暂无交易记录</div>
                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Budget Tab */}
+        {activeTab === 'budget' && (
+          <div>
+            {/* Budget Wizard for new users */}
+            {showBudgetWizard && (
+              <div style={{
+                background: COLORS.card,
+                borderRadius: '1rem',
+                padding: '3rem',
+                marginBottom: '2rem',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                textAlign: 'center'
+              }}>
+                <h2 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1rem' }}>🎯 欢迎！让我们设置你的预算</h2>
+                <p style={{ fontSize: '1.1rem', color: COLORS.textMuted, marginBottom: '3rem' }}>
+                  选择你的主要居住地，我们会根据当地生活成本推荐预算
+                </p>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                  gap: '2rem',
+                  marginBottom: '2rem'
+                }}>
+                  {Object.entries(BUDGET_TEMPLATES).map(([key, template]) => {
+                    const totalYearly = template.categories.reduce((sum, cat) => {
+                      return sum + (cat.budgetType === 'weekly' ? cat.amount * 52 : cat.amount);
+                    }, 0);
+                    
+                    return (
+                      <div
+                        key={key}
+                        onClick={() => {
+                          setBudgetCategories(template.categories);
+                          localStorage.setItem('budgetCategories', JSON.stringify(template.categories));
+                          setShowBudgetWizard(false);
+                        }}
+                        style={{
+                          background: COLORS.accent,
+                          borderRadius: '1rem',
+                          padding: '2rem',
+                          cursor: 'pointer',
+                          border: `2px solid transparent`,
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.border = `2px solid ${COLORS.highlight}`;
+                          e.currentTarget.style.transform = 'translateY(-5px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.border = `2px solid transparent`;
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{template.name}</h3>
+                        <p style={{ fontSize: '0.95rem', color: COLORS.textMuted, marginBottom: '1rem' }}>
+                          {template.description}
+                        </p>
+                        <div style={{ fontSize: '2rem', fontWeight: '700', color: COLORS.success }}>
+                          ${totalYearly.toLocaleString()}
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>预估年支出</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => {
+                    setBudgetCategories([]);
+                    localStorage.setItem('budgetCategories', JSON.stringify([]));
+                    setShowBudgetWizard(false);
+                  }}
+                  style={{
+                    padding: '1rem 2rem',
+                    background: COLORS.accent,
+                    border: `2px solid ${COLORS.highlight}`,
+                    borderRadius: '0.5rem',
+                    color: COLORS.text,
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  ✏️ 我要自己设置
+                </button>
+              </div>
+            )}
+
+            {/* Budget Management UI */}
+            {!showBudgetWizard && budgetCategories && (
+              <div>
+                {/* Summary Card */}
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                  marginBottom: '2rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>📊 全年支出预估</h2>
+                  
+                  {(() => {
+                    const totalYearly = budgetCategories.reduce((sum: number, cat: any) => {
+                      return sum + (cat.budgetType === 'weekly' ? cat.amount * 52 : cat.amount);
+                    }, 0);
+                    const fireNumber = totalYearly * fireMultiplier;
+                    const fireProgress = totalPortfolio > 0 ? (totalPortfolio / fireNumber) * 100 : 0;
+                    
+                    return (
+                      <>
+                        <div style={{
+                          fontSize: '3rem',
+                          fontWeight: '700',
+                          color: COLORS.success,
+                          marginBottom: '1rem'
+                        }}>
+                          ${totalYearly.toLocaleString()}
+                        </div>
+                        
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                          gap: '1rem',
+                          marginBottom: '1.5rem'
+                        }}>
+                          <div style={{ padding: '1rem', background: COLORS.accent, borderRadius: '0.5rem' }}>
+                            <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                              FIRE目标
+                            </div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.warning }}>
+                              ${fireNumber.toLocaleString()}
+                            </div>
+                          </div>
+                          <div style={{ padding: '1rem', background: COLORS.accent, borderRadius: '0.5rem' }}>
+                            <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                              当前进度
+                            </div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.highlight }}>
+                              {fireProgress.toFixed(2)}%
+                            </div>
+                          </div>
+                        </div>
+
+                        {expenses.length > 0 && (() => {
+                          const last12MonthsExpenses = expenses
+                            .filter(exp => {
+                              const expDate = new Date(exp.date);
+                              const oneYearAgo = new Date();
+                              oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                              return expDate >= oneYearAgo;
+                            })
+                            .reduce((sum, exp) => sum + exp.amount, 0);
+                          
+                          if (last12MonthsExpenses > 0) {
+                            const diff = totalYearly - last12MonthsExpenses;
+                            const diffPercent = (diff / last12MonthsExpenses) * 100;
+                            
+                            return (
+                              <div style={{
+                                padding: '1rem',
+                                background: `${COLORS.highlight}20`,
+                                borderRadius: '0.5rem',
+                                border: `1px solid ${COLORS.highlight}`
+                              }}>
+                                <div style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                                  💡 基于你过去12个月的实际支出
+                                </div>
+                                <div style={{ fontSize: '1.1rem', fontWeight: '600' }}>
+                                  实际支出: ${last12MonthsExpenses.toLocaleString()} / 年
+                                </div>
+                                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                                  预算比实际{diff > 0 ? '高' : '低'} ${Math.abs(diff).toLocaleString()} ({Math.abs(diffPercent).toFixed(1)}%)
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </>
+                    );
+                  })()}
+                </div>
+
+                {/* Categories List */}
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                  marginBottom: '2rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>我的预算分类</h2>
+                    <button
+                      onClick={() => {
+                        const newCategory = {
+                          id: `custom_${Date.now()}`,
+                          name: '🆕 新分类',
+                          budgetType: 'weekly',
+                          amount: 0
+                        };
+                        const updated = [...budgetCategories, newCategory];
+                        setBudgetCategories(updated);
+                        localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                      }}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      + 新增分类
+                    </button>
+                  </div>
+
+                  {budgetCategories.map((category: any, index: number) => {
+                    const yearlyAmount = category.budgetType === 'weekly' ? category.amount * 52 : category.amount;
+                    
+                    return (
+                      <div
+                        key={category.id}
+                        style={{
+                          background: COLORS.accent,
+                          borderRadius: '0.75rem',
+                          padding: '1.5rem',
+                          marginBottom: '1rem'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                          <input
+                            type="text"
+                            value={category.name}
+                            onChange={(e) => {
+                              const updated = [...budgetCategories];
+                              updated[index].name = e.target.value;
+                              setBudgetCategories(updated);
+                            }}
+                            onBlur={() => {
+                              localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: COLORS.text,
+                              fontSize: '1.2rem',
+                              fontWeight: '600',
+                              fontFamily: 'inherit',
+                              width: '200px'
+                            }}
+                          />
+                          <button
+                            onClick={() => {
+                              if (confirm(`确定要删除"${category.name}"吗？`)) {
+                                const updated = budgetCategories.filter((_: any, i: number) => i !== index);
+                                setBudgetCategories(updated);
+                                localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                              }
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: COLORS.danger,
+                              fontSize: '1.2rem',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                          <select
+                            value={category.budgetType}
+                            onChange={(e) => {
+                              const updated = [...budgetCategories];
+                              updated[index].budgetType = e.target.value;
+                              setBudgetCategories(updated);
+                              localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                            }}
+                            style={{
+                              padding: '0.5rem',
+                              background: COLORS.card,
+                              border: 'none',
+                              borderRadius: '0.5rem',
+                              color: COLORS.text,
+                              fontSize: '0.9rem',
+                              fontFamily: 'inherit',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="weekly">周预算</option>
+                            <option value="yearly">年预算</option>
+                          </select>
+
+                          <input
+                            type="number"
+                            value={category.amount}
+                            onChange={(e) => {
+                              const updated = [...budgetCategories];
+                              updated[index].amount = parseFloat(e.target.value) || 0;
+                              setBudgetCategories(updated);
+                            }}
+                            onBlur={() => {
+                              localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '0.5rem',
+                              background: COLORS.card,
+                              border: 'none',
+                              borderRadius: '0.5rem',
+                              color: COLORS.text,
+                              fontSize: '1rem',
+                              fontFamily: 'inherit'
+                            }}
+                          />
+                          <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                            /{category.budgetType === 'weekly' ? '周' : '年'}
+                          </span>
+                        </div>
+
+                        <div style={{
+                          fontSize: '1.1rem',
+                          fontWeight: '600',
+                          color: COLORS.success,
+                          marginTop: '0.5rem'
+                        }}>
+                          → ${yearlyAmount.toLocaleString()} / 年
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
