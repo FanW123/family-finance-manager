@@ -2281,6 +2281,16 @@ const FinanceDashboard = () => {
                       weekStart.setDate(weekStart.getDate() - weekStart.getDay());
                       weekStart.setHours(0, 0, 0, 0);
                       
+                      // Helper function to match expense category with budget category
+                      const matchesCategory = (expenseCategory: string, category: any, child?: any): boolean => {
+                        if (child) {
+                          const expectedName = `${category.name} - ${child.name}`;
+                          return expenseCategory === expectedName || expenseCategory === child.name;
+                        } else {
+                          return expenseCategory === category.name;
+                        }
+                      };
+                      
                       if (item.isGroupSummary && item.trackableChildren) {
                         // Parent category with children
                         const totalBudget = item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
@@ -2288,7 +2298,7 @@ const FinanceDashboard = () => {
                           return sum + expenses
                             .filter(exp => {
                               const expDate = new Date(exp.date);
-                              return expDate >= weekStart && exp.category === child.id;
+                              return expDate >= weekStart && matchesCategory(exp.category, item, child);
                             })
                             .reduce((s, e) => s + e.amount, 0);
                         }, 0);
@@ -2303,7 +2313,7 @@ const FinanceDashboard = () => {
                               const spent = expenses
                                 .filter(exp => {
                                   const expDate = new Date(exp.date);
-                                  return expDate >= weekStart && exp.category === child.id;
+                                  return expDate >= weekStart && matchesCategory(exp.category, item, child);
                                 })
                                 .reduce((sum, exp) => sum + exp.amount, 0);
                               
@@ -2355,7 +2365,7 @@ const FinanceDashboard = () => {
                         const spent = expenses
                           .filter(exp => {
                             const expDate = new Date(exp.date);
-                            return expDate >= weekStart && exp.category === item.id;
+                            return expDate >= weekStart && matchesCategory(exp.category, item);
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
                         
@@ -2405,6 +2415,16 @@ const FinanceDashboard = () => {
                       monthStart.setDate(1);
                       monthStart.setHours(0, 0, 0, 0);
                       
+                      // Helper function to match expense category with budget category
+                      const matchesCategory = (expenseCategory: string, category: any, child?: any): boolean => {
+                        if (child) {
+                          const expectedName = `${category.name} - ${child.name}`;
+                          return expenseCategory === expectedName || expenseCategory === child.name;
+                        } else {
+                          return expenseCategory === category.name;
+                        }
+                      };
+                      
                       if (item.isGroupSummary && item.trackableChildren) {
                         // Parent category with children
                         const totalBudget = item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
@@ -2412,7 +2432,7 @@ const FinanceDashboard = () => {
                           return sum + expenses
                             .filter(exp => {
                               const expDate = new Date(exp.date);
-                              return expDate >= monthStart && exp.category === child.id;
+                              return expDate >= monthStart && matchesCategory(exp.category, item, child);
                             })
                             .reduce((s, e) => s + e.amount, 0);
                         }, 0);
@@ -2427,7 +2447,7 @@ const FinanceDashboard = () => {
                               const spent = expenses
                                 .filter(exp => {
                                   const expDate = new Date(exp.date);
-                                  return expDate >= monthStart && exp.category === child.id;
+                                  return expDate >= monthStart && matchesCategory(exp.category, item, child);
                                 })
                                 .reduce((sum, exp) => sum + exp.amount, 0);
                               
@@ -2479,7 +2499,7 @@ const FinanceDashboard = () => {
                         const spent = expenses
                           .filter(exp => {
                             const expDate = new Date(exp.date);
-                            return expDate >= monthStart && exp.category === item.id;
+                            return expDate >= monthStart && matchesCategory(exp.category, item);
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
                         
@@ -2527,6 +2547,16 @@ const FinanceDashboard = () => {
                     {getAllTrackableCategories(budgetCategories, 'yearly').map((item: any) => {
                       const yearStart = new Date(new Date().getFullYear(), 0, 1);
                       
+                      // Helper function to match expense category with budget category
+                      const matchesCategory = (expenseCategory: string, category: any, child?: any): boolean => {
+                        if (child) {
+                          const expectedName = `${category.name} - ${child.name}`;
+                          return expenseCategory === expectedName || expenseCategory === child.name;
+                        } else {
+                          return expenseCategory === category.name;
+                        }
+                      };
+                      
                       if (item.isGroupSummary && item.trackableChildren) {
                         // Parent category with children
                         const totalBudget = item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
@@ -2534,7 +2564,7 @@ const FinanceDashboard = () => {
                           return sum + expenses
                             .filter(exp => {
                               const expDate = new Date(exp.date);
-                              return expDate >= yearStart && exp.category === child.id;
+                              return expDate >= yearStart && matchesCategory(exp.category, item, child);
                             })
                             .reduce((s, e) => s + e.amount, 0);
                         }, 0);
@@ -2549,7 +2579,7 @@ const FinanceDashboard = () => {
                               const spent = expenses
                                 .filter(exp => {
                                   const expDate = new Date(exp.date);
-                                  return expDate >= yearStart && exp.category === child.id;
+                                  return expDate >= yearStart && matchesCategory(exp.category, item, child);
                                 })
                                 .reduce((sum, exp) => sum + exp.amount, 0);
                               
@@ -2607,7 +2637,7 @@ const FinanceDashboard = () => {
                         const spent = expenses
                           .filter(exp => {
                             const expDate = new Date(exp.date);
-                            return expDate >= yearStart && exp.category === item.id;
+                            return expDate >= yearStart && matchesCategory(exp.category, item);
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
                         
@@ -2657,48 +2687,53 @@ const FinanceDashboard = () => {
                   
                   {/* Calculate expense data by category */}
                   {(() => {
-                    // Get all trackable category IDs (including parent and child categories)
-                    const allCategoryIds = new Set<string>();
-                    budgetCategories?.forEach((cat: any) => {
-                      if (cat.isParent && cat.children) {
-                        allCategoryIds.add(cat.id);
-                        cat.children.forEach((child: any) => {
-                          allCategoryIds.add(child.id);
-                        });
-                      } else {
-                        allCategoryIds.add(cat.id);
+                    // Helper function to find category info by name (expense.category stores name, not id)
+                    const findCategoryByName = (categoryName: string) => {
+                      if (!budgetCategories) return null;
+                      
+                      // Check if it's a parent-child format (e.g., "父分类 - 子分类")
+                      if (categoryName.includes(' - ')) {
+                        const [parentName, childName] = categoryName.split(' - ');
+                        for (const cat of budgetCategories) {
+                          if (cat.name === parentName && cat.isParent && cat.children) {
+                            const child = cat.children.find((c: any) => c.name === childName);
+                            if (child) {
+                              return { parent: cat, child: child, name: categoryName };
+                            }
+                          }
+                        }
                       }
-                    });
+                      
+                      // Check if it's a parent category name
+                      for (const cat of budgetCategories) {
+                        if (cat.name === categoryName) {
+                          return { parent: cat, child: null, name: categoryName };
+                        }
+                      }
+                      
+                      return null;
+                    };
 
                     // Group expenses by category
                     const expensesByCategory: Record<string, { name: string; amount: number; count: number }> = {};
                     
                     filteredExpenses.forEach(expense => {
-                      const categoryId = expense.category;
-                      if (!allCategoryIds.has(categoryId)) return;
+                      // expense.category stores the category name (not id)
+                      const categoryName = expense.category || '未分类';
                       
-                      // Find category name
-                      let categoryName = '未分类';
-                      budgetCategories?.forEach((cat: any) => {
-                        if (cat.id === categoryId) {
-                          categoryName = cat.name;
-                        } else if (cat.isParent && cat.children) {
-                          const child = cat.children.find((c: any) => c.id === categoryId);
-                          if (child) {
-                            categoryName = `${cat.name} - ${child.name}`;
-                          }
-                        }
-                      });
+                      // Find category info
+                      const categoryInfo = findCategoryByName(categoryName);
                       
-                      if (!expensesByCategory[categoryId]) {
-                        expensesByCategory[categoryId] = {
+                      // Use category name as key (since that's what's stored in database)
+                      if (!expensesByCategory[categoryName]) {
+                        expensesByCategory[categoryName] = {
                           name: categoryName,
                           amount: 0,
                           count: 0
                         };
                       }
-                      expensesByCategory[categoryId].amount += expense.amount;
-                      expensesByCategory[categoryId].count += 1;
+                      expensesByCategory[categoryName].amount += expense.amount;
+                      expensesByCategory[categoryName].count += 1;
                     });
 
                     // Convert to array for pie chart
@@ -2834,18 +2869,8 @@ const FinanceDashboard = () => {
                               {filteredExpenses
                                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                                 .map((expense) => {
-                                  // Find category name
-                                  let categoryName = '未分类';
-                                  budgetCategories?.forEach((cat: any) => {
-                                    if (cat.id === expense.category) {
-                                      categoryName = cat.name;
-                                    } else if (cat.isParent && cat.children) {
-                                      const child = cat.children.find((c: any) => c.id === expense.category);
-                                      if (child) {
-                                        categoryName = `${cat.name} - ${child.name}`;
-                                      }
-                                    }
-                                  });
+                                  // expense.category already stores the category name (not id)
+                                  const categoryName = expense.category || '未分类';
 
                                   return (
                                     <div
@@ -2904,6 +2929,18 @@ const FinanceDashboard = () => {
                   // Calculate insights
                   const insights: Array<{ type: 'warning' | 'info' | 'success' | 'danger'; title: string; message: string; action?: string }> = [];
                   
+                  // Helper function to check if expense category matches a category (by name)
+                  const matchesCategory = (expenseCategory: string, category: any, child?: any): boolean => {
+                    if (child) {
+                      // Check if expense category matches "Parent - Child" format
+                      const expectedName = `${category.name} - ${child.name}`;
+                      return expenseCategory === expectedName || expenseCategory === child.name;
+                    } else {
+                      // Check if expense category matches parent category name
+                      return expenseCategory === category.name;
+                    }
+                  };
+
                   // 1. Budget overrun check
                   const currentMonthExpenses = expenses.filter(exp => {
                     const expDate = new Date(exp.date);
@@ -2925,7 +2962,7 @@ const FinanceDashboard = () => {
                       const totalBudget = cat.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
                       const totalSpent = cat.trackableChildren.reduce((sum: number, child: any) => {
                         return sum + weeklyExpenses
-                          .filter(exp => exp.category === child.id)
+                          .filter(exp => matchesCategory(exp.category, cat, child))
                           .reduce((s, e) => s + e.amount, 0);
                       }, 0);
                       const percentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
@@ -2945,7 +2982,7 @@ const FinanceDashboard = () => {
                       }
                     } else if (!cat.isGroupSummary) {
                       const spent = weeklyExpenses
-                        .filter(exp => exp.category === cat.id)
+                        .filter(exp => matchesCategory(exp.category, cat))
                         .reduce((sum, exp) => sum + exp.amount, 0);
                       const percentage = cat.amount > 0 ? (spent / cat.amount) * 100 : 0;
                       
@@ -2971,7 +3008,7 @@ const FinanceDashboard = () => {
                       const totalBudget = cat.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
                       const totalSpent = cat.trackableChildren.reduce((sum: number, child: any) => {
                         return sum + currentMonthExpenses
-                          .filter(exp => exp.category === child.id)
+                          .filter(exp => matchesCategory(exp.category, cat, child))
                           .reduce((s, e) => s + e.amount, 0);
                       }, 0);
                       const percentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
@@ -2991,7 +3028,7 @@ const FinanceDashboard = () => {
                       }
                     } else if (!cat.isGroupSummary) {
                       const spent = currentMonthExpenses
-                        .filter(exp => exp.category === cat.id)
+                        .filter(exp => matchesCategory(exp.category, cat))
                         .reduce((sum, exp) => sum + exp.amount, 0);
                       const percentage = cat.amount > 0 ? (spent / cat.amount) * 100 : 0;
                       
@@ -3085,17 +3122,8 @@ const FinanceDashboard = () => {
                   
                   if (largeExpenses.length > 0) {
                     largeExpenses.forEach(exp => {
-                      let categoryName = '未分类';
-                      budgetCategories?.forEach((cat: any) => {
-                        if (cat.id === exp.category) {
-                          categoryName = cat.name;
-                        } else if (cat.isParent && cat.children) {
-                          const child = cat.children.find((c: any) => c.id === exp.category);
-                          if (child) {
-                            categoryName = `${cat.name} - ${child.name}`;
-                          }
-                        }
-                      });
+                      // expense.category already stores the category name (not id)
+                      const categoryName = exp.category || '未分类';
                       
                       insights.push({
                         type: 'info',
