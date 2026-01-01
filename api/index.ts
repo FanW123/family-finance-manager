@@ -1113,6 +1113,108 @@ app.post('/rebalancing/calculate-trades', (req, res) => {
   res.json({ trades });
 });
 
+// Get budget categories
+app.get('/budget-categories', async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const sb = getSupabaseClient(req);
+    const { data, error } = await sb
+      .from('budget_categories')
+      .select('categories')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      // If no record found, return null (not an error)
+      if (error.code === 'PGRST116') {
+        return res.json({ categories: null });
+      }
+      console.error('Error fetching budget categories:', error);
+      return res.status(500).json({ 
+        error: 'Failed to fetch budget categories',
+        message: error.message
+      });
+    }
+
+    res.json({ categories: data?.categories || null });
+  } catch (error: any) {
+    console.error('Error fetching budget categories:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch budget categories',
+      message: error?.message || '未知错误'
+    });
+  }
+});
+
+// Save budget categories
+app.post('/budget-categories', async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { categories } = req.body;
+
+    if (!categories || !Array.isArray(categories)) {
+      return res.status(400).json({ 
+        error: 'Invalid request',
+        message: 'categories must be an array'
+      });
+    }
+
+    const sb = getSupabaseClient(req);
+    
+    // Use upsert to insert or update
+    const { data, error } = await sb
+      .from('budget_categories')
+      .upsert({
+        user_id: userId,
+        categories: categories,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error saving budget categories:', error);
+      
+      let errorMessage = error.message;
+      let hint = '请检查数据格式或稍后重试';
+      
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        errorMessage = '数据库表不存在';
+        hint = '请在Supabase中执行create_budget_categories_table.sql脚本创建表';
+      }
+      
+      return res.status(500).json({ 
+        error: 'Failed to save budget categories',
+        message: errorMessage,
+        details: error.details,
+        hint: error.hint || hint,
+        code: error.code
+      });
+    }
+
+    res.json({ 
+      id: data.id, 
+      message: 'Budget categories saved successfully' 
+    });
+  } catch (error: any) {
+    console.error('Error saving budget categories:', error);
+    res.status(500).json({ 
+      error: 'Failed to save budget categories',
+      message: error?.message || '未知错误'
+    });
+  }
+});
+
 // Global error handler (last)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('API Error:', err);

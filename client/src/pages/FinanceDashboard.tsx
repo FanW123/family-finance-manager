@@ -304,7 +304,8 @@ const FinanceDashboard = () => {
   });
   
   const [showBudgetWizard, setShowBudgetWizard] = useState(() => {
-    return !localStorage.getItem('budgetCategories');
+    // Will be updated after loadData runs
+    return false;
   });
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
@@ -507,6 +508,44 @@ const FinanceDashboard = () => {
         console.error('Target allocation error details:', error.response?.data);
       }
 
+      // Load budget categories from database
+      try {
+        const budgetCategoriesRes = await api.get('/budget-categories');
+        if (budgetCategoriesRes.data?.categories) {
+          setBudgetCategories(budgetCategoriesRes.data.categories);
+          setShowBudgetWizard(false);
+          // Also save to localStorage as cache
+          localStorage.setItem('budgetCategories', JSON.stringify(budgetCategoriesRes.data.categories));
+        } else {
+          // If no data in database, try loading from localStorage (backward compatibility)
+          const saved = localStorage.getItem('budgetCategories');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            setBudgetCategories(parsed);
+            setShowBudgetWizard(false);
+            // Migrate to database
+            try {
+              await api.post('/budget-categories', { categories: parsed });
+            } catch (migrateError) {
+              console.error('Error migrating budget categories to database:', migrateError);
+            }
+          } else {
+            // No data at all, show wizard
+            setShowBudgetWizard(true);
+          }
+        }
+      } catch (error: any) {
+        console.error('Error loading budget categories:', error);
+        // If table doesn't exist yet, fall back to localStorage
+        const saved = localStorage.getItem('budgetCategories');
+        if (saved) {
+          setBudgetCategories(JSON.parse(saved));
+          setShowBudgetWizard(false);
+        } else {
+          setShowBudgetWizard(true);
+        }
+      }
+
       // Load monthly income from localStorage (or could be from API)
       const savedIncome = localStorage.getItem('monthlyIncome');
       if (savedIncome) {
@@ -527,6 +566,25 @@ const FinanceDashboard = () => {
       console.error('Error details:', error.response?.data);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to save budget categories to database and localStorage
+  const saveBudgetCategories = async (categories: any[]) => {
+    try {
+      // Save to localStorage as cache
+      localStorage.setItem('budgetCategories', JSON.stringify(categories));
+      
+      // Save to database
+      try {
+        await api.post('/budget-categories', { categories });
+      } catch (error: any) {
+        console.error('Error saving budget categories to database:', error);
+        // Don't show alert, just log - localStorage is still saved
+        // This allows the app to work even if database is not set up yet
+      }
+    } catch (error) {
+      console.error('Error saving budget categories:', error);
     }
   };
 
@@ -3384,9 +3442,9 @@ const FinanceDashboard = () => {
                     return (
                       <div
                         key={key}
-                        onClick={() => {
+                        onClick={async () => {
                           setBudgetCategories(template.categories);
-                          localStorage.setItem('budgetCategories', JSON.stringify(template.categories));
+                          await saveBudgetCategories(template.categories);
                           setShowBudgetWizard(false);
                         }}
                         style={{
@@ -3420,9 +3478,9 @@ const FinanceDashboard = () => {
                 </div>
 
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setBudgetCategories([]);
-                    localStorage.setItem('budgetCategories', JSON.stringify([]));
+                    await saveBudgetCategories([]);
                     setShowBudgetWizard(false);
                   }}
                   style={{
@@ -3558,7 +3616,7 @@ const FinanceDashboard = () => {
                         // Insert at the beginning instead of the end
                         const updated = [newCategory, ...budgetCategories];
                         setBudgetCategories(updated);
-                        localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                        saveBudgetCategories(updated);
                       }}
                       style={{
                         padding: '0.5rem 1rem',
@@ -3598,7 +3656,7 @@ const FinanceDashboard = () => {
                                   const updated = [...budgetCategories];
                                   updated[index].expanded = !updated[index].expanded;
                                   setBudgetCategories(updated);
-                                  localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                  saveBudgetCategories(updated);
                                 }}
                                 style={{
                                   background: 'none',
@@ -3626,7 +3684,7 @@ const FinanceDashboard = () => {
                                 setBudgetCategories(updated);
                               }}
                               onBlur={() => {
-                                localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                                saveBudgetCategories(budgetCategories);
                               }}
                               style={{
                                 background: 'none',
@@ -3644,7 +3702,7 @@ const FinanceDashboard = () => {
                               if (confirm(`确定要删除"${category.name}"吗？${isParent ? '\n这将同时删除所有子分类。' : ''}`)) {
                                 const updated = budgetCategories.filter((_: any, i: number) => i !== index);
                                 setBudgetCategories(updated);
-                                localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                saveBudgetCategories(updated);
                               }
                             }}
                             style={{
@@ -3668,7 +3726,7 @@ const FinanceDashboard = () => {
                                   const updated = [...budgetCategories];
                                   updated[index].budgetType = e.target.value;
                                   setBudgetCategories(updated);
-                                  localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                  saveBudgetCategories(updated);
                                 }}
                                 style={{
                                   padding: '0.5rem',
@@ -3707,7 +3765,7 @@ const FinanceDashboard = () => {
                                   // Ensure valid number on blur
                                   updated[index].amount = parseFloat(e.target.value) || 0;
                                   setBudgetCategories(updated);
-                                  localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                  saveBudgetCategories(updated);
                                 }}
                                 style={{
                                   flex: 1,
@@ -3777,7 +3835,7 @@ const FinanceDashboard = () => {
                               }
                               
                               setBudgetCategories(updated);
-                              localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                              saveBudgetCategories(updated);
                             }}
                             style={{
                               padding: '0.4rem 0.8rem',
@@ -3824,7 +3882,7 @@ const FinanceDashboard = () => {
                                         setBudgetCategories(updated);
                                       }}
                                       onBlur={() => {
-                                        localStorage.setItem('budgetCategories', JSON.stringify(budgetCategories));
+                                        saveBudgetCategories(budgetCategories);
                                       }}
                                       style={{
                                         background: 'none',
@@ -3845,7 +3903,7 @@ const FinanceDashboard = () => {
                                           const updated = [...budgetCategories];
                                           updated[index].children = updated[index].children.filter((_: any, i: number) => i !== childIndex);
                                           setBudgetCategories(updated);
-                                          localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                          saveBudgetCategories(updated);
                                         }
                                       }}
                                       style={{
@@ -3867,7 +3925,7 @@ const FinanceDashboard = () => {
                                         const updated = [...budgetCategories];
                                         updated[index].children[childIndex].budgetType = e.target.value;
                                         setBudgetCategories(updated);
-                                        localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                        saveBudgetCategories(updated);
                                       }}
                                       style={{
                                         padding: '0.4rem',
@@ -3905,7 +3963,7 @@ const FinanceDashboard = () => {
                                         // Ensure valid number on blur
                                         updated[index].children[childIndex].amount = parseFloat(e.target.value) || 0;
                                         setBudgetCategories(updated);
-                                        localStorage.setItem('budgetCategories', JSON.stringify(updated));
+                                        saveBudgetCategories(updated);
                                       }}
                                       style={{
                                         flex: 1,
