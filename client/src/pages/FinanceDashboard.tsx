@@ -530,11 +530,38 @@ const FinanceDashboard = () => {
     }
   };
 
+  // Helper function to get category name from id
+  const getCategoryName = (categoryId: string): string => {
+    if (!budgetCategories || !categoryId) return categoryId;
+    
+    // Search in parent categories
+    for (const cat of budgetCategories) {
+      if (cat.id === categoryId) {
+        return cat.name;
+      }
+      // Search in children
+      if (cat.children) {
+        for (const child of cat.children) {
+          if (child.id === categoryId) {
+            // Return "Parent - Child" format if parent exists, otherwise just child name
+            return cat.name ? `${cat.name} - ${child.name}` : child.name;
+          }
+        }
+      }
+    }
+    
+    // If not found, return the id (fallback)
+    return categoryId;
+  };
+
   const addExpense = async () => {
     if (newExpense.category && newExpense.amount && newExpense.date) {
       try {
+        // Convert category id to category name (with parent-child format if applicable)
+        const categoryName = getCategoryName(newExpense.category);
+        
         await api.post('/expenses', {
-          category: newExpense.category,
+          category: categoryName,
           amount: parseFloat(newExpense.amount),
           description: newExpense.description || '',
           date: newExpense.date
@@ -542,9 +569,14 @@ const FinanceDashboard = () => {
         await loadData();
         setNewExpense({ category: '', amount: '', date: new Date().toISOString().split('T')[0], description: '', currency: 'USD' });
         setShowAddExpense(false);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error adding expense:', error);
-        alert('添加支出失败');
+        const errorData = error?.response?.data || {};
+        const errorMessage = errorData.message || errorData.error || error?.message || '未知错误';
+        const hint = errorData.hint || '请检查网络连接或稍后重试';
+        const details = errorData.details ? `\n详情: ${errorData.details}` : '';
+        
+        alert(`添加支出失败\n\n错误: ${errorMessage}${details}\n\n提示: ${hint}`);
       }
     }
   };

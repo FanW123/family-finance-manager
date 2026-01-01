@@ -231,7 +231,19 @@ app.post('/expenses', async (req, res) => {
     const { amount, category, description, date } = req.body;
 
     if (!amount || !category || !date) {
-      return res.status(400).json({ error: 'Amount, category, and date are required' });
+      return res.status(400).json({ 
+        error: 'Amount, category, and date are required',
+        message: '金额、分类和日期都是必填项'
+      });
+    }
+
+    // Validate amount
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      return res.status(400).json({ 
+        error: 'Invalid amount',
+        message: '金额必须是正数'
+      });
     }
 
     const sb = getSupabaseClient(req);
@@ -240,7 +252,7 @@ app.post('/expenses', async (req, res) => {
       .insert([
         {
           user_id: userId,
-          amount,
+          amount: amountNum,
           category,
           description: description || '',
           date,
@@ -251,13 +263,37 @@ app.post('/expenses', async (req, res) => {
 
     if (error) {
       console.error('Error adding expense:', error);
-      return res.status(500).json({ error: 'Failed to add expense' });
+      
+      let errorMessage = error.message;
+      let hint = '请检查数据格式或稍后重试';
+      
+      if (error.code === '23505' || error.message.includes('unique')) {
+        errorMessage = '数据已存在';
+        hint = '该记录可能已存在';
+      } else if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        errorMessage = '数据库表不存在';
+        hint = '请确保expenses表已创建';
+      } else if (error.code === '23514' || error.message.includes('check constraint')) {
+        errorMessage = '数据验证失败';
+        hint = '请检查金额是否在有效范围内';
+      }
+      
+      return res.status(500).json({ 
+        error: 'Failed to add expense',
+        message: errorMessage,
+        details: error.details,
+        hint: error.hint || hint,
+        code: error.code
+      });
     }
 
     res.json({ id: data.id, message: 'Expense added successfully' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error adding expense:', error);
-    res.status(500).json({ error: 'Failed to add expense' });
+    res.status(500).json({ 
+      error: 'Failed to add expense',
+      message: error?.message || '未知错误'
+    });
   }
 });
 
