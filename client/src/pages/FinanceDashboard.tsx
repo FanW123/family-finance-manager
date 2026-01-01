@@ -461,7 +461,10 @@ const FinanceDashboard = () => {
       // Load expenses
       try {
         const expensesRes = await api.get(`/expenses?month=${selectedMonth}&year=${selectedYear}`);
-        setExpenses(expensesRes.data);
+        // Ensure expenses is always an array
+        const expensesData = Array.isArray(expensesRes.data) ? expensesRes.data : [];
+        console.log('Loaded expenses:', expensesData.length, 'items');
+        setExpenses(expensesData);
       } catch (error: any) {
         console.error('Error loading expenses:', error);
         if (error.response?.status === 401) {
@@ -470,6 +473,8 @@ const FinanceDashboard = () => {
           return;
         }
         console.error('Expenses error details:', error.response?.data);
+        // Set empty array on error to ensure state is updated
+        setExpenses([]);
       }
 
       // Load incomes
@@ -618,15 +623,31 @@ const FinanceDashboard = () => {
         // Convert category id to category name (with parent-child format if applicable)
         const categoryName = getCategoryName(newExpense.category);
         
-        await api.post('/expenses', {
+        console.log('Adding expense:', {
+          category: categoryName,
+          amount: parseFloat(newExpense.amount),
+          date: newExpense.date,
+          selectedMonth,
+          selectedYear
+        });
+        
+        const response = await api.post('/expenses', {
           category: categoryName,
           amount: parseFloat(newExpense.amount),
           description: newExpense.description || '',
           date: newExpense.date
         });
+        
+        console.log('Expense added successfully:', response.data);
+        
+        // Reload data to refresh the UI
         await loadData();
+        
+        // Reset form and close modal
         setNewExpense({ category: '', amount: '', date: new Date().toISOString().split('T')[0], description: '', currency: 'USD' });
         setShowAddExpense(false);
+        
+        console.log('Data reloaded, expenses should be updated');
       } catch (error: any) {
         console.error('Error adding expense:', error);
         const errorData = error?.response?.data || {};
@@ -937,8 +958,23 @@ const FinanceDashboard = () => {
 
   // Filter expenses by selected month/year
   const filteredExpenses = expenses.filter(expense => {
-    const expenseDate = new Date(expense.date);
-    return expenseDate.getMonth() + 1 === selectedMonth && expenseDate.getFullYear() === selectedYear;
+    if (!expense.date) return false;
+    
+    // Handle both date string (YYYY-MM-DD) and Date object
+    let expenseDate: Date;
+    if (typeof expense.date === 'string') {
+      // Parse date string (YYYY-MM-DD format)
+      const [year, month, day] = expense.date.split('-').map(Number);
+      expenseDate = new Date(year, month - 1, day);
+    } else {
+      expenseDate = new Date(expense.date);
+    }
+    
+    // Compare month and year (using local time to avoid timezone issues)
+    const expenseMonth = expenseDate.getMonth() + 1;
+    const expenseYear = expenseDate.getFullYear();
+    
+    return expenseMonth === selectedMonth && expenseYear === selectedYear;
   });
 
   // Calculate monthly aggregations
