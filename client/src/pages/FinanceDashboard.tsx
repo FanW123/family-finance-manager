@@ -1030,16 +1030,30 @@ const FinanceDashboard = () => {
     }> = {};
     
     expenses.forEach(expense => {
-      const date = new Date(expense.date);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (!expense.date) return;
+      
+      // Handle both date string (YYYY-MM-DD) and Date object
+      let expenseDate: Date;
+      if (typeof expense.date === 'string') {
+        // Parse date string (YYYY-MM-DD format)
+        const [year, month, day] = expense.date.split('-').map(Number);
+        expenseDate = new Date(year, month - 1, day);
+      } else {
+        expenseDate = new Date(expense.date);
+      }
+      
+      // Get month and year using local time to avoid timezone issues
+      const expenseMonth = expenseDate.getMonth() + 1;
+      const expenseYear = expenseDate.getFullYear();
+      const monthKey = `${expenseYear}-${String(expenseMonth).padStart(2, '0')}`;
       
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = {
           total: 0,
           byGroup: {},
           count: 0,
-          month: date.getMonth() + 1,
-          year: date.getFullYear()
+          month: expenseMonth,
+          year: expenseYear
         };
       }
       
@@ -1095,7 +1109,21 @@ const FinanceDashboard = () => {
   
   // Current month vs previous month comparison
   const currentMonthKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-  const currentMonthTotal = monthlyAggregation[currentMonthKey]?.total || 0;
+  // Use filteredExpenses to calculate current month total (more reliable than monthlyAggregation)
+  const currentMonthTotal = filteredExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+  // Also get from monthlyAggregation for comparison
+  const currentMonthTotalFromAggregation = monthlyAggregation[currentMonthKey]?.total || 0;
+  
+  // Debug: log if there's a mismatch
+  if (currentMonthTotal !== currentMonthTotalFromAggregation) {
+    console.log('Current month total mismatch:', {
+      fromFilteredExpenses: currentMonthTotal,
+      fromAggregation: currentMonthTotalFromAggregation,
+      filteredExpensesCount: filteredExpenses.length,
+      expensesCount: expenses.length,
+      currentMonthKey
+    });
+  }
   
   // Calculate current month income total
   const currentMonthIncomeTotal = incomes
