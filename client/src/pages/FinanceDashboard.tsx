@@ -311,6 +311,7 @@ const FinanceDashboard = () => {
   const [showAddIncome, setShowAddIncome] = useState(false);
   const [editingIncome, setEditingIncome] = useState<any>(null);
   const [incomeDetailsExpanded, setIncomeDetailsExpanded] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<any>(null);
   const [newExpense, setNewExpense] = useState({ 
     category: '', 
     amount: '', 
@@ -716,6 +717,47 @@ const FinanceDashboard = () => {
     } catch (error: any) {
         console.error('Error deleting income:', error);
         alert('删除失败');
+    }
+  };
+
+  const updateExpense = async () => {
+    if (editingExpense && editingExpense.category && editingExpense.amount && editingExpense.date) {
+      try {
+        // Convert category id to category name (with parent-child format if applicable)
+        const categoryName = getCategoryName(editingExpense.category);
+        
+        console.log('Updating expense:', {
+          id: editingExpense.id,
+          category: categoryName,
+          amount: parseFloat(editingExpense.amount),
+          date: editingExpense.date
+        });
+        
+        await api.put(`/expenses/${editingExpense.id}`, {
+          category: categoryName,
+          amount: parseFloat(editingExpense.amount),
+          description: editingExpense.description || '',
+          date: editingExpense.date
+        });
+        
+        console.log('Expense updated successfully');
+        
+        // Reload data to refresh the UI
+        await loadData();
+        
+        // Reset form and close modal
+        setEditingExpense(null);
+        
+        console.log('Data reloaded, expenses should be updated');
+      } catch (error: any) {
+        console.error('Error updating expense:', error);
+        const errorData = error?.response?.data || {};
+        const errorMessage = errorData.message || errorData.error || error?.message || '未知错误';
+        const hint = errorData.hint || '请检查网络连接或稍后重试';
+        const details = errorData.details ? `\n详情: ${errorData.details}` : '';
+        
+        alert(`更新支出失败\n\n错误: ${errorMessage}${details}\n\n提示: ${hint}`);
+      }
     }
   };
 
@@ -2908,6 +2950,33 @@ const FinanceDashboard = () => {
                                   // expense.category already stores the category name (not id)
                                   const categoryName = expense.category || '未分类';
 
+                                  // Find category id from category name for editing
+                                  const findCategoryIdByName = (categoryName: string): string => {
+                                    if (!budgetCategories) return '';
+                                    
+                                    // Check if it's a parent-child format (e.g., "父分类 - 子分类")
+                                    if (categoryName.includes(' - ')) {
+                                      const [parentName, childName] = categoryName.split(' - ');
+                                      for (const cat of budgetCategories) {
+                                        if (cat.name === parentName && cat.isParent && cat.children) {
+                                          const child = cat.children.find((c: any) => c.name === childName);
+                                          if (child) {
+                                            return child.id;
+                                          }
+                                        }
+                                      }
+                                    }
+                                    
+                                    // Check if it's a parent category name
+                                    for (const cat of budgetCategories) {
+                                      if (cat.name === categoryName) {
+                                        return cat.id;
+                                      }
+                                    }
+                                    
+                                    return '';
+                                  };
+
                                   return (
                                     <div
                                       key={expense.id}
@@ -2933,6 +3002,55 @@ const FinanceDashboard = () => {
                                           {new Date(expense.date).toLocaleDateString('zh-CN')}
                                           {expense.description && ` · ${expense.description}`}
                                         </div>
+                                      </div>
+                                      <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                        <button
+                                          onClick={() => {
+                                            const categoryId = findCategoryIdByName(categoryName);
+                                            setEditingExpense({
+                                              id: expense.id,
+                                              category: categoryId || '',
+                                              amount: expense.amount.toString(),
+                                              date: expense.date,
+                                              description: expense.description || ''
+                                            });
+                                          }}
+                                          style={{
+                                            padding: '0.4rem 0.8rem',
+                                            background: COLORS.card,
+                                            border: `1px solid ${COLORS.highlight}`,
+                                            borderRadius: '0.35rem',
+                                            color: COLORS.text,
+                                            fontSize: '0.85rem',
+                                            cursor: 'pointer',
+                                            fontFamily: 'inherit',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem'
+                                          }}
+                                          title="编辑"
+                                        >
+                                          ✏️
+                                        </button>
+                                        <button
+                                          onClick={() => deleteExpense(expense.id)}
+                                          style={{
+                                            padding: '0.4rem 0.8rem',
+                                            background: COLORS.card,
+                                            border: `1px solid ${COLORS.danger}`,
+                                            borderRadius: '0.35rem',
+                                            color: COLORS.danger,
+                                            fontSize: '0.85rem',
+                                            cursor: 'pointer',
+                                            fontFamily: 'inherit',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem'
+                                          }}
+                                          title="删除"
+                                        >
+                                          🗑️
+                                        </button>
                                       </div>
                                     </div>
                                   );
@@ -5247,6 +5365,249 @@ const FinanceDashboard = () => {
                     }}
                   >
                     {loading ? '添加中...' : '添加支出'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Expense Modal */}
+        {editingExpense && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '2rem',
+                borderBottom: `1px solid ${COLORS.accent}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>编辑支出</h2>
+                <button
+                  onClick={() => setEditingExpense(null)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: COLORS.text,
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Form */}
+              <div style={{ padding: '2rem' }}>
+                {/* Category */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    类别
+                  </label>
+                  {budgetCategories && budgetCategories.length > 0 ? (
+                    <select
+                      value={editingExpense.category}
+                      onChange={(e) => setEditingExpense({ ...editingExpense, category: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '1rem',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">选择类别...</option>
+                      
+                      {/* Render all categories in order, parent categories can be selected */}
+                      {budgetCategories.flatMap((cat: any) => {
+                        if (cat.isParent && cat.children) {
+                          // Parent category with children
+                          return [
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </option>,
+                            ...cat.children.map((child: any) => (
+                              <option key={child.id} value={child.id}>
+                                &nbsp;&nbsp;&nbsp;&nbsp;↳ {child.name}
+                              </option>
+                            ))
+                          ];
+                        } else {
+                          // Standalone category
+                          return (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </option>
+                          );
+                        }
+                      })}
+                    </select>
+                  ) : (
+                    <div style={{
+                      padding: '1rem',
+                      background: COLORS.accent,
+                      borderRadius: '0.5rem',
+                      textAlign: 'center',
+                      color: COLORS.textMuted
+                    }}>
+                      <p style={{ marginBottom: '0.5rem' }}>请先在"预算管理"中设置分类</p>
+                      <button
+                        onClick={() => {
+                          setEditingExpense(null);
+                          setActiveTab('budget');
+                        }}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: COLORS.highlight,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        去设置
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Amount */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    金额 (USD)
+                  </label>
+                  <input
+                    type="number"
+                    value={editingExpense.amount}
+                    onChange={(e) => setEditingExpense({ ...editingExpense, amount: e.target.value })}
+                    placeholder="0.00"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Date */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    日期
+                  </label>
+                  <input
+                    type="date"
+                    value={editingExpense.date}
+                    onChange={(e) => setEditingExpense({ ...editingExpense, date: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Description */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    备注 (可选)
+                  </label>
+                  <input
+                    type="text"
+                    value={editingExpense.description}
+                    onChange={(e) => setEditingExpense({ ...editingExpense, description: e.target.value })}
+                    placeholder="例如：午餐、地铁卡充值..."
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    onClick={() => setEditingExpense(null)}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      background: COLORS.accent,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={updateExpense}
+                    disabled={loading || !editingExpense.category || !editingExpense.amount || !editingExpense.date}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      background: !editingExpense.category || !editingExpense.amount || !editingExpense.date
+                        ? COLORS.accent
+                        : `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: !editingExpense.category || !editingExpense.amount || !editingExpense.date ? 'not-allowed' : 'pointer',
+                      opacity: !editingExpense.category || !editingExpense.amount || !editingExpense.date ? 0.5 : 1,
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    {loading ? '更新中...' : '更新支出'}
                   </button>
                 </div>
               </div>
