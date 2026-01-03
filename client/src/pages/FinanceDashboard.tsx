@@ -1484,7 +1484,8 @@ const FinanceDashboard = () => {
               padding: '2rem',
               marginBottom: '2rem',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-              position: 'relative'
+              position: 'relative',
+              overflow: 'visible' // Ensure button is not clipped
             }}>
               {/* Current Total Assets - Prominent Display */}
               <div style={{ 
@@ -1497,16 +1498,7 @@ const FinanceDashboard = () => {
               </div>
               
               {/* FIRE Progress with Percentage */}
-              <div style={{ marginBottom: '1rem' }}>
-                {/* FIRE Progress percentage above the bar */}
-                <div style={{
-                  fontSize: '1rem',
-                  color: COLORS.text,
-                  marginBottom: '0.5rem'
-                }}>
-                  FIRE 进度: {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
-                </div>
-                
+              <div style={{ marginBottom: '2rem' }}>
                 {/* Progress Bar Container */}
                 <div style={{
                   position: 'relative',
@@ -1522,6 +1514,19 @@ const FinanceDashboard = () => {
                     display: 'flex',
                     alignItems: 'center'
                   }}>
+                    {/* FIRE Progress percentage on the left of the bar */}
+                    <div style={{
+                      position: 'absolute',
+                      left: '1rem',
+                      zIndex: 3,
+                      fontSize: '1rem',
+                      color: COLORS.text,
+                      fontWeight: '600',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      FIRE 进度: {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
+                    </div>
+                    
                     {/* Progress Bar Fill - Bright light blue/cyan */}
                     <div style={{
                       background: COLORS.success, // Bright light blue/cyan, not gradient
@@ -1552,7 +1557,7 @@ const FinanceDashboard = () => {
                       </div>
                     )}
                     
-                    {/* FIRE Target on the right */}
+                    {/* FIRE Target on the right of the bar */}
                     <div style={{
                       position: 'absolute',
                       right: '1rem',
@@ -1572,7 +1577,8 @@ const FinanceDashboard = () => {
               <div style={{
                 position: 'absolute',
                 bottom: '2rem',
-                right: '2rem'
+                right: '2rem',
+                zIndex: 10 // Ensure button is above other elements
               }}>
                 <button
                   onClick={() => setShowFireOptimization(true)}
@@ -1586,7 +1592,9 @@ const FinanceDashboard = () => {
                     fontWeight: '600',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    position: 'relative',
+                    zIndex: 10
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = `${COLORS.success}20`;
