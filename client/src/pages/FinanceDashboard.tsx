@@ -1491,57 +1491,85 @@ const FinanceDashboard = () => {
                 fontSize: '2.5rem', 
                 fontWeight: '700', 
                 marginBottom: '1.5rem',
-                color: COLORS.highlight // Bright blue/cyan
+                color: COLORS.highlight // Red/pink as shown in screenshot
               }}>
                 当前总资产: ${totalPortfolio.toLocaleString()}
               </div>
               
               {/* FIRE Progress with Percentage */}
               <div style={{ marginBottom: '1rem' }}>
-                <div style={{ fontSize: '1rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  FIRE 进度: {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
-                </div>
-                
-                {/* Progress Bar */}
+                {/* Progress Bar Container */}
                 <div style={{
-                  background: COLORS.accent,
-                  borderRadius: '0.5rem',
-                  height: '2.5rem',
                   position: 'relative',
-                  overflow: 'hidden',
                   marginBottom: '1rem'
                 }}>
+                  {/* Progress Bar */}
                   <div style={{
-                    background: `linear-gradient(90deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                    height: '100%',
-                    width: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
-                    transition: 'width 0.3s ease'
-                  }} />
-                </div>
-                
-                {/* FIRE Target on the right of progress bar */}
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  marginBottom: '0.5rem'
-                }}>
-                  <div style={{ flex: 1 }}></div>
-                  <div style={{ fontSize: '1rem', fontWeight: '600', color: COLORS.text }}>
-                    FIRE目标: ${fireNumber.toLocaleString()}
-                  </div>
-                </div>
-                
-                {/* Remaining Amount */}
-                {totalPortfolio < fireNumber && (
-                  <div style={{
-                    fontSize: '0.9rem',
-                    color: COLORS.warning,
-                    marginBottom: '1rem'
+                    background: COLORS.accent,
+                    borderRadius: '0.5rem',
+                    height: '2.5rem',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center'
                   }}>
-                    距离目标还差: ${(fireNumber - totalPortfolio).toLocaleString()}
+                    {/* FIRE Progress percentage on the left */}
+                    <div style={{
+                      position: 'absolute',
+                      left: '1rem',
+                      zIndex: 3,
+                      fontSize: '1rem',
+                      color: COLORS.text,
+                      fontWeight: '600',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      FIRE 进度: {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
+                    </div>
+                    
+                    {/* Progress Bar Fill */}
+                    <div style={{
+                      background: `linear-gradient(90deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                      height: '100%',
+                      width: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
+                      transition: 'width 0.3s ease',
+                      borderRadius: '0.5rem 0 0 0.5rem',
+                      position: 'relative',
+                      zIndex: 1
+                    }} />
+                    
+                    {/* Remaining Amount - Centered over unfilled portion */}
+                    {totalPortfolio < fireNumber && (
+                      <div style={{
+                        position: 'absolute',
+                        left: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
+                        right: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        textAlign: 'center',
+                        fontSize: '0.9rem',
+                        color: COLORS.warning,
+                        fontWeight: '600',
+                        zIndex: 2,
+                        pointerEvents: 'none'
+                      }}>
+                        距离目标还差: ${(fireNumber - totalPortfolio).toLocaleString()}
+                      </div>
+                    )}
+                    
+                    {/* FIRE Target on the right */}
+                    <div style={{
+                      position: 'absolute',
+                      right: '1rem',
+                      zIndex: 3,
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      color: COLORS.text,
+                      whiteSpace: 'nowrap'
+                    }}>
+                      FIRE目标: ${fireNumber.toLocaleString()}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
               
               {/* FIRE Calculator Button - Bottom Right */}
