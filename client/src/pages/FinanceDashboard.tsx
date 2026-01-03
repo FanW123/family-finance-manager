@@ -1612,12 +1612,15 @@ const FinanceDashboard = () => {
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
               }}>
                 <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
-                  🎯 FIRE 进度
+                  🔥 FIRE 目标追踪
+                </div>
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                  FIRE 进度
                 </div>
                 <div style={{
                   fontSize: '2rem',
                   fontWeight: '700',
-                  color: COLORS.highlight,
+                  color: COLORS.success,
                   marginBottom: '0.75rem'
                 }}>
                   {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
@@ -1638,7 +1641,7 @@ const FinanceDashboard = () => {
                   }} />
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  FIRE 目标: ${fireNumber.toLocaleString()}
+                  FIRE 目标 ${fireNumber.toLocaleString()}
                 </div>
                 <button
                   onClick={() => setShowFireOptimization(true)}
@@ -1697,10 +1700,10 @@ const FinanceDashboard = () => {
                   return (
                     <>
                       <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                        支出预算: ${annualBudget.toLocaleString()} / 年度
+                        支出预算: <span style={{ color: COLORS.success }}>${annualBudget.toLocaleString()} / 年度</span>
                       </div>
                       <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
-                        当前支出: ${currentYearExpenses.toLocaleString()}
+                        当前支出: <span style={{ color: COLORS.success }}>${currentYearExpenses.toLocaleString()}</span>
                       </div>
                       {/* Warning message */}
                       {monthsRemaining > 0 && monthsRemaining <= 3 && (
@@ -1736,7 +1739,7 @@ const FinanceDashboard = () => {
                 <div style={{
                   fontSize: '2rem',
                   fontWeight: '700',
-                  color: COLORS.highlight,
+                  color: COLORS.success,
                   marginBottom: '0.5rem'
                 }}>
                   ${monthlySavings.toLocaleString()}
@@ -1754,24 +1757,35 @@ const FinanceDashboard = () => {
                 <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
                   资产增长追踪
                 </div>
+                {/* Growth rate percentage box in top right */}
+                {(() => {
+                  const growthRate = totalPortfolio > 0 && estimatedAnnualGrowth > 0 
+                    ? ((estimatedAnnualGrowth / totalPortfolio) * 100).toFixed(1)
+                    : '0.0';
+                  return (
+                    <div style={{
+                      position: 'absolute',
+                      top: '1.5rem',
+                      right: '1.5rem',
+                      padding: '0.25rem 0.5rem',
+                      background: COLORS.highlight,
+                      borderRadius: '0.25rem',
+                      fontSize: '0.75rem',
+                      fontWeight: '700',
+                      color: COLORS.text
+                    }}>
+                      {growthRate}%
+                    </div>
+                  );
+                })()}
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                  近12个月: ${estimatedAnnualGrowth.toLocaleString()}
+                  近12个月: <span style={{ color: COLORS.success }}>${estimatedAnnualGrowth.toLocaleString()}</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                  年增长: +${estimatedAnnualGrowth.toLocaleString()}
+                  年增长: <span style={{ color: COLORS.success }}>+${estimatedAnnualGrowth.toLocaleString()}</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                  月均增长: +${(estimatedAnnualGrowth / 12).toLocaleString()}
-                </div>
-                {/* Chart icon in top right */}
-                <div style={{
-                  position: 'absolute',
-                  top: '1.5rem',
-                  right: '1.5rem',
-                  fontSize: '1.5rem',
-                  opacity: 0.3
-                }}>
-                  📊
+                  月均增长: <span style={{ color: COLORS.success }}>+${(estimatedAnnualGrowth / 12).toLocaleString()}</span>
                 </div>
               </div>
             </div>
