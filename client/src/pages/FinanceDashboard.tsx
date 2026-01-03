@@ -1491,13 +1491,22 @@ const FinanceDashboard = () => {
                 fontSize: '2.5rem', 
                 fontWeight: '700', 
                 marginBottom: '1.5rem',
-                color: COLORS.highlight // Red/pink as shown in screenshot
+                color: COLORS.success // Bright light blue/cyan as shown in screenshot
               }}>
                 当前总资产: ${totalPortfolio.toLocaleString()}
               </div>
               
               {/* FIRE Progress with Percentage */}
               <div style={{ marginBottom: '1rem' }}>
+                {/* FIRE Progress percentage above the bar */}
+                <div style={{
+                  fontSize: '1rem',
+                  color: COLORS.text,
+                  marginBottom: '0.5rem'
+                }}>
+                  FIRE 进度: {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
+                </div>
+                
                 {/* Progress Bar Container */}
                 <div style={{
                   position: 'relative',
@@ -1509,26 +1518,13 @@ const FinanceDashboard = () => {
                     borderRadius: '0.5rem',
                     height: '2.5rem',
                     position: 'relative',
-                    overflow: 'hidden',
+                    overflow: 'visible',
                     display: 'flex',
                     alignItems: 'center'
                   }}>
-                    {/* FIRE Progress percentage on the left */}
+                    {/* Progress Bar Fill - Bright light blue/cyan */}
                     <div style={{
-                      position: 'absolute',
-                      left: '1rem',
-                      zIndex: 3,
-                      fontSize: '1rem',
-                      color: COLORS.text,
-                      fontWeight: '600',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      FIRE 进度: {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
-                    </div>
-                    
-                    {/* Progress Bar Fill */}
-                    <div style={{
-                      background: `linear-gradient(90deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                      background: COLORS.success, // Bright light blue/cyan, not gradient
                       height: '100%',
                       width: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
                       transition: 'width 0.3s ease',
@@ -1537,20 +1533,20 @@ const FinanceDashboard = () => {
                       zIndex: 1
                     }} />
                     
-                    {/* Remaining Amount - Centered over unfilled portion */}
+                    {/* Remaining Amount - Centered above unfilled portion */}
                     {totalPortfolio < fireNumber && (
                       <div style={{
                         position: 'absolute',
                         left: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
                         right: 0,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
+                        top: '-1.5rem',
                         textAlign: 'center',
                         fontSize: '0.9rem',
                         color: COLORS.warning,
                         fontWeight: '600',
                         zIndex: 2,
-                        pointerEvents: 'none'
+                        pointerEvents: 'none',
+                        width: `${100 - Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`
                       }}>
                         距离目标还差: ${(fireNumber - totalPortfolio).toLocaleString()}
                       </div>
@@ -1582,14 +1578,21 @@ const FinanceDashboard = () => {
                   onClick={() => setShowFireOptimization(true)}
                   style={{
                     padding: '0.5rem 1rem',
-                    background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                    border: 'none',
+                    background: COLORS.card, // Dark background like the card
+                    border: `1px solid ${COLORS.success}`, // Light blue border
                     borderRadius: '0.5rem',
-                    color: COLORS.text,
+                    color: COLORS.text, // White text
                     fontSize: '0.9rem',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    fontFamily: 'inherit'
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = `${COLORS.success}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = COLORS.card;
                   }}
                 >
                   FIRE计算器
