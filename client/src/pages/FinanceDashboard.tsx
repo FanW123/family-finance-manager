@@ -1609,10 +1609,10 @@ const FinanceDashboard = () => {
               </div>
             </div>
 
-            {/* KPI Cards - 2x2 Grid */}
+            {/* KPI Cards - 4 columns in a row */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
+              gridTemplateColumns: 'repeat(4, 1fr)',
               gap: '1.5rem',
               marginBottom: '2rem'
             }}>
