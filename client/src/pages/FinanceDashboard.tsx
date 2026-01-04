@@ -1623,17 +1623,17 @@ const FinanceDashboard = () => {
                 padding: '1.5rem',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
               }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
-                  🔥 FIRE 目标追踪
+                <div style={{ fontSize: '1rem', color: COLORS.text, marginBottom: '1rem', fontWeight: '600' }}>
+                  FIRE 目标追踪
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
                   FIRE 进度
                 </div>
                 <div style={{
-                  fontSize: '2rem',
+                  fontSize: '2.5rem',
                   fontWeight: '700',
                   color: COLORS.success,
-                  marginBottom: '0.75rem'
+                  marginBottom: '1rem'
                 }}>
                   {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
                 </div>
@@ -1646,14 +1646,14 @@ const FinanceDashboard = () => {
                   overflow: 'hidden'
                 }}>
                   <div style={{
-                    background: `linear-gradient(90deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                    background: COLORS.success,
                     height: '100%',
                     width: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
                     transition: 'width 0.3s ease'
                   }} />
                 </div>
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                  FIRE 目标 ${fireNumber.toLocaleString()}
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '1rem' }}>
+                  FIRE 目标 <span style={{ color: COLORS.warning }}>${fireNumber.toLocaleString()}</span>
                 </div>
                 <button
                   onClick={() => setShowFireOptimization(true)}
@@ -1687,7 +1687,7 @@ const FinanceDashboard = () => {
                 padding: '1.5rem',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
               }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
+                <div style={{ fontSize: '1rem', color: COLORS.text, marginBottom: '1rem', fontWeight: '600' }}>
                   年度支出追踪
                 </div>
                 {(() => {
@@ -1711,10 +1711,13 @@ const FinanceDashboard = () => {
                   
                   return (
                     <>
-                      <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                        支出预算: <span style={{ color: COLORS.success }}>${annualBudget.toLocaleString()} / 年度</span>
+                      <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                        支出预算
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.success, marginBottom: '1rem' }}>
+                        ${annualBudget.toLocaleString()} <span style={{ fontSize: '1rem', color: COLORS.textMuted }}>/ 年度</span>
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
                         当前支出: <span style={{ color: COLORS.success }}>${currentYearExpenses.toLocaleString()}</span>
                       </div>
                       {/* Warning message */}
@@ -1724,8 +1727,12 @@ const FinanceDashboard = () => {
                           background: `${COLORS.warning}20`,
                           border: `1px solid ${COLORS.warning}`,
                           borderRadius: '0.5rem',
-                          fontSize: '0.8rem',
-                          color: COLORS.warning
+                          fontSize: '0.75rem',
+                          color: COLORS.warning,
+                          marginTop: '0.75rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
                         }}>
                           ⚠️ 本年度还剩{monthsRemaining}个月,需控制开销!
                         </div>
@@ -1742,14 +1749,14 @@ const FinanceDashboard = () => {
                 padding: '1.5rem',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
               }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
+                <div style={{ fontSize: '1rem', color: COLORS.text, marginBottom: '1rem', fontWeight: '600' }}>
                   月度储蓄追踪
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
                   本月收入 - 支出
                 </div>
                 <div style={{
-                  fontSize: '2rem',
+                  fontSize: '2.5rem',
                   fontWeight: '700',
                   color: COLORS.success,
                   marginBottom: '0.5rem'
@@ -1766,7 +1773,7 @@ const FinanceDashboard = () => {
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
                 position: 'relative'
               }}>
-                <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.75rem' }}>
+                <div style={{ fontSize: '1rem', color: COLORS.text, marginBottom: '1rem', fontWeight: '600' }}>
                   资产增长追踪
                 </div>
                 {/* Growth rate percentage box in top right */}
@@ -1790,8 +1797,11 @@ const FinanceDashboard = () => {
                     </div>
                   );
                 })()}
-                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                  近12个月: <span style={{ color: COLORS.success }}>${estimatedAnnualGrowth.toLocaleString()}</span>
+                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                  近12个月
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.success, marginBottom: '1rem' }}>
+                  ${estimatedAnnualGrowth.toLocaleString()}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
                   年增长: <span style={{ color: COLORS.success }}>+${estimatedAnnualGrowth.toLocaleString()}</span>
