@@ -6,7 +6,7 @@ const COLORS = {
   primary: '#1a1a2e',
   secondary: '#16213e',
   accent: '#0f3460',
-  highlight: '#e94560',
+  highlight: '#00d9ff',
   success: '#00d9ff',
   warning: '#ffd369',
   danger: '#e94560',
@@ -2330,21 +2330,21 @@ const FinanceDashboard = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: '600' }}>本月当前支出</h3>
                       <button
-                        onClick={() => setShowAddExpense(true)}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                          border: 'none',
-                          borderRadius: '0.5rem',
-                          color: COLORS.text,
-                          fontSize: '0.9rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          fontFamily: 'inherit'
-                        }}
-                      >
-                        ➕ 添加支出
-                      </button>
+                      onClick={() => setShowAddExpense(true)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: COLORS.highlight,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.background,
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      ➕ 添加支出
+                    </button>
                     </div>
                     <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.danger, marginBottom: '0.5rem' }}>
                       ${currentMonthTotal.toLocaleString()}
@@ -2364,21 +2364,21 @@ const FinanceDashboard = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: '600' }}>本月当前收入</h3>
                       <button
-                        onClick={() => setShowAddIncome(true)}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                          border: 'none',
-                          borderRadius: '0.5rem',
-                          color: COLORS.text,
-                          fontSize: '0.9rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          fontFamily: 'inherit'
-                        }}
-                      >
-                        ➕ 添加收入
-                      </button>
+                      onClick={() => setShowAddIncome(true)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: COLORS.highlight,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.background,
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      ➕ 添加收入
+                    </button>
                     </div>
                     <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.success, marginBottom: '0.5rem' }}>
                       ${currentMonthIncomeTotal.toLocaleString()}
