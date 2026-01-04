@@ -2627,7 +2627,7 @@ const FinanceDashboard = () => {
                                   fontWeight: '600',
                                   minWidth: '3rem',
                                   textAlign: 'right',
-                                  color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
+                                  color: totalPercentage > 100 ? COLORS.danger : COLORS.success 
                                 }}>
                                   {totalPercentage.toFixed(0)}%
                                 </span>
@@ -2672,7 +2672,7 @@ const FinanceDashboard = () => {
                               <div style={{
                                 width: `${Math.min(totalPercentage, 100)}%`,
                                 height: '100%',
-                                background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
+                                background: totalPercentage > 100 ? COLORS.danger : COLORS.success,
                                 transition: 'width 0.3s ease'
                               }} />
                             </div>
@@ -2708,7 +2708,7 @@ const FinanceDashboard = () => {
                                         <div style={{
                                           width: `${Math.min(percentage, 100)}%`,
                                           height: '100%',
-                                          background: percentage > 100 ? COLORS.danger : percentage > 90 ? COLORS.warning : COLORS.success,
+                                          background: percentage > 100 ? COLORS.danger : COLORS.success,
                                           transition: 'width 0.3s ease'
                                         }} />
                                       </div>
@@ -2743,7 +2743,7 @@ const FinanceDashboard = () => {
                                   fontWeight: '600',
                                   minWidth: '3rem',
                                   textAlign: 'right',
-                                  color: percentage > 100 ? COLORS.danger : percentage > 90 ? COLORS.warning : COLORS.success 
+                                  color: percentage > 100 ? COLORS.danger : COLORS.success 
                                 }}>
                                   {percentage.toFixed(0)}%
                                 </span>
@@ -2761,7 +2761,7 @@ const FinanceDashboard = () => {
                               <div style={{
                                 width: `${Math.min(percentage, 100)}%`,
                                 height: '100%',
-                                background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                                background: percentage > 100 ? COLORS.danger : COLORS.success,
                                 transition: 'width 0.3s ease'
                               }} />
                             </div>
@@ -2825,7 +2825,7 @@ const FinanceDashboard = () => {
                                   fontWeight: '600',
                                   minWidth: '3rem',
                                   textAlign: 'right',
-                                  color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
+                                  color: totalPercentage > 100 ? COLORS.danger : COLORS.success 
                                 }}>
                                   {totalPercentage.toFixed(0)}%
                                 </span>
@@ -2870,7 +2870,7 @@ const FinanceDashboard = () => {
                               <div style={{
                                 width: `${Math.min(totalPercentage, 100)}%`,
                                 height: '100%',
-                                background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
+                                background: totalPercentage > 100 ? COLORS.danger : COLORS.success,
                                 transition: 'width 0.3s ease'
                               }} />
                             </div>
@@ -2906,7 +2906,7 @@ const FinanceDashboard = () => {
                                         <div style={{
                                           width: `${Math.min(percentage, 100)}%`,
                                           height: '100%',
-                                          background: percentage > 100 ? COLORS.danger : percentage > 90 ? COLORS.warning : COLORS.success,
+                                          background: percentage > 100 ? COLORS.danger : COLORS.success,
                                           transition: 'width 0.3s ease'
                                         }} />
                                       </div>
@@ -2941,7 +2941,7 @@ const FinanceDashboard = () => {
                                   fontWeight: '600',
                                   minWidth: '3rem',
                                   textAlign: 'right',
-                                  color: percentage > 100 ? COLORS.danger : percentage > 90 ? COLORS.warning : COLORS.success 
+                                  color: percentage > 100 ? COLORS.danger : COLORS.success 
                                 }}>
                                   {percentage.toFixed(0)}%
                                 </span>
@@ -2959,7 +2959,7 @@ const FinanceDashboard = () => {
                               <div style={{
                                 width: `${Math.min(percentage, 100)}%`,
                                 height: '100%',
-                                background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                                background: percentage > 100 ? COLORS.danger : COLORS.success,
                                 transition: 'width 0.3s ease'
                               }} />
                             </div>
@@ -3021,7 +3021,7 @@ const FinanceDashboard = () => {
                                   fontWeight: '600',
                                   minWidth: '3rem',
                                   textAlign: 'right',
-                                  color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
+                                  color: totalPercentage > 100 ? COLORS.danger : COLORS.success 
                                 }}>
                                   {totalPercentage.toFixed(0)}%
                                 </span>
@@ -3066,7 +3066,7 @@ const FinanceDashboard = () => {
                               <div style={{
                                 width: `${Math.min(totalPercentage, 100)}%`,
                                 height: '100%',
-                                background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
+                                background: totalPercentage > 100 ? COLORS.danger : COLORS.success,
                                 transition: 'width 0.3s ease'
                               }} />
                             </div>
@@ -3102,7 +3102,7 @@ const FinanceDashboard = () => {
                                         <div style={{
                                           width: `${Math.min(percentage, 100)}%`,
                                           height: '100%',
-                                          background: percentage > 100 ? COLORS.danger : percentage > 90 ? COLORS.warning : COLORS.success,
+                                          background: percentage > 100 ? COLORS.danger : COLORS.success,
                                           transition: 'width 0.3s ease'
                                         }} />
                                       </div>
@@ -3146,7 +3146,7 @@ const FinanceDashboard = () => {
                               <div style={{
                                 width: `${Math.min(percentage, 100)}%`,
                                 height: '100%',
-                                background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
+                                background: percentage > 100 ? COLORS.danger : COLORS.success,
                                 transition: 'width 0.3s ease'
                               }} />
                             </div>
