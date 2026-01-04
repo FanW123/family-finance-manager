@@ -1830,7 +1830,7 @@ const FinanceDashboard = () => {
               
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
+                gridTemplateColumns: '1fr',
                 gap: '1rem',
                 marginBottom: '1.5rem'
               }}>
