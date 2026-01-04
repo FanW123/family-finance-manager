@@ -2346,10 +2346,10 @@ const FinanceDashboard = () => {
                       ➕ 添加支出
                     </button>
                     </div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.danger, marginBottom: '0.5rem' }}>
+                    <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.warning, marginBottom: '0.5rem' }}>
                       ${currentMonthTotal.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: monthOverMonthChange >= 0 ? COLORS.danger : COLORS.success }}>
+                    <div style={{ fontSize: '0.9rem', color: monthOverMonthChange >= 0 ? COLORS.warning : COLORS.success }}>
                       较上月 {monthOverMonthChange >= 0 ? '↑' : '↓'} {Math.abs(monthOverMonthChange).toFixed(1)}%
                     </div>
                   </div>
