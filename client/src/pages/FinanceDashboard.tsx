@@ -2357,74 +2357,79 @@ const FinanceDashboard = () => {
               </div>
             </div>
 
-                {/* 1. 本月当前支出卡片 (上) */}
+                {/* 1&2. 本月支出和收入卡片 - 并排显示 */}
                 <div style={{
-                  background: COLORS.card,
-                  borderRadius: '1rem',
-                  padding: '2rem',
-                  marginBottom: '1.5rem',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '1.5rem',
+                  marginBottom: '1.5rem'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: '600' }}>本月当前支出</h3>
-                    <button
-                      onClick={() => setShowAddExpense(true)}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit'
-                      }}
-                    >
-                      ➕ 添加支出
-                    </button>
+                  {/* 本月当前支出卡片 */}
+                  <div style={{
+                    background: COLORS.card,
+                    borderRadius: '1rem',
+                    padding: '2rem',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: '600' }}>本月当前支出</h3>
+                      <button
+                        onClick={() => setShowAddExpense(true)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        ➕ 添加支出
+                      </button>
+                    </div>
+                    <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.danger, marginBottom: '0.5rem' }}>
+                      ${currentMonthTotal.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: monthOverMonthChange >= 0 ? COLORS.danger : COLORS.success }}>
+                      较上月 {monthOverMonthChange >= 0 ? '↑' : '↓'} {Math.abs(monthOverMonthChange).toFixed(1)}%
+                    </div>
                   </div>
-                  <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.danger, marginBottom: '0.5rem' }}>
-                    ${currentMonthTotal.toLocaleString()}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: monthOverMonthChange >= 0 ? COLORS.danger : COLORS.success }}>
-                    较上月 {monthOverMonthChange >= 0 ? '↑' : '↓'} {Math.abs(monthOverMonthChange).toFixed(1)}%
-                  </div>
-                </div>
 
-                {/* 2. 本月当前收入卡片 (下) */}
-                <div style={{
-                  background: COLORS.card,
-                  borderRadius: '1rem',
-                  padding: '2rem',
-                  marginBottom: '1.5rem',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: '600' }}>本月当前收入</h3>
-                    <button
-                      onClick={() => setShowAddIncome(true)}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit'
-                      }}
-                    >
-                      ➕ 添加收入
-                    </button>
-                  </div>
-                  <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.success, marginBottom: '0.5rem' }}>
-                    ${currentMonthIncomeTotal.toLocaleString()}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                    本月实际收入
-                  </div>
+                  {/* 本月当前收入卡片 */}
+                  <div style={{
+                    background: COLORS.card,
+                    borderRadius: '1rem',
+                    padding: '2rem',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: '600' }}>本月当前收入</h3>
+                      <button
+                        onClick={() => setShowAddIncome(true)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        ➕ 添加收入
+                      </button>
+                    </div>
+                    <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.success, marginBottom: '0.5rem' }}>
+                      ${currentMonthIncomeTotal.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                      本月实际收入
+                    </div>
 
                   {/* Income List - Collapsible */}
                   {incomes.length > 0 && (() => {
@@ -2572,6 +2577,7 @@ const FinanceDashboard = () => {
                       </div>
                     ) : null;
                   })()}
+                  </div>
                 </div>
 
                 {/* 3. 本周预算追踪卡片 */}
