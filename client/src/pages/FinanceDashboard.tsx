@@ -413,6 +413,10 @@ const FinanceDashboard = () => {
   const [rebalanceInflation, setRebalanceInflation] = useState(2.5);
   const [rebalanceAnnualWithdrawal, setRebalanceAnnualWithdrawal] = useState(40000);
   const [rebalanceYears, setRebalanceYears] = useState(30);
+  const [rebalanceUseVolatility, setRebalanceUseVolatility] = useState(false);
+  const [rebalanceMarketType, setRebalanceMarketType] = useState('us_stock');
+  const [rebalanceStockVolatility, setRebalanceStockVolatility] = useState(18);
+  const [rebalanceBondVolatility, setRebalanceBondVolatility] = useState(6);
   const [cityPlan, setCityPlan] = useState(() => {
     const saved = localStorage.getItem('cityPlan');
     return saved ? JSON.parse(saved) : [];
@@ -7786,6 +7790,161 @@ const FinanceDashboard = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Volatility Settings */}
+                  <div style={{
+                    marginTop: '1.5rem',
+                    padding: '1rem',
+                    background: `${COLORS.accent}50`,
+                    borderRadius: '0.5rem',
+                    border: `1px solid ${COLORS.accent}`
+                  }}>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      marginBottom: '1rem'
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={rebalanceUseVolatility}
+                        onChange={(e) => setRebalanceUseVolatility(e.target.checked)}
+                        style={{ marginRight: '0.5rem', width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                      <span style={{ fontSize: '1rem', fontWeight: '600' }}>启用市场波动模拟</span>
+                    </label>
+                    
+                    {rebalanceUseVolatility && (
+                      <div>
+                        <div style={{ marginBottom: '1rem' }}>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '0.9rem',
+                            color: COLORS.textMuted,
+                            marginBottom: '0.5rem'
+                          }}>
+                            市场类型（影响波动率）
+                          </label>
+                          <select
+                            value={rebalanceMarketType}
+                            onChange={(e) => {
+                              const marketType = e.target.value;
+                              setRebalanceMarketType(marketType);
+                              // Set preset volatilities based on market type
+                              if (marketType === 'us_stock') {
+                                setRebalanceStockReturn(10);
+                                setRebalanceStockVolatility(18);
+                                setRebalanceBondReturn(5);
+                                setRebalanceBondVolatility(6);
+                              } else if (marketType === 'global_stock') {
+                                setRebalanceStockReturn(8.5);
+                                setRebalanceStockVolatility(16);
+                                setRebalanceBondReturn(4.5);
+                                setRebalanceBondVolatility(7);
+                              } else if (marketType === 'emerging_market') {
+                                setRebalanceStockReturn(9);
+                                setRebalanceStockVolatility(25);
+                                setRebalanceBondReturn(6);
+                                setRebalanceBondVolatility(10);
+                              }
+                              // 'custom' doesn't change values
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '0.75rem',
+                              background: COLORS.card,
+                              border: `1px solid ${COLORS.accent}`,
+                              borderRadius: '0.5rem',
+                              color: COLORS.text,
+                              fontSize: '1rem',
+                              fontFamily: 'inherit',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="us_stock">美股市场 (S&P 500) - 平均10%, 波动18%</option>
+                            <option value="global_stock">全球股市 (MSCI World) - 平均8.5%, 波动16%</option>
+                            <option value="emerging_market">新兴市场 - 平均9%, 波动25%</option>
+                            <option value="custom">自定义参数</option>
+                          </select>
+                        </div>
+
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gap: '1rem'
+                        }}>
+                          <div>
+                            <label style={{
+                              display: 'block',
+                              fontSize: '0.9rem',
+                              color: COLORS.textMuted,
+                              marginBottom: '0.5rem'
+                            }}>
+                              股票波动率 (标准差 %)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={rebalanceStockVolatility}
+                              onChange={(e) => setRebalanceStockVolatility(Number(e.target.value))}
+                              disabled={rebalanceMarketType !== 'custom'}
+                              style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                background: COLORS.card,
+                                border: `1px solid ${COLORS.accent}`,
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '1rem',
+                                fontFamily: 'inherit',
+                                opacity: rebalanceMarketType !== 'custom' ? 0.6 : 1
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{
+                              display: 'block',
+                              fontSize: '0.9rem',
+                              color: COLORS.textMuted,
+                              marginBottom: '0.5rem'
+                            }}>
+                              债券波动率 (标准差 %)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={rebalanceBondVolatility}
+                              onChange={(e) => setRebalanceBondVolatility(Number(e.target.value))}
+                              disabled={rebalanceMarketType !== 'custom'}
+                              style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                background: COLORS.card,
+                                border: `1px solid ${COLORS.accent}`,
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '1rem',
+                                fontFamily: 'inherit',
+                                opacity: rebalanceMarketType !== 'custom' ? 0.6 : 1
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{
+                          marginTop: '1rem',
+                          padding: '0.75rem',
+                          background: `${COLORS.highlight}20`,
+                          borderRadius: '0.5rem',
+                          fontSize: '0.85rem',
+                          color: COLORS.textMuted
+                        }}>
+                          💡 <strong>提示：</strong>启用波动模拟后，每年的回报率将基于正态分布随机生成，更贴近真实市场表现。
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Simulation Results */}
@@ -7797,6 +7956,14 @@ const FinanceDashboard = () => {
                   <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>📊 再平衡模拟结果</h3>
                   
                   {(() => {
+                    // Generate random number from normal distribution (Box-Muller transform)
+                    const randomNormal = (mean: number, stdDev: number) => {
+                      const u1 = Math.random();
+                      const u2 = Math.random();
+                      const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                      return mean + z0 * stdDev;
+                    };
+                    
                     // Generate rebalancing simulation data
                     const simulationData = [];
                     
@@ -7810,6 +7977,9 @@ const FinanceDashboard = () => {
                     const cashReturn = rebalanceCashReturn / 100;
                     const inflationRate = rebalanceInflation / 100;
                     
+                    const stockVolatility = rebalanceStockVolatility / 100;
+                    const bondVolatility = rebalanceBondVolatility / 100;
+                    
                     for (let year = 1; year <= rebalanceYears; year++) {
                       // Year start
                       const yearStartStocks = stocks;
@@ -7817,9 +7987,18 @@ const FinanceDashboard = () => {
                       const yearStartCash = cash;
                       const yearStartTotal = yearStartStocks + yearStartBonds + yearStartCash;
                       
-                      // Investment growth
-                      const stockGrowth = yearStartStocks * stockReturn;
-                      const bondGrowth = yearStartBonds * bondReturn;
+                      // Investment growth (with or without volatility)
+                      let actualStockReturn = stockReturn;
+                      let actualBondReturn = bondReturn;
+                      
+                      if (rebalanceUseVolatility) {
+                        // Generate random returns based on normal distribution
+                        actualStockReturn = randomNormal(stockReturn, stockVolatility);
+                        actualBondReturn = randomNormal(bondReturn, bondVolatility);
+                      }
+                      
+                      const stockGrowth = yearStartStocks * actualStockReturn;
+                      const bondGrowth = yearStartBonds * actualBondReturn;
                       const cashGrowth = yearStartCash * cashReturn;
                       
                       // Year end before withdrawal
@@ -7860,7 +8039,9 @@ const FinanceDashboard = () => {
                         afterWithdrawalTotal,
                         rebalancedStocks,
                         rebalancedBonds,
-                        rebalancedCash
+                        rebalancedCash,
+                        actualStockReturn: actualStockReturn * 100, // Convert to percentage for display
+                        actualBondReturn: actualBondReturn * 100
                       });
                       
                       // Update for next year
@@ -7916,10 +8097,13 @@ const FinanceDashboard = () => {
                             }}>
                               <tr>
                                 <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年份</th>
-                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初股票</th>
-                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初债券</th>
-                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初现金</th>
                                 <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初总计</th>
+                                {rebalanceUseVolatility && (
+                                  <>
+                                    <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>股票回报</th>
+                                    <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>债券回报</th>
+                                  </>
+                                )}
                                 <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年末总计</th>
                                 <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>取款</th>
                                 <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>再平衡后</th>
@@ -7934,18 +8118,29 @@ const FinanceDashboard = () => {
                                   <td style={{ padding: '0.75rem', textAlign: 'center', color: COLORS.text }}>
                                     {row.year}
                                   </td>
-                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.stocks }}>
-                                    ${row.yearStartStocks.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                  </td>
-                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.bonds }}>
-                                    ${row.yearStartBonds.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                  </td>
-                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.cash }}>
-                                    ${row.yearStartCash.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                  </td>
                                   <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.text, fontWeight: '600' }}>
                                     ${row.yearStartTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                   </td>
+                                  {rebalanceUseVolatility && (
+                                    <>
+                                      <td style={{
+                                        padding: '0.75rem',
+                                        textAlign: 'right',
+                                        color: row.actualStockReturn >= 0 ? COLORS.success : COLORS.highlight,
+                                        fontWeight: '600'
+                                      }}>
+                                        {row.actualStockReturn >= 0 ? '+' : ''}{row.actualStockReturn.toFixed(1)}%
+                                      </td>
+                                      <td style={{
+                                        padding: '0.75rem',
+                                        textAlign: 'right',
+                                        color: row.actualBondReturn >= 0 ? COLORS.success : COLORS.highlight,
+                                        fontWeight: '600'
+                                      }}>
+                                        {row.actualBondReturn >= 0 ? '+' : ''}{row.actualBondReturn.toFixed(1)}%
+                                      </td>
+                                    </>
+                                  )}
                                   <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.success }}>
                                     ${row.yearEndTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                   </td>
