@@ -2620,7 +2620,7 @@ const FinanceDashboard = () => {
                               <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                  ${totalSpent.toFixed(0)} / ${totalBudget}
+                                  ${totalSpent.toFixed(0)} / ${Math.round(totalBudget)}
                                 </span>
                                 <span style={{ 
                                   fontSize: '0.85rem', 
@@ -2695,7 +2695,7 @@ const FinanceDashboard = () => {
                                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                                         <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>├─ {child.name}</span>
                                         <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
-                                          ${spent.toFixed(0)} / ${child.amount}
+                                          ${spent.toFixed(0)} / ${Math.round(child.amount)}
                                         </span>
                                       </div>
                                       <div style={{
@@ -2732,11 +2732,15 @@ const FinanceDashboard = () => {
                         
                         return (
                           <div key={item.id} style={{ marginBottom: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
                               <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
-                              <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                ${spent.toFixed(0)} / ${item.amount}
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                  ${spent.toFixed(0)} / ${Math.round(item.amount)}
+                                </span>
+                                {/* 空占位符，保持和有折叠按钮的类别对齐 */}
+                                <div style={{ minWidth: '1.5rem' }}></div>
+                              </div>
                             </div>
                             <div style={{
                               width: '100%',
@@ -2805,7 +2809,7 @@ const FinanceDashboard = () => {
                               <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                  ${totalSpent.toFixed(0)} / ${totalBudget}
+                                  ${totalSpent.toFixed(0)} / ${Math.round(totalBudget)}
                                 </span>
                                 <span style={{ 
                                   fontSize: '0.85rem', 
@@ -2880,7 +2884,7 @@ const FinanceDashboard = () => {
                                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                                         <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>├─ {child.name}</span>
                                         <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
-                                          ${spent.toFixed(0)} / ${child.amount}
+                                          ${spent.toFixed(0)} / ${Math.round(child.amount)}
                                         </span>
                                       </div>
                                       <div style={{
@@ -2917,11 +2921,15 @@ const FinanceDashboard = () => {
                         
                         return (
                           <div key={item.id} style={{ marginBottom: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
                               <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
-                              <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                ${spent.toFixed(0)} / ${item.amount}
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                  ${spent.toFixed(0)} / ${Math.round(item.amount)}
+                                </span>
+                                {/* 空占位符，保持和有折叠按钮的类别对齐 */}
+                                <div style={{ minWidth: '1.5rem' }}></div>
+                              </div>
                             </div>
                             <div style={{
                               width: '100%',
@@ -2988,7 +2996,7 @@ const FinanceDashboard = () => {
                               <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                  ${totalSpent.toLocaleString()} / ${totalBudget.toLocaleString()}
+                                  ${totalSpent.toLocaleString()} / ${Math.round(totalBudget).toLocaleString()}
                                 </span>
                                 <span style={{ 
                                   fontSize: '0.85rem', 
@@ -3063,7 +3071,7 @@ const FinanceDashboard = () => {
                                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                                         <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>├─ {child.name}</span>
                                         <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
-                                          ${spent.toLocaleString()} / ${child.amount.toLocaleString()}
+                                          ${spent.toLocaleString()} / ${Math.round(child.amount).toLocaleString()}
                                         </span>
                                       </div>
                                       <div style={{
@@ -3099,18 +3107,22 @@ const FinanceDashboard = () => {
                         const percentage = (spent / item.amount) * 100;
                         
                         return (
-                          <div key={item.id} style={{ marginBottom: '1.5rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                              <span style={{ fontSize: '0.95rem' }}>{item.name}</span>
-                              <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                                ${spent.toLocaleString()} / ${item.amount.toLocaleString()}
-                              </span>
+                          <div key={item.id} style={{ marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                              <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                  ${spent.toLocaleString()} / ${Math.round(item.amount).toLocaleString()}
+                                </span>
+                                {/* 空占位符，保持和有折叠按钮的类别对齐 */}
+                                <div style={{ minWidth: '1.5rem' }}></div>
+                              </div>
                             </div>
                             <div style={{
                               width: '100%',
-                              height: '8px',
+                              height: '6px',
                               background: COLORS.accent,
-                              borderRadius: '4px',
+                              borderRadius: '3px',
                               overflow: 'hidden'
                             }}>
                               <div style={{
@@ -3119,9 +3131,6 @@ const FinanceDashboard = () => {
                                 background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
                                 transition: 'width 0.3s ease'
                               }} />
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
-                              {percentage.toFixed(0)}% 已使用
                             </div>
                           </div>
                         );
