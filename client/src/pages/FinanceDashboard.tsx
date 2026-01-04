@@ -1498,7 +1498,7 @@ const FinanceDashboard = () => {
               </div>
               
               {/* FIRE Progress Section */}
-              <div style={{ marginBottom: '2rem' }}>
+              <div style={{ marginBottom: '4rem' }}> {/* Increased margin to make room for button */}
                 {/* FIRE Progress and Target - Above the progress bar */}
                 <div style={{
                   display: 'flex',
