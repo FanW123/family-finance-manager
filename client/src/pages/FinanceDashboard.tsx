@@ -399,6 +399,20 @@ const FinanceDashboard = () => {
   const [calcGrowthRate, setCalcGrowthRate] = useState(7);
   const [calcAnnualExpenses, setCalcAnnualExpenses] = useState(0);
   const [calcYearsToProject, setCalcYearsToProject] = useState(30);
+  const [calcInflationRate, setCalcInflationRate] = useState(2.5);
+  
+  // Rebalance Simulator Parameters
+  const [showRebalanceSimulator, setShowRebalanceSimulator] = useState(false);
+  const [rebalanceInitialAssets, setRebalanceInitialAssets] = useState(0);
+  const [rebalanceStockRatio, setRebalanceStockRatio] = useState(70);
+  const [rebalanceBondRatio, setRebalanceBondRatio] = useState(20);
+  const [rebalanceCashRatio, setRebalanceCashRatio] = useState(10);
+  const [rebalanceStockReturn, setRebalanceStockReturn] = useState(10);
+  const [rebalanceBondReturn, setRebalanceBondReturn] = useState(5);
+  const [rebalanceCashReturn, setRebalanceCashReturn] = useState(2);
+  const [rebalanceInflation, setRebalanceInflation] = useState(2.5);
+  const [rebalanceAnnualWithdrawal, setRebalanceAnnualWithdrawal] = useState(0);
+  const [rebalanceYears, setRebalanceYears] = useState(30);
   const [cityPlan, setCityPlan] = useState(() => {
     const saved = localStorage.getItem('cityPlan');
     return saved ? JSON.parse(saved) : [];
@@ -1578,12 +1592,14 @@ const FinanceDashboard = () => {
                 </div>
               </div>
               
-              {/* FIRE Calculator Button - Bottom Right */}
+              {/* Action Buttons - Bottom Right */}
               <div style={{
                 position: 'absolute',
                 bottom: '2rem',
                 right: '2rem',
-                zIndex: 10 // Ensure button is above other elements
+                zIndex: 10, // Ensure buttons are above other elements
+                display: 'flex',
+                gap: '1rem'
               }}>
                 <button
                   onClick={() => {
@@ -1598,17 +1614,15 @@ const FinanceDashboard = () => {
                   }}
                   style={{
                     padding: '0.5rem 1rem',
-                    background: COLORS.card, // Dark background like the card
-                    border: `1px solid ${COLORS.success}`, // Light blue border
+                    background: COLORS.card,
+                    border: `1px solid ${COLORS.success}`,
                     borderRadius: '0.5rem',
-                    color: COLORS.text, // White text
+                    color: COLORS.text,
                     fontSize: '0.9rem',
                     fontWeight: '600',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
-                    transition: 'all 0.2s ease',
-                    position: 'relative',
-                    zIndex: 10
+                    transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = `${COLORS.success}20`;
@@ -1618,6 +1632,37 @@ const FinanceDashboard = () => {
                   }}
                 >
                   FIRE计算器
+                </button>
+                
+                <button
+                  onClick={() => {
+                    // Initialize rebalance simulator with current values
+                    setRebalanceInitialAssets(totalPortfolio);
+                    const totalAnnualBudget = budgetCategories ? 
+                      budgetCategories.reduce((sum: number, cat: any) => sum + calculateYearlyAmount(cat), 0) : 0;
+                    setRebalanceAnnualWithdrawal(totalAnnualBudget);
+                    setShowRebalanceSimulator(true);
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: COLORS.card,
+                    border: `1px solid ${COLORS.highlight}`,
+                    borderRadius: '0.5rem',
+                    color: COLORS.text,
+                    fontSize: '0.9rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = `${COLORS.highlight}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = COLORS.card;
+                  }}
+                >
+                  再平衡模拟
                 </button>
               </div>
             </div>
@@ -7162,6 +7207,34 @@ const FinanceDashboard = () => {
                       />
                     </div>
 
+                    {/* Inflation Rate */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        通胀率 (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={calcInflationRate}
+                        onChange={(e) => setCalcInflationRate(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
                     {/* Years to Project */}
                     <div>
                       <label style={{
@@ -7202,21 +7275,24 @@ const FinanceDashboard = () => {
                   <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>📈 年度资产增值预测</h3>
                   
                   {(() => {
-                    // Generate projection data
+                    // Generate projection data with inflation
                     const projectionData = [];
                     let currentAsset = calcInitialAssets;
                     const annualGrowthRate = calcGrowthRate / 100;
+                    const inflationRate = calcInflationRate / 100;
                     
                     for (let year = 1; year <= calcYearsToProject; year++) {
                       const yearStartAsset = currentAsset;
                       const yearGrowth = yearStartAsset * annualGrowthRate;
-                      const yearEndAsset = yearStartAsset + yearGrowth - calcAnnualExpenses;
+                      // Adjust expenses for inflation (compounded from year 1)
+                      const inflationAdjustedExpenses = calcAnnualExpenses * Math.pow(1 + inflationRate, year - 1);
+                      const yearEndAsset = yearStartAsset + yearGrowth - inflationAdjustedExpenses;
                       
                       projectionData.push({
                         year,
                         startAsset: yearStartAsset,
                         growth: yearGrowth,
-                        expenses: calcAnnualExpenses,
+                        expenses: inflationAdjustedExpenses,
                         endAsset: yearEndAsset
                       });
                       
@@ -7255,10 +7331,10 @@ const FinanceDashboard = () => {
                                   年初资产
                                 </th>
                                 <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>
-                                  年增长
+                                  投资增长
                                 </th>
                                 <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>
-                                  年开销
+                                  提取金额(含通胀)
                                 </th>
                                 <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>
                                   年末资产
@@ -7325,6 +7401,572 @@ const FinanceDashboard = () => {
                 <div style={{ marginTop: '2rem' }}>
                   <button
                     onClick={() => setShowFireCalculator(false)}
+                    style={{
+                      width: '100%',
+                      background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                      border: 'none',
+                      color: 'white',
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    关闭
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rebalance Simulator Modal */}
+        {showRebalanceSimulator && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              maxWidth: '1200px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '2rem',
+                borderBottom: `1px solid ${COLORS.accent}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                position: 'sticky',
+                top: 0,
+                background: COLORS.card,
+                zIndex: 1
+              }}>
+                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>⚖️ 退休资金再平衡模拟</h2>
+                <button
+                  onClick={() => setShowRebalanceSimulator(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: COLORS.textMuted,
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem',
+                    lineHeight: 1
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: '2rem' }}>
+                {/* Parameter Inputs */}
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  marginBottom: '2rem'
+                }}>
+                  <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>⚙️ 计算参数</h3>
+                  
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '1.5rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    {/* Initial Assets */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        初始资产 ($)
+                      </label>
+                      <input
+                        type="number"
+                        value={rebalanceInitialAssets}
+                        onChange={(e) => setRebalanceInitialAssets(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    {/* Annual Withdrawal */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        年度取款 ($)
+                      </label>
+                      <input
+                        type="number"
+                        value={rebalanceAnnualWithdrawal}
+                        onChange={(e) => setRebalanceAnnualWithdrawal(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    {/* Years */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        模拟年数
+                      </label>
+                      <input
+                        type="number"
+                        value={rebalanceYears}
+                        onChange={(e) => setRebalanceYears(Number(e.target.value))}
+                        min="1"
+                        max="50"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Asset Allocation */}
+                  <h4 style={{ margin: '1.5rem 0 1rem 0', fontSize: '1rem' }}>目标资产配置</h4>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '1.5rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        股票比例 (%)
+                      </label>
+                      <input
+                        type="number"
+                        value={rebalanceStockRatio}
+                        onChange={(e) => setRebalanceStockRatio(Number(e.target.value))}
+                        min="0"
+                        max="100"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        债券比例 (%)
+                      </label>
+                      <input
+                        type="number"
+                        value={rebalanceBondRatio}
+                        onChange={(e) => setRebalanceBondRatio(Number(e.target.value))}
+                        min="0"
+                        max="100"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        现金比例 (%)
+                      </label>
+                      <input
+                        type="number"
+                        value={rebalanceCashRatio}
+                        onChange={(e) => setRebalanceCashRatio(Number(e.target.value))}
+                        min="0"
+                        max="100"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Expected Returns */}
+                  <h4 style={{ margin: '1.5rem 0 1rem 0', fontSize: '1rem' }}>预期回报率</h4>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: '1.5rem'
+                  }}>
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        股票回报率 (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={rebalanceStockReturn}
+                        onChange={(e) => setRebalanceStockReturn(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        债券回报率 (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={rebalanceBondReturn}
+                        onChange={(e) => setRebalanceBondReturn(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        现金回报率 (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={rebalanceCashReturn}
+                        onChange={(e) => setRebalanceCashReturn(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        通胀率 (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={rebalanceInflation}
+                        onChange={(e) => setRebalanceInflation(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Simulation Results */}
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem'
+                }}>
+                  <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>📊 再平衡模拟结果</h3>
+                  
+                  {(() => {
+                    // Generate rebalancing simulation data
+                    const simulationData = [];
+                    
+                    // Initial allocation
+                    let stocks = rebalanceInitialAssets * (rebalanceStockRatio / 100);
+                    let bonds = rebalanceInitialAssets * (rebalanceBondRatio / 100);
+                    let cash = rebalanceInitialAssets * (rebalanceCashRatio / 100);
+                    
+                    const stockReturn = rebalanceStockReturn / 100;
+                    const bondReturn = rebalanceBondReturn / 100;
+                    const cashReturn = rebalanceCashReturn / 100;
+                    const inflationRate = rebalanceInflation / 100;
+                    
+                    for (let year = 1; year <= rebalanceYears; year++) {
+                      // Year start
+                      const yearStartStocks = stocks;
+                      const yearStartBonds = bonds;
+                      const yearStartCash = cash;
+                      const yearStartTotal = yearStartStocks + yearStartBonds + yearStartCash;
+                      
+                      // Investment growth
+                      const stockGrowth = yearStartStocks * stockReturn;
+                      const bondGrowth = yearStartBonds * bondReturn;
+                      const cashGrowth = yearStartCash * cashReturn;
+                      
+                      // Year end before withdrawal
+                      const yearEndStocks = yearStartStocks + stockGrowth;
+                      const yearEndBonds = yearStartBonds + bondGrowth;
+                      const yearEndCash = yearStartCash + cashGrowth;
+                      const yearEndTotal = yearEndStocks + yearEndBonds + yearEndCash;
+                      
+                      // Withdrawal (adjusted for inflation)
+                      const inflationAdjustedWithdrawal = rebalanceAnnualWithdrawal * Math.pow(1 + inflationRate, year - 1);
+                      
+                      // After withdrawal (proportionally from each asset)
+                      const withdrawalStocks = yearEndStocks > 0 ? (yearEndStocks / yearEndTotal) * inflationAdjustedWithdrawal : 0;
+                      const withdrawalBonds = yearEndBonds > 0 ? (yearEndBonds / yearEndTotal) * inflationAdjustedWithdrawal : 0;
+                      const withdrawalCash = yearEndCash > 0 ? (yearEndCash / yearEndTotal) * inflationAdjustedWithdrawal : 0;
+                      
+                      const afterWithdrawalStocks = yearEndStocks - withdrawalStocks;
+                      const afterWithdrawalBonds = yearEndBonds - withdrawalBonds;
+                      const afterWithdrawalCash = yearEndCash - withdrawalCash;
+                      const afterWithdrawalTotal = afterWithdrawalStocks + afterWithdrawalBonds + afterWithdrawalCash;
+                      
+                      // Rebalance to target allocation
+                      const rebalancedStocks = afterWithdrawalTotal * (rebalanceStockRatio / 100);
+                      const rebalancedBonds = afterWithdrawalTotal * (rebalanceBondRatio / 100);
+                      const rebalancedCash = afterWithdrawalTotal * (rebalanceCashRatio / 100);
+                      
+                      simulationData.push({
+                        year,
+                        yearStartTotal,
+                        yearStartStocks,
+                        yearStartBonds,
+                        yearStartCash,
+                        yearEndTotal,
+                        yearEndStocks,
+                        yearEndBonds,
+                        yearEndCash,
+                        withdrawal: inflationAdjustedWithdrawal,
+                        afterWithdrawalTotal,
+                        rebalancedStocks,
+                        rebalancedBonds,
+                        rebalancedCash
+                      });
+                      
+                      // Update for next year
+                      stocks = rebalancedStocks;
+                      bonds = rebalancedBonds;
+                      cash = rebalancedCash;
+                      
+                      // Stop if depleted
+                      if (afterWithdrawalTotal <= 0) break;
+                    }
+                    
+                    return (
+                      <div>
+                        {/* Simulation Table */}
+                        <div style={{
+                          background: COLORS.card,
+                          borderRadius: '0.5rem',
+                          overflow: 'hidden',
+                          maxHeight: '500px',
+                          overflowY: 'auto',
+                          overflowX: 'auto'
+                        }}>
+                          <table style={{
+                            width: '100%',
+                            borderCollapse: 'collapse',
+                            fontSize: '0.8rem'
+                          }}>
+                            <thead style={{
+                              position: 'sticky',
+                              top: 0,
+                              background: COLORS.accent,
+                              zIndex: 1
+                            }}>
+                              <tr>
+                                <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年份</th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初股票</th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初债券</th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初现金</th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初总计</th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年末总计</th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>取款</th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>再平衡后</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {simulationData.map((row, index) => (
+                                <tr key={row.year} style={{
+                                  background: index % 2 === 0 ? COLORS.card : `${COLORS.accent}50`,
+                                  borderBottom: `1px solid ${COLORS.accent}`
+                                }}>
+                                  <td style={{ padding: '0.75rem', textAlign: 'center', color: COLORS.text }}>
+                                    {row.year}
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.stocks }}>
+                                    ${row.yearStartStocks.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.bonds }}>
+                                    ${row.yearStartBonds.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.cash }}>
+                                    ${row.yearStartCash.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.text, fontWeight: '600' }}>
+                                    ${row.yearStartTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.success }}>
+                                    ${row.yearEndTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.highlight }}>
+                                    -${row.withdrawal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.text, fontWeight: '600' }}>
+                                    ${row.afterWithdrawalTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                        {/* Summary */}
+                        <div style={{
+                          marginTop: '1rem',
+                          padding: '1rem',
+                          background: simulationData[simulationData.length - 1]?.afterWithdrawalTotal > 0 ? `${COLORS.success}20` : `${COLORS.warning}20`,
+                          border: `1px solid ${simulationData[simulationData.length - 1]?.afterWithdrawalTotal > 0 ? COLORS.success : COLORS.warning}`,
+                          borderRadius: '0.5rem',
+                          fontSize: '0.9rem'
+                        }}>
+                          {simulationData[simulationData.length - 1]?.afterWithdrawalTotal > 0 ? (
+                            <>
+                              ✅ <strong>资产可持续：</strong> 在{rebalanceYears}年后，你的资产预计还有 ${simulationData[simulationData.length - 1]?.afterWithdrawalTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            </>
+                          ) : (
+                            <>
+                              ⚠️ <strong>资产不足：</strong> 资产预计在第 {simulationData.findIndex(row => row.afterWithdrawalTotal <= 0)} 年耗尽。建议调整资产配置、降低取款或提高回报率。
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Close Button */}
+                <div style={{ marginTop: '2rem' }}>
+                  <button
+                    onClick={() => setShowRebalanceSimulator(false)}
                     style={{
                       width: '100%',
                       background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
