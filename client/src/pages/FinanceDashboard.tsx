@@ -1489,7 +1489,7 @@ const FinanceDashboard = () => {
             }}>
               {/* Current Total Assets - Prominent Display */}
               <div style={{ 
-                fontSize: '2.5rem', 
+                fontSize: '2rem', // Reduced from 2.5rem to give more space
                 fontWeight: '700', 
                 marginBottom: '1.5rem',
                 color: COLORS.success // Bright light blue/cyan as shown in screenshot
@@ -1514,7 +1514,7 @@ const FinanceDashboard = () => {
                     display: 'flex',
                     alignItems: 'center'
                   }}>
-                    {/* FIRE Progress percentage on the left of the bar */}
+                    {/* FIRE Progress percentage on the left of the bar (inside) */}
                     <div style={{
                       position: 'absolute',
                       left: '1rem',
@@ -1538,8 +1538,8 @@ const FinanceDashboard = () => {
                       zIndex: 1
                     }} />
                     
-                    {/* Remaining Amount - Centered above unfilled portion */}
-                    {totalPortfolio < fireNumber && (
+                    {/* Remaining Amount - Centered above unfilled portion, only show if < 100% */}
+                    {totalPortfolio < fireNumber && (totalPortfolio / fireNumber) * 100 < 100 && (
                       <div style={{
                         position: 'absolute',
                         left: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
@@ -1557,7 +1557,7 @@ const FinanceDashboard = () => {
                       </div>
                     )}
                     
-                    {/* FIRE Target on the right of the bar */}
+                    {/* FIRE Target on the right of the bar (inside) */}
                     <div style={{
                       position: 'absolute',
                       right: '1rem',
