@@ -1812,14 +1812,20 @@ const FinanceDashboard = () => {
               </div>
             </div>
 
-            {/* Monthly Income/Expense Overview with Insights */}
+            {/* Monthly Overview & Portfolio - Side by Side */}
             <div style={{
-              background: COLORS.card,
-              borderRadius: '1rem',
-              padding: '2rem',
-              marginBottom: '2rem',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '1.5rem',
+              marginBottom: '2rem'
             }}>
+              {/* Monthly Income/Expense Overview with Insights */}
+              <div style={{
+                background: COLORS.card,
+                borderRadius: '1rem',
+                padding: '2rem',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+              }}>
               <h3 style={{ margin: 0, marginBottom: '1.5rem', fontSize: '1.3rem' }}>本月收支概览</h3>
               
               <div style={{
@@ -1907,6 +1913,101 @@ const FinanceDashboard = () => {
                   );
                 })()}
               </div>
+            </div>
+
+            {/* Portfolio Summary */}
+            {totalPortfolio > 0 && (
+              <div style={{
+                background: COLORS.card,
+                borderRadius: '1rem',
+                padding: '2rem',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                position: 'relative'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.3rem' }}>投资组合概览</h3>
+                  <button
+                    onClick={() => setActiveTab('rebalance')}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      color: COLORS.text,
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    再平衡优化
+                  </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div style={{
+                    padding: '1rem',
+                    background: COLORS.accent,
+                    borderRadius: '0.5rem'
+                  }}>
+                    <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>股票: {currentAllocation.stocks.toFixed(0)}%</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.stocks }}>
+                      ${portfolio.stocks.toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: '1rem',
+                    background: COLORS.accent,
+                    borderRadius: '0.5rem'
+                  }}>
+                    <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>债券: {currentAllocation.bonds.toFixed(0)}%</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.bonds }}>
+                      ${portfolio.bonds.toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: '1rem',
+                    background: COLORS.accent,
+                    borderRadius: '0.5rem'
+                  }}>
+                    <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>现金: {currentAllocation.cash.toFixed(0)}%</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.cash }}>
+                      ${portfolio.cash.toLocaleString()}
+                    </div>
+                  </div>
+                  {portfolio.crypto > 0 && (
+                    <div style={{
+                      padding: '1rem',
+                      background: COLORS.accent,
+                      borderRadius: '0.5rem'
+                    }}>
+                      <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>黄金: {((portfolio.crypto / totalPortfolio) * 100).toFixed(0)}%</div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.warning }}>
+                        ${portfolio.crypto.toLocaleString()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {/* Insight */}
+                {(() => {
+                  const targetAlloc = targetAllocation || { stocks: 50, bonds: 20, cash: 20 };
+                  const stocksDiff = currentAllocation.stocks - targetAlloc.stocks;
+                  if (Math.abs(stocksDiff) > 5) {
+                    return (
+                      <div style={{
+                        padding: '1rem',
+                        background: COLORS.accent,
+                        borderRadius: '0.5rem',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted
+                      }}>
+                        <span>💡</span> 股票占比过高,需要再平衡优化
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            )}
             </div>
 
             {/* Expense Recommendations based on FIRE Progress */}
@@ -2087,100 +2188,6 @@ const FinanceDashboard = () => {
                       )}
                     </div>
                   );
-                })()}
-              </div>
-            )}
-
-            {/* Portfolio Summary */}
-            {totalPortfolio > 0 && (
-              <div style={{
-                background: COLORS.card,
-                borderRadius: '1rem',
-                padding: '2rem',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                position: 'relative'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.3rem' }}>投资组合概览</h3>
-                  <button
-                    onClick={() => setActiveTab('rebalance')}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                      border: 'none',
-                      borderRadius: '0.5rem',
-                      color: COLORS.text,
-                      fontSize: '0.9rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit'
-                    }}
-                  >
-                    再平衡优化
-                  </button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-                  <div style={{
-                    padding: '1rem',
-                    background: COLORS.accent,
-                    borderRadius: '0.5rem'
-                  }}>
-                    <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>股票: {currentAllocation.stocks.toFixed(0)}%</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.stocks }}>
-                      ${portfolio.stocks.toLocaleString()}
-                    </div>
-                  </div>
-                  <div style={{
-                    padding: '1rem',
-                    background: COLORS.accent,
-                    borderRadius: '0.5rem'
-                  }}>
-                    <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>债券: {currentAllocation.bonds.toFixed(0)}%</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.bonds }}>
-                      ${portfolio.bonds.toLocaleString()}
-                    </div>
-                  </div>
-                  <div style={{
-                    padding: '1rem',
-                    background: COLORS.accent,
-                    borderRadius: '0.5rem'
-                  }}>
-                    <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>现金: {currentAllocation.cash.toFixed(0)}%</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.cash }}>
-                      ${portfolio.cash.toLocaleString()}
-                    </div>
-                  </div>
-                  {portfolio.crypto > 0 && (
-                    <div style={{
-                      padding: '1rem',
-                      background: COLORS.accent,
-                      borderRadius: '0.5rem'
-                    }}>
-                      <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>黄金: {((portfolio.crypto / totalPortfolio) * 100).toFixed(0)}%</div>
-                      <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.warning }}>
-                        ${portfolio.crypto.toLocaleString()}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {/* Insight */}
-                {(() => {
-                  const targetAlloc = targetAllocation || { stocks: 50, bonds: 20, cash: 20 };
-                  const stocksDiff = currentAllocation.stocks - targetAlloc.stocks;
-                  if (Math.abs(stocksDiff) > 5) {
-                    return (
-                      <div style={{
-                        padding: '1rem',
-                        background: COLORS.accent,
-                        borderRadius: '0.5rem',
-                        fontSize: '0.9rem',
-                        color: COLORS.textMuted
-                      }}>
-                        <span>💡</span> 股票占比过高,需要再平衡优化
-                      </div>
-                    );
-                  }
-                  return null;
                 })()}
               </div>
             )}
