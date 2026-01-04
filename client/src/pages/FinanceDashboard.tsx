@@ -1555,17 +1555,14 @@ const FinanceDashboard = () => {
                     {totalPortfolio < fireNumber && (totalPortfolio / fireNumber) * 100 < 100 && (
                       <div style={{
                         position: 'absolute',
-                        left: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
-                        right: 0,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        textAlign: 'center',
+                        left: 0,
+                        bottom: '-1.8rem',
+                        textAlign: 'left',
                         fontSize: '0.9rem',
                         color: COLORS.warning,
                         fontWeight: '600',
                         zIndex: 2,
-                        pointerEvents: 'none',
-                        width: `${100 - Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`
+                        pointerEvents: 'none'
                       }}>
                         距离目标还差: <span style={{ color: COLORS.warning }}>${(fireNumber - totalPortfolio).toLocaleString()}</span>
                       </div>
