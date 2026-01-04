@@ -395,15 +395,15 @@ const FinanceDashboard = () => {
   const [showCityPlanner, setShowCityPlanner] = useState(false);
   
   // Fire Calculator Parameters
-  const [calcInitialAssets, setCalcInitialAssets] = useState(0);
+  const [calcInitialAssets, setCalcInitialAssets] = useState(1000000);
   const [calcGrowthRate, setCalcGrowthRate] = useState(7);
-  const [calcAnnualExpenses, setCalcAnnualExpenses] = useState(0);
+  const [calcAnnualExpenses, setCalcAnnualExpenses] = useState(40000);
   const [calcYearsToProject, setCalcYearsToProject] = useState(30);
   const [calcInflationRate, setCalcInflationRate] = useState(2.5);
   
   // Rebalance Simulator Parameters
   const [showRebalanceSimulator, setShowRebalanceSimulator] = useState(false);
-  const [rebalanceInitialAssets, setRebalanceInitialAssets] = useState(0);
+  const [rebalanceInitialAssets, setRebalanceInitialAssets] = useState(1000000);
   const [rebalanceStockRatio, setRebalanceStockRatio] = useState(70);
   const [rebalanceBondRatio, setRebalanceBondRatio] = useState(20);
   const [rebalanceCashRatio, setRebalanceCashRatio] = useState(10);
@@ -411,7 +411,7 @@ const FinanceDashboard = () => {
   const [rebalanceBondReturn, setRebalanceBondReturn] = useState(5);
   const [rebalanceCashReturn, setRebalanceCashReturn] = useState(2);
   const [rebalanceInflation, setRebalanceInflation] = useState(2.5);
-  const [rebalanceAnnualWithdrawal, setRebalanceAnnualWithdrawal] = useState(0);
+  const [rebalanceAnnualWithdrawal, setRebalanceAnnualWithdrawal] = useState(40000);
   const [rebalanceYears, setRebalanceYears] = useState(30);
   const [cityPlan, setCityPlan] = useState(() => {
     const saved = localStorage.getItem('cityPlan');
@@ -1603,13 +1603,15 @@ const FinanceDashboard = () => {
               }}>
                 <button
                   onClick={() => {
-                    // Initialize calculator with current values
-                    setCalcInitialAssets(totalPortfolio);
-                    setCalcGrowthRate(estimatedAnnualGrowth);
+                    // Initialize calculator with current values (with reasonable bounds)
+                    setCalcInitialAssets(totalPortfolio > 0 && totalPortfolio < 100000000 ? totalPortfolio : 1000000);
+                    // Ensure growth rate is between 4-10%
+                    const reasonableGrowthRate = estimatedAnnualGrowth > 0 && estimatedAnnualGrowth <= 15 ? estimatedAnnualGrowth : 7;
+                    setCalcGrowthRate(reasonableGrowthRate);
                     // Calculate total annual budget from budget categories
                     const totalAnnualBudget = budgetCategories ? 
                       budgetCategories.reduce((sum: number, cat: any) => sum + calculateYearlyAmount(cat), 0) : 0;
-                    setCalcAnnualExpenses(totalAnnualBudget);
+                    setCalcAnnualExpenses(totalAnnualBudget > 0 && totalAnnualBudget < 10000000 ? totalAnnualBudget : 40000);
                     setShowFireCalculator(true);
                   }}
                   style={{
@@ -1636,11 +1638,11 @@ const FinanceDashboard = () => {
                 
                 <button
                   onClick={() => {
-                    // Initialize rebalance simulator with current values
-                    setRebalanceInitialAssets(totalPortfolio);
+                    // Initialize rebalance simulator with current values (with reasonable bounds)
+                    setRebalanceInitialAssets(totalPortfolio > 0 && totalPortfolio < 100000000 ? totalPortfolio : 1000000);
                     const totalAnnualBudget = budgetCategories ? 
                       budgetCategories.reduce((sum: number, cat: any) => sum + calculateYearlyAmount(cat), 0) : 0;
-                    setRebalanceAnnualWithdrawal(totalAnnualBudget);
+                    setRebalanceAnnualWithdrawal(totalAnnualBudget > 0 && totalAnnualBudget < 10000000 ? totalAnnualBudget : 40000);
                     setShowRebalanceSimulator(true);
                   }}
                   style={{
