@@ -391,7 +391,14 @@ const FinanceDashboard = () => {
   });
   const [showCashCalculator, setShowCashCalculator] = useState(false);
   const [showFireOptimization, setShowFireOptimization] = useState(false);
+  const [showFireCalculator, setShowFireCalculator] = useState(false);
   const [showCityPlanner, setShowCityPlanner] = useState(false);
+  
+  // Fire Calculator Parameters
+  const [calcInitialAssets, setCalcInitialAssets] = useState(0);
+  const [calcGrowthRate, setCalcGrowthRate] = useState(7);
+  const [calcAnnualExpenses, setCalcAnnualExpenses] = useState(0);
+  const [calcYearsToProject, setCalcYearsToProject] = useState(30);
   const [cityPlan, setCityPlan] = useState(() => {
     const saved = localStorage.getItem('cityPlan');
     return saved ? JSON.parse(saved) : [];
@@ -1579,7 +1586,16 @@ const FinanceDashboard = () => {
                 zIndex: 10 // Ensure button is above other elements
               }}>
                 <button
-                  onClick={() => setShowFireOptimization(true)}
+                  onClick={() => {
+                    // Initialize calculator with current values
+                    setCalcInitialAssets(totalPortfolio);
+                    setCalcGrowthRate(estimatedAnnualGrowth);
+                    // Calculate total annual budget from budget categories
+                    const totalAnnualBudget = budgetCategories ? 
+                      budgetCategories.reduce((sum: number, cat: any) => sum + calculateYearlyAmount(cat), 0) : 0;
+                    setCalcAnnualExpenses(totalAnnualBudget);
+                    setShowFireCalculator(true);
+                  }}
                   style={{
                     padding: '0.5rem 1rem',
                     background: COLORS.card, // Dark background like the card
@@ -6937,77 +6953,270 @@ const FinanceDashboard = () => {
                   );
                 })()}
 
-                {/* Asset Growth Projection Table */}
+                {/* Action Buttons */}
+                <div style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  marginTop: '2rem',
+                  paddingTop: '2rem',
+                  borderTop: `1px solid ${COLORS.accent}`
+                }}>
+                  <button
+                    onClick={() => {
+                      // Reset to defaults
+                      const defaultAdj = {
+                        essential: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false },
+                        workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0, useCityPlanner: false },
+                        discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false }
+                      };
+                      setRetirementExpenseAdjustments(defaultAdj);
+                      localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(defaultAdj));
+                      setCityPlan([]);
+                      localStorage.setItem('cityPlan', JSON.stringify([]));
+                    }}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: `1px solid ${COLORS.textMuted}`,
+                      color: COLORS.textMuted,
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    重置为默认
+                  </button>
+                  <button
+                    onClick={() => setShowFireOptimization(false)}
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                      border: 'none',
+                      color: 'white',
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    保存设置
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FIRE Calculator Modal */}
+        {showFireCalculator && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '2rem',
+                borderBottom: `1px solid ${COLORS.accent}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                position: 'sticky',
+                top: 0,
+                background: COLORS.card,
+                zIndex: 1
+              }}>
+                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>📊 FIRE 资产增长计算器</h2>
+                <button
+                  onClick={() => setShowFireCalculator(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: COLORS.textMuted,
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem',
+                    lineHeight: 1
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: '2rem' }}>
+                {/* Parameter Inputs */}
                 <div style={{
                   background: COLORS.accent,
                   borderRadius: '0.75rem',
                   padding: '1.5rem',
-                  marginTop: '2rem'
+                  marginBottom: '2rem'
+                }}>
+                  <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>⚙️ 计算参数</h3>
+                  
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '1.5rem'
+                  }}>
+                    {/* Initial Assets */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        初始资产 ($)
+                      </label>
+                      <input
+                        type="number"
+                        value={calcInitialAssets}
+                        onChange={(e) => setCalcInitialAssets(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    {/* Growth Rate */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        年增长率 (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={calcGrowthRate}
+                        onChange={(e) => setCalcGrowthRate(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    {/* Annual Expenses */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        年开销 ($)
+                      </label>
+                      <input
+                        type="number"
+                        value={calcAnnualExpenses}
+                        onChange={(e) => setCalcAnnualExpenses(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+
+                    {/* Years to Project */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '0.9rem',
+                        color: COLORS.textMuted,
+                        marginBottom: '0.5rem'
+                      }}>
+                        预测年数
+                      </label>
+                      <input
+                        type="number"
+                        value={calcYearsToProject}
+                        onChange={(e) => setCalcYearsToProject(Number(e.target.value))}
+                        min="1"
+                        max="50"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.card,
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Projection Results */}
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem'
                 }}>
                   <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>📈 年度资产增值预测</h3>
                   
                   {(() => {
-                    // Calculate optimized retirement expenses
-                    const getLast12MonthsByGroup = () => {
-                      const now = new Date();
-                      const byGroup = { essential: 0, workRelated: 0, discretionary: 0 };
-                      
-                      for (let i = 0; i < 12; i++) {
-                        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                        const monthData = monthlyAggregation[monthKey];
-                        
-                        if (monthData && monthData.byGroup) {
-                          byGroup.essential += monthData.byGroup.essential || 0;
-                          byGroup.workRelated += monthData.byGroup.workRelated || 0;
-                          byGroup.discretionary += monthData.byGroup.discretionary || 0;
-                        }
-                      }
-                      
-                      return byGroup;
-                    };
-                    
-                    const currentExpenses = getLast12MonthsByGroup();
-                    let optimizedAnnualExpenses = 0;
-                    
-                    // Calculate optimized expenses based on adjustments
-                    Object.keys(retirementExpenseAdjustments).forEach(key => {
-                      const adj = retirementExpenseAdjustments[key as keyof typeof retirementExpenseAdjustments];
-                      const currentAmount = currentExpenses[key as keyof typeof currentExpenses] || 0;
-                      
-                      if (adj.enabled) {
-                        if (key === 'essential' && adj.useCityPlanner && cityPlan.length > 0) {
-                          optimizedAnnualExpenses += cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0);
-                        } else if (currentAmount > 0) {
-                          optimizedAnnualExpenses += currentAmount * (1 + adj.adjustmentPct / 100);
-                        } else {
-                          optimizedAnnualExpenses += adj.customAmount || 0;
-                        }
-                      } else {
-                        optimizedAnnualExpenses += currentAmount;
-                      }
-                    });
-                    
-                    // Default values
-                    const initialAssets = totalPortfolio;
-                    const annualGrowthRate = estimatedAnnualGrowth / 100; // Convert to decimal
-                    const annualExpenses = optimizedAnnualExpenses;
-                    const yearsToProject = 30;
-                    
                     // Generate projection data
                     const projectionData = [];
-                    let currentAsset = initialAssets;
+                    let currentAsset = calcInitialAssets;
+                    const annualGrowthRate = calcGrowthRate / 100;
                     
-                    for (let year = 1; year <= yearsToProject; year++) {
+                    for (let year = 1; year <= calcYearsToProject; year++) {
                       const yearStartAsset = currentAsset;
                       const yearGrowth = yearStartAsset * annualGrowthRate;
-                      const yearEndAsset = yearStartAsset + yearGrowth - annualExpenses;
+                      const yearEndAsset = yearStartAsset + yearGrowth - calcAnnualExpenses;
                       
                       projectionData.push({
                         year,
                         startAsset: yearStartAsset,
                         growth: yearGrowth,
-                        expenses: annualExpenses,
+                        expenses: calcAnnualExpenses,
                         endAsset: yearEndAsset
                       });
                       
@@ -7019,63 +7228,6 @@ const FinanceDashboard = () => {
                     
                     return (
                       <div>
-                        {/* Parameters Summary */}
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                          gap: '1rem',
-                          marginBottom: '1.5rem'
-                        }}>
-                          <div style={{
-                            background: COLORS.card,
-                            padding: '1rem',
-                            borderRadius: '0.5rem'
-                          }}>
-                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                              初始资产
-                            </div>
-                            <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.success }}>
-                              ${initialAssets.toLocaleString()}
-                            </div>
-                          </div>
-                          <div style={{
-                            background: COLORS.card,
-                            padding: '1rem',
-                            borderRadius: '0.5rem'
-                          }}>
-                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                              年增长率
-                            </div>
-                            <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.success }}>
-                              {estimatedAnnualGrowth.toFixed(1)}%
-                            </div>
-                          </div>
-                          <div style={{
-                            background: COLORS.card,
-                            padding: '1rem',
-                            borderRadius: '0.5rem'
-                          }}>
-                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                              年开销
-                            </div>
-                            <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.highlight }}>
-                              ${annualExpenses.toLocaleString()}
-                            </div>
-                          </div>
-                          <div style={{
-                            background: COLORS.card,
-                            padding: '1rem',
-                            borderRadius: '0.5rem'
-                          }}>
-                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                              预测年数
-                            </div>
-                            <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.text }}>
-                              {yearsToProject}年
-                            </div>
-                          </div>
-                        </div>
-                        
                         {/* Projection Table */}
                         <div style={{
                           background: COLORS.card,
@@ -7156,7 +7308,7 @@ const FinanceDashboard = () => {
                         }}>
                           {projectionData[projectionData.length - 1]?.endAsset > 0 ? (
                             <>
-                              ✅ <strong>资产可持续：</strong> 在{yearsToProject}年后，你的资产预计还有 ${projectionData[projectionData.length - 1]?.endAsset.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              ✅ <strong>资产可持续：</strong> 在{calcYearsToProject}年后，你的资产预计还有 ${projectionData[projectionData.length - 1]?.endAsset.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                             </>
                           ) : (
                             <>
@@ -7169,45 +7321,12 @@ const FinanceDashboard = () => {
                   })()}
                 </div>
 
-                {/* Action Buttons */}
-                <div style={{
-                  display: 'flex',
-                  gap: '1rem',
-                  marginTop: '2rem',
-                  paddingTop: '2rem',
-                  borderTop: `1px solid ${COLORS.accent}`
-                }}>
+                {/* Close Button */}
+                <div style={{ marginTop: '2rem' }}>
                   <button
-                    onClick={() => {
-                      // Reset to defaults
-                      const defaultAdj = {
-                        essential: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false },
-                        workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0, useCityPlanner: false },
-                        discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false }
-                      };
-                      setRetirementExpenseAdjustments(defaultAdj);
-                      localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(defaultAdj));
-                      setCityPlan([]);
-                      localStorage.setItem('cityPlan', JSON.stringify([]));
-                    }}
+                    onClick={() => setShowFireCalculator(false)}
                     style={{
-                      flex: 1,
-                      background: 'transparent',
-                      border: `1px solid ${COLORS.textMuted}`,
-                      color: COLORS.textMuted,
-                      padding: '1rem',
-                      borderRadius: '0.5rem',
-                      fontSize: '1rem',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit'
-                    }}
-                  >
-                    重置为默认
-                  </button>
-                  <button
-                    onClick={() => setShowFireOptimization(false)}
-                    style={{
-                      flex: 1,
+                      width: '100%',
                       background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
                       border: 'none',
                       color: 'white',
@@ -7219,7 +7338,7 @@ const FinanceDashboard = () => {
                       fontFamily: 'inherit'
                     }}
                   >
-                    保存设置
+                    关闭
                   </button>
                 </div>
               </div>
