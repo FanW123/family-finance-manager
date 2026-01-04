@@ -394,6 +394,10 @@ const FinanceDashboard = () => {
   const [showFireCalculator, setShowFireCalculator] = useState(false);
   const [showCityPlanner, setShowCityPlanner] = useState(false);
   
+  // 预算追踪展开状态：记录哪些大类是展开的
+  const [expandedMonthlyCategories, setExpandedMonthlyCategories] = useState<Set<string>>(new Set());
+  const [expandedYearlyCategories, setExpandedYearlyCategories] = useState<Set<string>>(new Set());
+  
   // Fire Calculator Parameters
   const [calcInitialAssets, setCalcInitialAssets] = useState(1000000);
   const [calcGrowthRate, setCalcGrowthRate] = useState(7);
@@ -2735,61 +2739,108 @@ const FinanceDashboard = () => {
                             .reduce((s, e) => s + e.amount, 0);
                         }, 0);
                         const totalPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+                        const isExpanded = expandedMonthlyCategories.has(item.id);
                         
                         return (
                           <div key={item.id} style={{ marginBottom: '1.5rem' }}>
-                            <div style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: COLORS.textMuted }}>
-                              {item.name}
-                            </div>
-                            {item.trackableChildren.map((child: any) => {
-                              const spent = expenses
-                                .filter(exp => {
-                                  const expDate = new Date(exp.date);
-                                  return expDate >= monthStart && matchesCategory(exp.category, item, child);
-                                })
-                                .reduce((sum, exp) => sum + exp.amount, 0);
-                              
-                              const percentage = (spent / child.amount) * 100;
-                              
-                              return (
-                                <div key={child.id} style={{ marginBottom: '0.75rem', paddingLeft: '1rem' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                                    <span style={{ fontSize: '0.85rem' }}>{child.name}</span>
-                                    <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
-                                      ${spent.toFixed(0)} / ${child.amount}
-                                    </span>
-                                  </div>
-                                  <div style={{
-                                    width: '100%',
-                                    height: '5px',
-                                    background: COLORS.accent,
-                                    borderRadius: '2.5px',
-                                    overflow: 'hidden'
-                                  }}>
-                                    <div style={{
-                                      width: `${Math.min(percentage, 100)}%`,
-                                      height: '100%',
-                                      background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
-                                      transition: 'width 0.3s ease'
-                                    }} />
-                                  </div>
+                            {/* 大类汇总 - 可点击展开/收起 */}
+                            <div 
+                              onClick={() => {
+                                const newExpanded = new Set(expandedMonthlyCategories);
+                                if (isExpanded) {
+                                  newExpanded.delete(item.id);
+                                } else {
+                                  newExpanded.add(item.id);
+                                }
+                                setExpandedMonthlyCategories(newExpanded);
+                              }}
+                              style={{ 
+                                cursor: 'pointer',
+                                padding: '0.75rem',
+                                background: COLORS.accent,
+                                borderRadius: '0.5rem',
+                                marginBottom: isExpanded ? '0.75rem' : '0',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <span style={{ fontSize: '1.1rem' }}>{item.icon}</span>
+                                  <span style={{ fontSize: '1rem', fontWeight: '600' }}>{item.name}</span>
+                                  <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                    {isExpanded ? '▲' : '▼'}
+                                  </span>
                                 </div>
-                              );
-                            })}
-                            <div style={{ 
-                              display: 'flex', 
-                              justifyContent: 'space-between', 
-                              marginTop: '0.5rem',
-                              paddingTop: '0.5rem',
-                              borderTop: `1px solid ${COLORS.accent}`,
-                              fontSize: '0.9rem',
-                              fontWeight: '600'
-                            }}>
-                              <span>总计</span>
-                              <span style={{ color: totalPercentage > 90 ? COLORS.danger : totalPercentage > 70 ? COLORS.warning : COLORS.success }}>
-                                ${totalSpent.toFixed(0)} / ${totalBudget}
-                              </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                                    ${totalSpent.toFixed(0)} / ${totalBudget}
+                                  </span>
+                                  <span style={{ 
+                                    fontSize: '0.9rem', 
+                                    fontWeight: '600',
+                                    color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
+                                  }}>
+                                    {totalPercentage.toFixed(0)}%
+                                  </span>
+                                </div>
+                              </div>
+                              {/* 总进度条 */}
+                              <div style={{
+                                width: '100%',
+                                height: '8px',
+                                background: COLORS.background,
+                                borderRadius: '4px',
+                                overflow: 'hidden'
+                              }}>
+                                <div style={{
+                                  width: `${Math.min(totalPercentage, 100)}%`,
+                                  height: '100%',
+                                  background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
+                                  transition: 'width 0.3s ease'
+                                }} />
+                              </div>
                             </div>
+                            
+                            {/* 子类明细 - 仅在展开时显示 */}
+                            {isExpanded && (
+                              <div style={{ paddingLeft: '1rem' }}>
+                                {item.trackableChildren.map((child: any) => {
+                                  const spent = expenses
+                                    .filter(exp => {
+                                      const expDate = new Date(exp.date);
+                                      return expDate >= monthStart && matchesCategory(exp.category, item, child);
+                                    })
+                                    .reduce((sum, exp) => sum + exp.amount, 0);
+                                  
+                                  const percentage = (spent / child.amount) * 100;
+                                  
+                                  return (
+                                    <div key={child.id} style={{ marginBottom: '0.75rem', paddingLeft: '0.5rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                                        <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>├─ {child.name}</span>
+                                        <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
+                                          ${spent.toFixed(0)} / ${child.amount}
+                                        </span>
+                                      </div>
+                                      <div style={{
+                                        width: '100%',
+                                        height: '5px',
+                                        background: COLORS.accent,
+                                        borderRadius: '2.5px',
+                                        overflow: 'hidden'
+                                      }}>
+                                        <div style={{
+                                          width: `${Math.min(percentage, 100)}%`,
+                                          height: '100%',
+                                          background: percentage > 100 ? COLORS.danger : percentage > 90 ? COLORS.warning : COLORS.success,
+                                          transition: 'width 0.3s ease'
+                                        }} />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                         );
                       } else {
@@ -2867,67 +2918,108 @@ const FinanceDashboard = () => {
                             .reduce((s, e) => s + e.amount, 0);
                         }, 0);
                         const totalPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+                        const isExpanded = expandedYearlyCategories.has(item.id);
                         
                         return (
-                          <div key={item.id} style={{ marginBottom: '2rem' }}>
-                            <div style={{ fontSize: '1.05rem', fontWeight: '600', marginBottom: '1rem', color: COLORS.textMuted }}>
-                              {item.name}
-                            </div>
-                            {item.trackableChildren.map((child: any) => {
-                              const spent = expenses
-                                .filter(exp => {
-                                  const expDate = new Date(exp.date);
-                                  return expDate >= yearStart && matchesCategory(exp.category, item, child);
-                                })
-                                .reduce((sum, exp) => sum + exp.amount, 0);
-                              
-                              const percentage = (spent / child.amount) * 100;
-                              
-                              return (
-                                <div key={child.id} style={{ marginBottom: '1rem', paddingLeft: '1rem' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                                    <span style={{ fontSize: '0.9rem' }}>{child.name}</span>
-                                    <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                      ${spent.toLocaleString()} / ${child.amount.toLocaleString()}
-                                    </span>
-                                  </div>
-                                  <div style={{
-                                    width: '100%',
-                                    height: '7px',
-                                    background: COLORS.accent,
-                                    borderRadius: '3.5px',
-                                    overflow: 'hidden'
-                                  }}>
-                                    <div style={{
-                                      width: `${Math.min(percentage, 100)}%`,
-                                      height: '100%',
-                                      background: percentage > 90 ? COLORS.danger : percentage > 70 ? COLORS.warning : COLORS.success,
-                                      transition: 'width 0.3s ease'
-                                    }} />
-                                  </div>
-                                  <div style={{ fontSize: '0.8rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
-                                    {percentage.toFixed(0)}% 已使用
-                                  </div>
+                          <div key={item.id} style={{ marginBottom: '1.5rem' }}>
+                            {/* 大类汇总 - 可点击展开/收起 */}
+                            <div 
+                              onClick={() => {
+                                const newExpanded = new Set(expandedYearlyCategories);
+                                if (isExpanded) {
+                                  newExpanded.delete(item.id);
+                                } else {
+                                  newExpanded.add(item.id);
+                                }
+                                setExpandedYearlyCategories(newExpanded);
+                              }}
+                              style={{ 
+                                cursor: 'pointer',
+                                padding: '0.75rem',
+                                background: COLORS.accent,
+                                borderRadius: '0.5rem',
+                                marginBottom: isExpanded ? '0.75rem' : '0',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <span style={{ fontSize: '1.1rem' }}>{item.icon}</span>
+                                  <span style={{ fontSize: '1rem', fontWeight: '600' }}>{item.name}</span>
+                                  <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                    {isExpanded ? '▲' : '▼'}
+                                  </span>
                                 </div>
-                              );
-                            })}
-                            <div style={{ 
-                              display: 'flex', 
-                              justifyContent: 'space-between', 
-                              marginTop: '0.75rem',
-                              paddingTop: '0.75rem',
-                              borderTop: `2px solid ${COLORS.accent}`,
-                              fontSize: '1rem',
-                              fontWeight: '700'
-                            }}>
-                              <span>总计</span>
-                              <span style={{ color: totalPercentage > 90 ? COLORS.danger : totalPercentage > 70 ? COLORS.warning : COLORS.success }}>
-                                ${totalSpent.toLocaleString()} / ${totalBudget.toLocaleString()}
-                              </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                                    ${totalSpent.toLocaleString()} / ${totalBudget.toLocaleString()}
+                                  </span>
+                                  <span style={{ 
+                                    fontSize: '0.9rem', 
+                                    fontWeight: '600',
+                                    color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
+                                  }}>
+                                    {totalPercentage.toFixed(0)}%
+                                  </span>
+                                </div>
+                              </div>
+                              {/* 总进度条 */}
+                              <div style={{
+                                width: '100%',
+                                height: '8px',
+                                background: COLORS.background,
+                                borderRadius: '4px',
+                                overflow: 'hidden'
+                              }}>
+                                <div style={{
+                                  width: `${Math.min(totalPercentage, 100)}%`,
+                                  height: '100%',
+                                  background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
+                                  transition: 'width 0.3s ease'
+                                }} />
+                              </div>
                             </div>
-                            <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.25rem', textAlign: 'right' }}>
-                              {totalPercentage.toFixed(0)}% 已使用
-                            </div>
+                            
+                            {/* 子类明细 - 仅在展开时显示 */}
+                            {isExpanded && (
+                              <div style={{ paddingLeft: '1rem' }}>
+                                {item.trackableChildren.map((child: any) => {
+                                  const spent = expenses
+                                    .filter(exp => {
+                                      const expDate = new Date(exp.date);
+                                      return expDate >= yearStart && matchesCategory(exp.category, item, child);
+                                    })
+                                    .reduce((sum, exp) => sum + exp.amount, 0);
+                                  
+                                  const percentage = (spent / child.amount) * 100;
+                                  
+                                  return (
+                                    <div key={child.id} style={{ marginBottom: '0.75rem', paddingLeft: '0.5rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                                        <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>├─ {child.name}</span>
+                                        <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
+                                          ${spent.toLocaleString()} / ${child.amount.toLocaleString()}
+                                        </span>
+                                      </div>
+                                      <div style={{
+                                        width: '100%',
+                                        height: '5px',
+                                        background: COLORS.accent,
+                                        borderRadius: '2.5px',
+                                        overflow: 'hidden'
+                                      }}>
+                                        <div style={{
+                                          width: `${Math.min(percentage, 100)}%`,
+                                          height: '100%',
+                                          background: percentage > 100 ? COLORS.danger : percentage > 90 ? COLORS.warning : COLORS.success,
+                                          transition: 'width 0.3s ease'
+                                        }} />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                         );
                       } else {
