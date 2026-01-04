@@ -1943,7 +1943,7 @@ const FinanceDashboard = () => {
                     再平衡优化
                   </button>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                   <div style={{
                     padding: '1rem',
                     background: COLORS.accent,
