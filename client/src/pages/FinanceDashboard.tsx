@@ -7306,6 +7306,26 @@ const FinanceDashboard = () => {
                     
                     return (
                       <div>
+                        {/* Summary insights */}
+                        <div style={{
+                          marginBottom: '1.5rem',
+                          padding: '1rem',
+                          background: projectionData[projectionData.length - 1]?.endAsset > 0 ? `${COLORS.success}20` : `${COLORS.warning}20`,
+                          border: `1px solid ${projectionData[projectionData.length - 1]?.endAsset > 0 ? COLORS.success : COLORS.warning}`,
+                          borderRadius: '0.5rem',
+                          fontSize: '0.9rem'
+                        }}>
+                          {projectionData[projectionData.length - 1]?.endAsset > 0 ? (
+                            <>
+                              ✅ <strong>资产可持续：</strong> 在{calcYearsToProject}年后，你的资产预计还有 ${projectionData[projectionData.length - 1]?.endAsset.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            </>
+                          ) : (
+                            <>
+                              ⚠️ <strong>资产不足：</strong> 资产预计在第 {projectionData.findIndex(row => row.endAsset <= 0)} 年耗尽。建议增加资产、降低开销或提高投资回报率。
+                            </>
+                          )}
+                        </div>
+                        
                         {/* Projection Table */}
                         <div style={{
                           background: COLORS.card,
@@ -7373,26 +7393,6 @@ const FinanceDashboard = () => {
                               ))}
                             </tbody>
                           </table>
-                        </div>
-                        
-                        {/* Summary insights */}
-                        <div style={{
-                          marginTop: '1rem',
-                          padding: '1rem',
-                          background: projectionData[projectionData.length - 1]?.endAsset > 0 ? `${COLORS.success}20` : `${COLORS.warning}20`,
-                          border: `1px solid ${projectionData[projectionData.length - 1]?.endAsset > 0 ? COLORS.success : COLORS.warning}`,
-                          borderRadius: '0.5rem',
-                          fontSize: '0.9rem'
-                        }}>
-                          {projectionData[projectionData.length - 1]?.endAsset > 0 ? (
-                            <>
-                              ✅ <strong>资产可持续：</strong> 在{calcYearsToProject}年后，你的资产预计还有 ${projectionData[projectionData.length - 1]?.endAsset.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                            </>
-                          ) : (
-                            <>
-                              ⚠️ <strong>资产不足：</strong> 资产预计在第 {projectionData.findIndex(row => row.endAsset <= 0)} 年耗尽。建议增加资产、降低开销或提高投资回报率。
-                            </>
-                          )}
                         </div>
                       </div>
                     );
@@ -7874,6 +7874,26 @@ const FinanceDashboard = () => {
                     
                     return (
                       <div>
+                        {/* Summary */}
+                        <div style={{
+                          marginBottom: '1.5rem',
+                          padding: '1rem',
+                          background: simulationData[simulationData.length - 1]?.afterWithdrawalTotal > 0 ? `${COLORS.success}20` : `${COLORS.warning}20`,
+                          border: `1px solid ${simulationData[simulationData.length - 1]?.afterWithdrawalTotal > 0 ? COLORS.success : COLORS.warning}`,
+                          borderRadius: '0.5rem',
+                          fontSize: '0.9rem'
+                        }}>
+                          {simulationData[simulationData.length - 1]?.afterWithdrawalTotal > 0 ? (
+                            <>
+                              ✅ <strong>资产可持续：</strong> 在{rebalanceYears}年后，你的资产预计还有 ${simulationData[simulationData.length - 1]?.afterWithdrawalTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            </>
+                          ) : (
+                            <>
+                              ⚠️ <strong>资产不足：</strong> 资产预计在第 {simulationData.findIndex(row => row.afterWithdrawalTotal <= 0)} 年耗尽。建议调整资产配置、降低取款或提高回报率。
+                            </>
+                          )}
+                        </div>
+                        
                         {/* Simulation Table */}
                         <div style={{
                           background: COLORS.card,
@@ -7939,26 +7959,6 @@ const FinanceDashboard = () => {
                               ))}
                             </tbody>
                           </table>
-                        </div>
-                        
-                        {/* Summary */}
-                        <div style={{
-                          marginTop: '1rem',
-                          padding: '1rem',
-                          background: simulationData[simulationData.length - 1]?.afterWithdrawalTotal > 0 ? `${COLORS.success}20` : `${COLORS.warning}20`,
-                          border: `1px solid ${simulationData[simulationData.length - 1]?.afterWithdrawalTotal > 0 ? COLORS.success : COLORS.warning}`,
-                          borderRadius: '0.5rem',
-                          fontSize: '0.9rem'
-                        }}>
-                          {simulationData[simulationData.length - 1]?.afterWithdrawalTotal > 0 ? (
-                            <>
-                              ✅ <strong>资产可持续：</strong> 在{rebalanceYears}年后，你的资产预计还有 ${simulationData[simulationData.length - 1]?.afterWithdrawalTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                            </>
-                          ) : (
-                            <>
-                              ⚠️ <strong>资产不足：</strong> 资产预计在第 {simulationData.findIndex(row => row.afterWithdrawalTotal <= 0)} 年耗尽。建议调整资产配置、降低取款或提高回报率。
-                            </>
-                          )}
                         </div>
                       </div>
                     );
