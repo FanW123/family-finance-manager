@@ -2614,75 +2614,67 @@ const FinanceDashboard = () => {
                         const isExpanded = expandedWeeklyCategories.has(item.id);
                         
                         return (
-                          <div key={item.id} style={{ marginBottom: '1.5rem' }}>
-                            {/* 大类汇总 */}
-                            <div 
-                              style={{ 
-                                padding: '0.75rem',
-                                background: COLORS.accent,
-                                borderRadius: '0.5rem',
-                                marginBottom: isExpanded ? '0.75rem' : '0',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-                                  <span style={{ fontSize: '1rem', fontWeight: '600' }}>{item.name}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                  <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                                    ${totalSpent.toFixed(0)} / ${totalBudget}
-                                  </span>
-                                  <span style={{ 
-                                    fontSize: '0.9rem', 
-                                    fontWeight: '600',
-                                    color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
-                                  }}>
-                                    {totalPercentage.toFixed(0)}%
-                                  </span>
-                                  {/* 折叠/展开按钮 */}
-                                  <button
-                                    onClick={() => {
-                                      const newExpanded = new Set(expandedWeeklyCategories);
-                                      if (isExpanded) {
-                                        newExpanded.delete(item.id);
-                                      } else {
-                                        newExpanded.add(item.id);
-                                      }
-                                      setExpandedWeeklyCategories(newExpanded);
-                                    }}
-                                    style={{
-                                      cursor: 'pointer',
-                                      background: 'transparent',
-                                      border: 'none',
-                                      color: COLORS.textMuted,
-                                      fontSize: '1rem',
-                                      padding: '0.25rem',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      transition: 'transform 0.2s ease'
-                                    }}
-                                  >
-                                    {isExpanded ? '▼' : '►'}
-                                  </button>
-                                </div>
+                          <div key={item.id} style={{ marginBottom: '1rem' }}>
+                            {/* 大类汇总 - 统一简洁样式 */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                              <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                  ${totalSpent.toFixed(0)} / ${totalBudget}
+                                </span>
+                                <span style={{ 
+                                  fontSize: '0.85rem', 
+                                  fontWeight: '600',
+                                  minWidth: '3rem',
+                                  textAlign: 'right',
+                                  color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
+                                }}>
+                                  {totalPercentage.toFixed(0)}%
+                                </span>
+                                {/* 折叠/展开按钮 */}
+                                <button
+                                  onClick={() => {
+                                    const newExpanded = new Set(expandedWeeklyCategories);
+                                    if (isExpanded) {
+                                      newExpanded.delete(item.id);
+                                    } else {
+                                      newExpanded.add(item.id);
+                                    }
+                                    setExpandedWeeklyCategories(newExpanded);
+                                  }}
+                                  style={{
+                                    cursor: 'pointer',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: COLORS.textMuted,
+                                    fontSize: '1rem',
+                                    padding: '0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.2s ease',
+                                    minWidth: '1.5rem'
+                                  }}
+                                >
+                                  {isExpanded ? '▼' : '►'}
+                                </button>
                               </div>
-                              {/* 总进度条 */}
+                            </div>
+                            {/* 总进度条 */}
+                            <div style={{
+                              width: '100%',
+                              height: '6px',
+                              background: COLORS.accent,
+                              borderRadius: '3px',
+                              overflow: 'hidden',
+                              marginBottom: isExpanded ? '0.75rem' : '0'
+                            }}>
                               <div style={{
-                                width: '100%',
-                                height: '8px',
-                                background: COLORS.background,
-                                borderRadius: '4px',
-                                overflow: 'hidden'
-                              }}>
-                                <div style={{
-                                  width: `${Math.min(totalPercentage, 100)}%`,
-                                  height: '100%',
-                                  background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
-                                  transition: 'width 0.3s ease'
-                                }} />
-                              </div>
+                                width: `${Math.min(totalPercentage, 100)}%`,
+                                height: '100%',
+                                background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
+                                transition: 'width 0.3s ease'
+                              }} />
                             </div>
                             
                             {/* 子类明细 - 仅在展开时显示 */}
@@ -2807,75 +2799,67 @@ const FinanceDashboard = () => {
                         const isExpanded = expandedMonthlyCategories.has(item.id);
                         
                         return (
-                          <div key={item.id} style={{ marginBottom: '1.5rem' }}>
-                            {/* 大类汇总 */}
-                            <div 
-                              style={{ 
-                                padding: '0.75rem',
-                                background: COLORS.accent,
-                                borderRadius: '0.5rem',
-                                marginBottom: isExpanded ? '0.75rem' : '0',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-                                  <span style={{ fontSize: '1rem', fontWeight: '600' }}>{item.name}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                  <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                                    ${totalSpent.toFixed(0)} / ${totalBudget}
-                                  </span>
-                                  <span style={{ 
-                                    fontSize: '0.9rem', 
-                                    fontWeight: '600',
-                                    color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
-                                  }}>
-                                    {totalPercentage.toFixed(0)}%
-                                  </span>
-                                  {/* 折叠/展开按钮 */}
-                                  <button
-                                    onClick={() => {
-                                      const newExpanded = new Set(expandedMonthlyCategories);
-                                      if (isExpanded) {
-                                        newExpanded.delete(item.id);
-                                      } else {
-                                        newExpanded.add(item.id);
-                                      }
-                                      setExpandedMonthlyCategories(newExpanded);
-                                    }}
-                                    style={{
-                                      cursor: 'pointer',
-                                      background: 'transparent',
-                                      border: 'none',
-                                      color: COLORS.textMuted,
-                                      fontSize: '1rem',
-                                      padding: '0.25rem',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      transition: 'transform 0.2s ease'
-                                    }}
-                                  >
-                                    {isExpanded ? '▼' : '►'}
-                                  </button>
-                                </div>
+                          <div key={item.id} style={{ marginBottom: '1rem' }}>
+                            {/* 大类汇总 - 统一简洁样式 */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                              <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                  ${totalSpent.toFixed(0)} / ${totalBudget}
+                                </span>
+                                <span style={{ 
+                                  fontSize: '0.85rem', 
+                                  fontWeight: '600',
+                                  minWidth: '3rem',
+                                  textAlign: 'right',
+                                  color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
+                                }}>
+                                  {totalPercentage.toFixed(0)}%
+                                </span>
+                                {/* 折叠/展开按钮 */}
+                                <button
+                                  onClick={() => {
+                                    const newExpanded = new Set(expandedMonthlyCategories);
+                                    if (isExpanded) {
+                                      newExpanded.delete(item.id);
+                                    } else {
+                                      newExpanded.add(item.id);
+                                    }
+                                    setExpandedMonthlyCategories(newExpanded);
+                                  }}
+                                  style={{
+                                    cursor: 'pointer',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: COLORS.textMuted,
+                                    fontSize: '1rem',
+                                    padding: '0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.2s ease',
+                                    minWidth: '1.5rem'
+                                  }}
+                                >
+                                  {isExpanded ? '▼' : '►'}
+                                </button>
                               </div>
-                              {/* 总进度条 */}
+                            </div>
+                            {/* 总进度条 */}
+                            <div style={{
+                              width: '100%',
+                              height: '6px',
+                              background: COLORS.accent,
+                              borderRadius: '3px',
+                              overflow: 'hidden',
+                              marginBottom: isExpanded ? '0.75rem' : '0'
+                            }}>
                               <div style={{
-                                width: '100%',
-                                height: '8px',
-                                background: COLORS.background,
-                                borderRadius: '4px',
-                                overflow: 'hidden'
-                              }}>
-                                <div style={{
-                                  width: `${Math.min(totalPercentage, 100)}%`,
-                                  height: '100%',
-                                  background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
-                                  transition: 'width 0.3s ease'
-                                }} />
-                              </div>
+                                width: `${Math.min(totalPercentage, 100)}%`,
+                                height: '100%',
+                                background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
+                                transition: 'width 0.3s ease'
+                              }} />
                             </div>
                             
                             {/* 子类明细 - 仅在展开时显示 */}
@@ -2998,75 +2982,67 @@ const FinanceDashboard = () => {
                         const isExpanded = expandedYearlyCategories.has(item.id);
                         
                         return (
-                          <div key={item.id} style={{ marginBottom: '1.5rem' }}>
-                            {/* 大类汇总 */}
-                            <div 
-                              style={{ 
-                                padding: '0.75rem',
-                                background: COLORS.accent,
-                                borderRadius: '0.5rem',
-                                marginBottom: isExpanded ? '0.75rem' : '0',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-                                  <span style={{ fontSize: '1rem', fontWeight: '600' }}>{item.name}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                  <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                                    ${totalSpent.toLocaleString()} / ${totalBudget.toLocaleString()}
-                                  </span>
-                                  <span style={{ 
-                                    fontSize: '0.9rem', 
-                                    fontWeight: '600',
-                                    color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
-                                  }}>
-                                    {totalPercentage.toFixed(0)}%
-                                  </span>
-                                  {/* 折叠/展开按钮 */}
-                                  <button
-                                    onClick={() => {
-                                      const newExpanded = new Set(expandedYearlyCategories);
-                                      if (isExpanded) {
-                                        newExpanded.delete(item.id);
-                                      } else {
-                                        newExpanded.add(item.id);
-                                      }
-                                      setExpandedYearlyCategories(newExpanded);
-                                    }}
-                                    style={{
-                                      cursor: 'pointer',
-                                      background: 'transparent',
-                                      border: 'none',
-                                      color: COLORS.textMuted,
-                                      fontSize: '1rem',
-                                      padding: '0.25rem',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      transition: 'transform 0.2s ease'
-                                    }}
-                                  >
-                                    {isExpanded ? '▼' : '►'}
-                                  </button>
-                                </div>
+                          <div key={item.id} style={{ marginBottom: '1rem' }}>
+                            {/* 大类汇总 - 统一简洁样式 */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                              <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                  ${totalSpent.toLocaleString()} / ${totalBudget.toLocaleString()}
+                                </span>
+                                <span style={{ 
+                                  fontSize: '0.85rem', 
+                                  fontWeight: '600',
+                                  minWidth: '3rem',
+                                  textAlign: 'right',
+                                  color: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success 
+                                }}>
+                                  {totalPercentage.toFixed(0)}%
+                                </span>
+                                {/* 折叠/展开按钮 */}
+                                <button
+                                  onClick={() => {
+                                    const newExpanded = new Set(expandedYearlyCategories);
+                                    if (isExpanded) {
+                                      newExpanded.delete(item.id);
+                                    } else {
+                                      newExpanded.add(item.id);
+                                    }
+                                    setExpandedYearlyCategories(newExpanded);
+                                  }}
+                                  style={{
+                                    cursor: 'pointer',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: COLORS.textMuted,
+                                    fontSize: '1rem',
+                                    padding: '0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.2s ease',
+                                    minWidth: '1.5rem'
+                                  }}
+                                >
+                                  {isExpanded ? '▼' : '►'}
+                                </button>
                               </div>
-                              {/* 总进度条 */}
+                            </div>
+                            {/* 总进度条 */}
+                            <div style={{
+                              width: '100%',
+                              height: '6px',
+                              background: COLORS.accent,
+                              borderRadius: '3px',
+                              overflow: 'hidden',
+                              marginBottom: isExpanded ? '0.75rem' : '0'
+                            }}>
                               <div style={{
-                                width: '100%',
-                                height: '8px',
-                                background: COLORS.background,
-                                borderRadius: '4px',
-                                overflow: 'hidden'
-                              }}>
-                                <div style={{
-                                  width: `${Math.min(totalPercentage, 100)}%`,
-                                  height: '100%',
-                                  background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
-                                  transition: 'width 0.3s ease'
-                                }} />
-                              </div>
+                                width: `${Math.min(totalPercentage, 100)}%`,
+                                height: '100%',
+                                background: totalPercentage > 100 ? COLORS.danger : totalPercentage > 90 ? COLORS.warning : COLORS.success,
+                                transition: 'width 0.3s ease'
+                              }} />
                             </div>
                             
                             {/* 子类明细 - 仅在展开时显示 */}
