@@ -1502,14 +1502,14 @@ const FinanceDashboard = () => {
               className="tab-button-mobile"
               onClick={() => setActiveTab(tab)}
               style={{
-                background: 'none',
-                border: 'none',
+                background: activeTab === tab ? `${COLORS.highlight}15` : 'none',
+                border: activeTab === tab ? `2px solid ${COLORS.highlight}` : '2px solid transparent',
                 color: activeTab === tab ? COLORS.highlight : COLORS.textMuted,
-                padding: '1rem 1.5rem',
+                padding: '0.75rem 1.5rem',
                 fontSize: '1.1rem',
                 fontWeight: '600',
                 cursor: 'pointer',
-                borderBottom: activeTab === tab ? `3px solid ${COLORS.highlight}` : 'none',
+                borderRadius: '0.5rem',
                 transition: 'all 0.3s ease',
                 fontFamily: 'inherit'
               }}
@@ -2284,9 +2284,9 @@ const FinanceDashboard = () => {
             {/* Sub-Tab Navigation */}
             <div style={{
               display: 'flex',
-              gap: '1rem',
-              marginBottom: '2rem',
-              borderBottom: `2px solid ${COLORS.accent}`
+              gap: '0.5rem',
+              marginTop: '1rem',
+              marginBottom: '1.5rem'
             }}>
               {['overview', 'insights'].map((tab) => (
                 <button
@@ -2295,12 +2295,11 @@ const FinanceDashboard = () => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: expensesSubTab === tab ? COLORS.highlight : COLORS.textMuted,
-                    padding: '1rem 1.5rem',
-                    fontSize: '1.1rem',
+                    color: expensesSubTab === tab ? COLORS.text : COLORS.textMuted,
+                    padding: '0.5rem 1rem',
+                    fontSize: '1rem',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    borderBottom: expensesSubTab === tab ? `3px solid ${COLORS.highlight}` : 'none',
                     transition: 'all 0.3s ease',
                     fontFamily: 'inherit'
                   }}
@@ -2313,59 +2312,6 @@ const FinanceDashboard = () => {
             {/* Tab-1: 支出一览 */}
             {expensesSubTab === 'overview' && (
               <div>
-                {/* Month/Year Selector */}
-            <div style={{
-              background: COLORS.card,
-              borderRadius: '1rem',
-              padding: '1.5rem',
-              marginBottom: '2rem',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '1rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>选择月份:</span>
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                  style={{
-                    padding: '0.6rem 1rem',
-                    background: COLORS.accent,
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    color: COLORS.text,
-                    fontSize: '0.95rem',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                    <option key={m} value={m}>{m}月</option>
-                  ))}
-                </select>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                  style={{
-                    padding: '0.6rem 1rem',
-                    background: COLORS.accent,
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    color: COLORS.text,
-                    fontSize: '0.95rem',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028].map(y => (
-                    <option key={y} value={y}>{y}年</option>
-                  ))}
-                </select>
-              </div>
-            </div>
 
                 {/* 1&2. 本月支出和收入卡片 - 并排显示 */}
                 <div style={{
