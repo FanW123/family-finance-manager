@@ -2738,6 +2738,15 @@ const FinanceDashboard = () => {
                                 <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                                   ${spent.toFixed(0)} / ${Math.round(item.amount)}
                                 </span>
+                                <span style={{ 
+                                  fontSize: '0.85rem', 
+                                  fontWeight: '600',
+                                  minWidth: '3rem',
+                                  textAlign: 'right',
+                                  color: percentage > 100 ? COLORS.danger : percentage > 90 ? COLORS.warning : COLORS.success 
+                                }}>
+                                  {percentage.toFixed(0)}%
+                                </span>
                                 {/* 空占位符，保持和有折叠按钮的类别对齐 */}
                                 <div style={{ minWidth: '1.5rem' }}></div>
                               </div>
@@ -2926,6 +2935,15 @@ const FinanceDashboard = () => {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                                   ${spent.toFixed(0)} / ${Math.round(item.amount)}
+                                </span>
+                                <span style={{ 
+                                  fontSize: '0.85rem', 
+                                  fontWeight: '600',
+                                  minWidth: '3rem',
+                                  textAlign: 'right',
+                                  color: percentage > 100 ? COLORS.danger : percentage > 90 ? COLORS.warning : COLORS.success 
+                                }}>
+                                  {percentage.toFixed(0)}%
                                 </span>
                                 {/* 空占位符，保持和有折叠按钮的类别对齐 */}
                                 <div style={{ minWidth: '1.5rem' }}></div>
