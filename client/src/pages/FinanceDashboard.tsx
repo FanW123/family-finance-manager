@@ -6937,6 +6937,238 @@ const FinanceDashboard = () => {
                   );
                 })()}
 
+                {/* Asset Growth Projection Table */}
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  marginTop: '2rem'
+                }}>
+                  <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>📈 年度资产增值预测</h3>
+                  
+                  {(() => {
+                    // Calculate optimized retirement expenses
+                    const getLast12MonthsByGroup = () => {
+                      const now = new Date();
+                      const byGroup = { essential: 0, workRelated: 0, discretionary: 0 };
+                      
+                      for (let i = 0; i < 12; i++) {
+                        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        const monthData = monthlyAggregation[monthKey];
+                        
+                        if (monthData && monthData.byGroup) {
+                          byGroup.essential += monthData.byGroup.essential || 0;
+                          byGroup.workRelated += monthData.byGroup.workRelated || 0;
+                          byGroup.discretionary += monthData.byGroup.discretionary || 0;
+                        }
+                      }
+                      
+                      return byGroup;
+                    };
+                    
+                    const currentExpenses = getLast12MonthsByGroup();
+                    let optimizedAnnualExpenses = 0;
+                    
+                    // Calculate optimized expenses based on adjustments
+                    Object.keys(retirementExpenseAdjustments).forEach(key => {
+                      const adj = retirementExpenseAdjustments[key as keyof typeof retirementExpenseAdjustments];
+                      const currentAmount = currentExpenses[key as keyof typeof currentExpenses] || 0;
+                      
+                      if (adj.enabled) {
+                        if (key === 'essential' && adj.useCityPlanner && cityPlan.length > 0) {
+                          optimizedAnnualExpenses += cityPlan.reduce((sum: number, city: any) => sum + (city.monthlyCost * city.months), 0);
+                        } else if (currentAmount > 0) {
+                          optimizedAnnualExpenses += currentAmount * (1 + adj.adjustmentPct / 100);
+                        } else {
+                          optimizedAnnualExpenses += adj.customAmount || 0;
+                        }
+                      } else {
+                        optimizedAnnualExpenses += currentAmount;
+                      }
+                    });
+                    
+                    // Default values
+                    const initialAssets = totalPortfolio;
+                    const annualGrowthRate = estimatedAnnualGrowth / 100; // Convert to decimal
+                    const annualExpenses = optimizedAnnualExpenses;
+                    const yearsToProject = 30;
+                    
+                    // Generate projection data
+                    const projectionData = [];
+                    let currentAsset = initialAssets;
+                    
+                    for (let year = 1; year <= yearsToProject; year++) {
+                      const yearStartAsset = currentAsset;
+                      const yearGrowth = yearStartAsset * annualGrowthRate;
+                      const yearEndAsset = yearStartAsset + yearGrowth - annualExpenses;
+                      
+                      projectionData.push({
+                        year,
+                        startAsset: yearStartAsset,
+                        growth: yearGrowth,
+                        expenses: annualExpenses,
+                        endAsset: yearEndAsset
+                      });
+                      
+                      currentAsset = yearEndAsset;
+                      
+                      // Stop if assets depleted
+                      if (yearEndAsset <= 0) break;
+                    }
+                    
+                    return (
+                      <div>
+                        {/* Parameters Summary */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                          gap: '1rem',
+                          marginBottom: '1.5rem'
+                        }}>
+                          <div style={{
+                            background: COLORS.card,
+                            padding: '1rem',
+                            borderRadius: '0.5rem'
+                          }}>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              初始资产
+                            </div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.success }}>
+                              ${initialAssets.toLocaleString()}
+                            </div>
+                          </div>
+                          <div style={{
+                            background: COLORS.card,
+                            padding: '1rem',
+                            borderRadius: '0.5rem'
+                          }}>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              年增长率
+                            </div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.success }}>
+                              {estimatedAnnualGrowth.toFixed(1)}%
+                            </div>
+                          </div>
+                          <div style={{
+                            background: COLORS.card,
+                            padding: '1rem',
+                            borderRadius: '0.5rem'
+                          }}>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              年开销
+                            </div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.highlight }}>
+                              ${annualExpenses.toLocaleString()}
+                            </div>
+                          </div>
+                          <div style={{
+                            background: COLORS.card,
+                            padding: '1rem',
+                            borderRadius: '0.5rem'
+                          }}>
+                            <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              预测年数
+                            </div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.text }}>
+                              {yearsToProject}年
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Projection Table */}
+                        <div style={{
+                          background: COLORS.card,
+                          borderRadius: '0.5rem',
+                          overflow: 'hidden',
+                          maxHeight: '400px',
+                          overflowY: 'auto'
+                        }}>
+                          <table style={{
+                            width: '100%',
+                            borderCollapse: 'collapse',
+                            fontSize: '0.85rem'
+                          }}>
+                            <thead style={{
+                              position: 'sticky',
+                              top: 0,
+                              background: COLORS.accent,
+                              zIndex: 1
+                            }}>
+                              <tr>
+                                <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>
+                                  年份
+                                </th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>
+                                  年初资产
+                                </th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>
+                                  年增长
+                                </th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>
+                                  年开销
+                                </th>
+                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>
+                                  年末资产
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {projectionData.map((row, index) => (
+                                <tr key={row.year} style={{
+                                  background: index % 2 === 0 ? COLORS.card : `${COLORS.accent}50`,
+                                  borderBottom: `1px solid ${COLORS.accent}`
+                                }}>
+                                  <td style={{ padding: '0.75rem', color: COLORS.text }}>
+                                    第 {row.year} 年
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.text }}>
+                                    ${row.startAsset.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.success }}>
+                                    +${row.growth.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.highlight }}>
+                                    -${row.expenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td style={{
+                                    padding: '0.75rem',
+                                    textAlign: 'right',
+                                    color: row.endAsset > row.startAsset ? COLORS.success : row.endAsset > 0 ? COLORS.warning : COLORS.highlight,
+                                    fontWeight: '600'
+                                  }}>
+                                    ${row.endAsset.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                        {/* Summary insights */}
+                        <div style={{
+                          marginTop: '1rem',
+                          padding: '1rem',
+                          background: projectionData[projectionData.length - 1]?.endAsset > 0 ? `${COLORS.success}20` : `${COLORS.warning}20`,
+                          border: `1px solid ${projectionData[projectionData.length - 1]?.endAsset > 0 ? COLORS.success : COLORS.warning}`,
+                          borderRadius: '0.5rem',
+                          fontSize: '0.9rem'
+                        }}>
+                          {projectionData[projectionData.length - 1]?.endAsset > 0 ? (
+                            <>
+                              ✅ <strong>资产可持续：</strong> 在{yearsToProject}年后，你的资产预计还有 ${projectionData[projectionData.length - 1]?.endAsset.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            </>
+                          ) : (
+                            <>
+                              ⚠️ <strong>资产不足：</strong> 资产预计在第 {projectionData.findIndex(row => row.endAsset <= 0)} 年耗尽。建议增加资产、降低开销或提高投资回报率。
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
                 {/* Action Buttons */}
                 <div style={{
                   display: 'flex',
