@@ -1174,6 +1174,16 @@ const FinanceDashboard = () => {
   const prevMonthTotal = monthlyAggregation[prevMonthKey]?.total || 0;
   
   const monthOverMonthChange = prevMonthTotal > 0 ? ((currentMonthTotal - prevMonthTotal) / prevMonthTotal * 100) : 0;
+  
+  // Calculate income month over month change
+  const prevMonthIncomeTotal = incomes
+    .filter(income => {
+      const incomeDate = new Date(income.date);
+      return incomeDate.getMonth() + 1 === prevMonth && incomeDate.getFullYear() === prevYear;
+    })
+    .reduce((sum, income) => sum + (parseFloat(income.amount) || 0), 0);
+  
+  const incomeMonthOverMonthChange = prevMonthIncomeTotal > 0 ? ((currentMonthIncomeTotal - prevMonthIncomeTotal) / prevMonthIncomeTotal * 100) : 0;
 
   // Calculate expenses for filtered month
   const expensesByGroup = filteredExpenses.reduce((acc, expense) => {
@@ -2427,8 +2437,8 @@ const FinanceDashboard = () => {
                     <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.success, marginBottom: '0.5rem' }}>
                       ${currentMonthIncomeTotal.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
-                      本月实际收入
+                    <div style={{ fontSize: '0.9rem', color: incomeMonthOverMonthChange >= 0 ? COLORS.success : COLORS.danger }}>
+                      较上月 {incomeMonthOverMonthChange >= 0 ? '↑' : '↓'} {Math.abs(incomeMonthOverMonthChange).toFixed(1)}%
                     </div>
 
                   {/* Income List - Collapsible */}
