@@ -2664,7 +2664,7 @@ const FinanceDashboard = () => {
                                       transition: 'transform 0.2s ease'
                                     }}
                                   >
-                                    {isExpanded ? '▲' : '▼'}
+                                    {isExpanded ? '▼' : '►'}
                                   </button>
                                 </div>
                               </div>
@@ -2857,7 +2857,7 @@ const FinanceDashboard = () => {
                                       transition: 'transform 0.2s ease'
                                     }}
                                   >
-                                    {isExpanded ? '▲' : '▼'}
+                                    {isExpanded ? '▼' : '►'}
                                   </button>
                                 </div>
                               </div>
@@ -3048,7 +3048,7 @@ const FinanceDashboard = () => {
                                       transition: 'transform 0.2s ease'
                                     }}
                                   >
-                                    {isExpanded ? '▲' : '▼'}
+                                    {isExpanded ? '▼' : '►'}
                                   </button>
                                 </div>
                               </div>
