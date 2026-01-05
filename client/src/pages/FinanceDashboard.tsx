@@ -336,6 +336,8 @@ const FinanceDashboard = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [viewMode, setViewMode] = useState<'current' | 'trends'>('current');
   const [expensesSubTab, setExpensesSubTab] = useState<'overview' | 'insights'>('overview');
+  const [expenseFilterCategory, setExpenseFilterCategory] = useState<string>('all');
+  const [expenseFilterDate, setExpenseFilterDate] = useState<string>('');
   const [budgetTrackingTab, setBudgetTrackingTab] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [budgetMonth, setBudgetMonth] = useState(new Date().getMonth() + 1);
   const [budgetYear, setBudgetYear] = useState(new Date().getFullYear());
@@ -3859,12 +3861,84 @@ const FinanceDashboard = () => {
                           </div>
                         )}
 
-                        {/* Transaction List */}
+                        {/* 支出明细 */}
                         <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: `1px solid ${COLORS.accent}` }}>
-                          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>交易明细</h4>
+                          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem' }}>支出明细</h4>
+
+                          {/* 筛选：日期 / 大类 */}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <input
+                              type="date"
+                              value={expenseFilterDate}
+                              onChange={(e) => setExpenseFilterDate(e.target.value)}
+                              style={{
+                                padding: '0.45rem 0.65rem',
+                                borderRadius: '0.4rem',
+                                border: `1px solid ${COLORS.accent}`,
+                                background: COLORS.card,
+                                color: COLORS.text,
+                                fontFamily: 'inherit'
+                              }}
+                            />
+                            <select
+                              value={expenseFilterCategory}
+                              onChange={(e) => setExpenseFilterCategory(e.target.value)}
+                              style={{
+                                padding: '0.45rem 0.65rem',
+                                borderRadius: '0.4rem',
+                                border: `1px solid ${COLORS.accent}`,
+                                background: COLORS.card,
+                                color: COLORS.text,
+                                fontFamily: 'inherit'
+                              }}
+                            >
+                              <option value="all">全部类别</option>
+                              {budgetCategories?.map((cat: any) => (
+                                <option key={cat.id} value={cat.name}>{cat.name}</option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => {
+                                setExpenseFilterDate('');
+                                setExpenseFilterCategory('all');
+                              }}
+                              style={{
+                                padding: '0.45rem 0.75rem',
+                                borderRadius: '0.4rem',
+                                border: `1px solid ${COLORS.accent}`,
+                                background: COLORS.card,
+                                color: COLORS.text,
+                                fontFamily: 'inherit',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              重置
+                            </button>
+                          </div>
+
                           {filteredExpenses.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', maxHeight: '420px', overflowY: 'auto' }}>
                               {filteredExpenses
+                                .filter((expense) => {
+                                  // 日期过滤
+                                  if (expenseFilterDate) {
+                                    let expStr = '';
+                                    if (typeof expense.date === 'string') {
+                                      expStr = expense.date;
+                                    } else if (expense.date) {
+                                      const d = new Date(expense.date);
+                                      expStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                                    }
+                                    if (expStr !== expenseFilterDate) return false;
+                                  }
+                                  // 类别过滤（按大类）
+                                  if (expenseFilterCategory !== 'all') {
+                                    const rawName = expense.category || '未分类';
+                                    const parentName = rawName.includes(' - ') ? rawName.split(' - ')[0] : rawName;
+                                    if (parentName !== expenseFilterCategory) return false;
+                                  }
+                                  return true;
+                                })
                                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                                 .map((expense) => {
                                   // expense.category already stores the category name (not id)
@@ -3902,23 +3976,23 @@ const FinanceDashboard = () => {
                                       key={expense.id}
                                       style={{
                                         background: COLORS.accent,
-                                        borderRadius: '0.5rem',
-                                        padding: '1rem',
+                                        borderRadius: '0.4rem',
+                                        padding: '0.75rem',
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                         alignItems: 'center'
                                       }}
                                     >
                                       <div style={{ flex: 1 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                          <span style={{ fontSize: '1rem', fontWeight: '600' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                                          <span style={{ fontSize: '0.95rem', fontWeight: '600' }}>
                                             {categoryName}
                                           </span>
-                                          <span style={{ fontSize: '1.1rem', fontWeight: '700', color: COLORS.danger }}>
+                                          <span style={{ fontSize: '1.05rem', fontWeight: '700', color: COLORS.danger }}>
                                             ${expense.amount.toLocaleString()}
                                           </span>
                                         </div>
-                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                        <div style={{ fontSize: '0.82rem', color: COLORS.textMuted }}>
                                           {(() => {
                                             if (!expense.date) return '';
                                             if (typeof expense.date === 'string') {
@@ -3930,7 +4004,7 @@ const FinanceDashboard = () => {
                                           {expense.description && ` · ${expense.description}`}
                                         </div>
                                       </div>
-                                      <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                      <div style={{ display: 'flex', gap: '0.4rem', marginLeft: '0.75rem' }}>
                                         <button
                                           onClick={() => {
                                             const categoryId = findCategoryIdByName(categoryName);
@@ -3943,17 +4017,17 @@ const FinanceDashboard = () => {
                                             });
                                           }}
                                           style={{
-                                            padding: '0.4rem 0.8rem',
+                                            padding: '0.35rem 0.65rem',
                                             background: COLORS.card,
                                             border: `1px solid ${COLORS.highlight}`,
-                                            borderRadius: '0.35rem',
+                                            borderRadius: '0.3rem',
                                             color: COLORS.text,
-                                            fontSize: '0.85rem',
+                                            fontSize: '0.8rem',
                                             cursor: 'pointer',
                                             fontFamily: 'inherit',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '0.25rem'
+                                            gap: '0.2rem'
                                           }}
                                           title="编辑"
                                         >
@@ -3962,17 +4036,17 @@ const FinanceDashboard = () => {
                                         <button
                                           onClick={() => deleteExpense(expense.id)}
                                           style={{
-                                            padding: '0.4rem 0.8rem',
+                                            padding: '0.35rem 0.65rem',
                                             background: COLORS.card,
                                             border: `1px solid ${COLORS.danger}`,
-                                            borderRadius: '0.35rem',
+                                            borderRadius: '0.3rem',
                                             color: COLORS.danger,
-                                            fontSize: '0.85rem',
+                                            fontSize: '0.8rem',
                                             cursor: 'pointer',
                                             fontFamily: 'inherit',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '0.25rem'
+                                            gap: '0.2rem'
                                           }}
                                           title="删除"
                                         >
