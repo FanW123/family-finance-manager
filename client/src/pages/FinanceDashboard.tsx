@@ -2710,10 +2710,9 @@ const FinanceDashboard = () => {
                   let endDate: Date = new Date(budgetYear, budgetMonth, 0);
                   
                   if (budgetTrackingTab === 'weekly') {
-                    const now = new Date();
-                    startDate = new Date(now);
-                    startDate.setDate(now.getDate() - now.getDay());
-                    startDate.setHours(0, 0, 0, 0);
+                    // 对齐选中的月份/年份，按整月汇总周预算
+                    startDate = new Date(budgetYear, budgetMonth - 1, 1);
+                    endDate = new Date(budgetYear, budgetMonth, 0);
                   } else if (budgetTrackingTab === 'monthly') {
                     startDate = new Date(budgetYear, budgetMonth - 1, 1);
                   } else {
@@ -2869,10 +2868,9 @@ const FinanceDashboard = () => {
                   let endDate: Date = new Date(budgetYear, budgetMonth, 0);
                   
                   if (budgetTrackingTab === 'weekly') {
-                    const now = new Date();
-                    startDate = new Date(now);
-                    startDate.setDate(now.getDate() - now.getDay());
-                    startDate.setHours(0, 0, 0, 0);
+                    // 对齐选中的月份/年份，按整月汇总周预算
+                    startDate = new Date(budgetYear, budgetMonth - 1, 1);
+                    endDate = new Date(budgetYear, budgetMonth, 0);
                   } else if (budgetTrackingTab === 'monthly') {
                     startDate = new Date(budgetYear, budgetMonth - 1, 1);
                   } else {
