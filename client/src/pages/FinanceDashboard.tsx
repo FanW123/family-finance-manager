@@ -2647,9 +2647,14 @@ const FinanceDashboard = () => {
                     let totalBudget = 0;
                     let totalSpent = 0;
                     
-                    const trackableCategories = getAllTrackableCategories(
-                      budgetCategories, 
-                      budgetTrackingTab === 'weekly' ? 'weekly' : budgetTrackingTab === 'monthly' ? 'monthly' : 'yearly'
+                    // 模式：周仅周；月包含周+月；年包含周+月+年（预算叠加）
+                    const modes = budgetTrackingTab === 'weekly'
+                      ? ['weekly']
+                      : budgetTrackingTab === 'monthly'
+                        ? ['weekly', 'monthly']
+                        : ['weekly', 'monthly', 'yearly'];
+                    const trackableCategories = modes.flatMap(mode =>
+                      getAllTrackableCategories(budgetCategories, mode)
                     );
                   
                   // Calculate total budget
@@ -2779,9 +2784,14 @@ const FinanceDashboard = () => {
 
                   {/* Budget Tracking Details List */}
                   {budgetCategories && (() => {
-                  const trackableCategories = getAllTrackableCategories(
-                    budgetCategories, 
-                    budgetTrackingTab === 'weekly' ? 'weekly' : budgetTrackingTab === 'monthly' ? 'monthly' : 'yearly'
+                  // 模式：周仅周；月包含周+月；年包含周+月+年（预算叠加）
+                  const detailModes = budgetTrackingTab === 'weekly'
+                    ? ['weekly']
+                    : budgetTrackingTab === 'monthly'
+                      ? ['weekly', 'monthly']
+                      : ['weekly', 'monthly', 'yearly'];
+                  const trackableCategories = detailModes.flatMap(mode =>
+                    getAllTrackableCategories(budgetCategories, mode)
                   );
                   
                   if (trackableCategories.length === 0) return null;
