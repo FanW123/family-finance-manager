@@ -2649,10 +2649,14 @@ const FinanceDashboard = () => {
                     
                     // 模式：周仅周；月包含周+月；年包含周+月+年（预算叠加）
                     const modes = budgetTrackingTab === 'weekly'
-                      ? ['weekly']
+                      ? [{ mode: 'weekly', mult: 1 }]
                       : budgetTrackingTab === 'monthly'
-                        ? ['weekly', 'monthly']
-                        : ['weekly', 'monthly', 'yearly'];
+                        ? [{ mode: 'weekly', mult: 1 }, { mode: 'monthly', mult: 1 }]
+                        : [
+                            { mode: 'weekly', mult: 52 },   // 周预算年化
+                            { mode: 'monthly', mult: 12 },  // 月预算年化
+                            { mode: 'yearly', mult: 1 }
+                          ];
                     const mergeTrackable = (items: any[]) => {
                       const map = new Map();
                       items.forEach((item: any) => {
@@ -2684,7 +2688,18 @@ const FinanceDashboard = () => {
                       return Array.from(map.values());
                     };
                     const trackableCategories = mergeTrackable(
-                      modes.flatMap(mode => getAllTrackableCategories(budgetCategories, mode))
+                      modes.flatMap(({ mode, mult }) =>
+                        getAllTrackableCategories(budgetCategories, mode).map((item: any) => ({
+                          ...item,
+                          amount: (item.amount || 0) * mult,
+                          trackableChildren: item.trackableChildren
+                            ? item.trackableChildren.map((ch: any) => ({
+                                ...ch,
+                                amount: (ch.amount || 0) * mult
+                              }))
+                            : item.trackableChildren
+                        }))
+                      )
                     );
                   
                   // Calculate total budget
@@ -2815,10 +2830,14 @@ const FinanceDashboard = () => {
                   {budgetCategories && (() => {
                   // 模式：周仅周；月包含周+月；年包含周+月+年（预算叠加）
                   const detailModes = budgetTrackingTab === 'weekly'
-                    ? ['weekly']
+                    ? [{ mode: 'weekly', mult: 1 }]
                     : budgetTrackingTab === 'monthly'
-                      ? ['weekly', 'monthly']
-                      : ['weekly', 'monthly', 'yearly'];
+                      ? [{ mode: 'weekly', mult: 1 }, { mode: 'monthly', mult: 1 }]
+                      : [
+                          { mode: 'weekly', mult: 52 },   // 周预算年化
+                          { mode: 'monthly', mult: 12 },  // 月预算年化
+                          { mode: 'yearly', mult: 1 }
+                        ];
                   const mergeTrackable = (items: any[]) => {
                     const map = new Map();
                     items.forEach((item: any) => {
@@ -2850,7 +2869,18 @@ const FinanceDashboard = () => {
                     return Array.from(map.values());
                   };
                   const trackableCategories = mergeTrackable(
-                    detailModes.flatMap(mode => getAllTrackableCategories(budgetCategories, mode))
+                    detailModes.flatMap(({ mode, mult }) =>
+                      getAllTrackableCategories(budgetCategories, mode).map((item: any) => ({
+                        ...item,
+                        amount: (item.amount || 0) * mult,
+                        trackableChildren: item.trackableChildren
+                          ? item.trackableChildren.map((ch: any) => ({
+                              ...ch,
+                              amount: (ch.amount || 0) * mult
+                            }))
+                          : item.trackableChildren
+                      }))
+                    )
                   );
                   
                   if (trackableCategories.length === 0) return null;
