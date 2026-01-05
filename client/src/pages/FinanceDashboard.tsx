@@ -413,6 +413,7 @@ const FinanceDashboard = () => {
   const [calcAnnualExpenses, setCalcAnnualExpenses] = useState(40000);
   const [calcYearsToProject, setCalcYearsToProject] = useState(30);
   const [calcInflationRate, setCalcInflationRate] = useState(2.5);
+  const [fireExpenseRange, setFireExpenseRange] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   
   // Rebalance Simulator Parameters
   const [showRebalanceSimulator, setShowRebalanceSimulator] = useState(false);
@@ -3686,55 +3687,51 @@ const FinanceDashboard = () => {
                 }}>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>FIRE支出分析</h3>
                   
-                  {/* Calculate expense data by category */}
+                  {/* 按周/月/年切换，只汇总大类 */}
                   {(() => {
-                    // Helper function to find category info by name (expense.category stores name, not id)
-                    const findCategoryByName = (categoryName: string) => {
-                      if (!budgetCategories) return null;
-                      
-                      // Check if it's a parent-child format (e.g., "父分类 - 子分类")
-                      if (categoryName.includes(' - ')) {
-                        const [parentName, childName] = categoryName.split(' - ');
-                        for (const cat of budgetCategories) {
-                          if (cat.name === parentName && cat.isParent && cat.children) {
-                            const child = cat.children.find((c: any) => c.name === childName);
-                            if (child) {
-                              return { parent: cat, child: child, name: categoryName };
-                            }
-                          }
-                        }
-                      }
-                      
-                      // Check if it's a parent category name
-                      for (const cat of budgetCategories) {
-                        if (cat.name === categoryName) {
-                          return { parent: cat, child: null, name: categoryName };
-                        }
-                      }
-                      
-                      return null;
-                    };
+                    // 时间范围
+                    const now = new Date();
+                    let startDate: Date;
+                    let endDate: Date;
+                    if (fireExpenseRange === 'weekly') {
+                      startDate = new Date(now);
+                      startDate.setDate(now.getDate() - now.getDay());
+                      startDate.setHours(0, 0, 0, 0);
+                      endDate = new Date(startDate);
+                      endDate.setDate(startDate.getDate() + 6);
+                      endDate.setHours(23, 59, 59, 999);
+                    } else if (fireExpenseRange === 'monthly') {
+                      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+                    } else {
+                      startDate = new Date(now.getFullYear(), 0, 1);
+                      endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+                    }
 
-                    // Group expenses by category
-                    const expensesByCategory: Record<string, { name: string; amount: number; count: number }> = {};
-                    
-                    filteredExpenses.forEach(expense => {
-                      // expense.category stores the category name (not id)
-                      const categoryName = expense.category || '未分类';
-                      
-                      // Find category info
-                      const categoryInfo = findCategoryByName(categoryName);
-                      
-                      // Use category name as key (since that's what's stored in database)
-                      if (!expensesByCategory[categoryName]) {
-                        expensesByCategory[categoryName] = {
-                          name: categoryName,
-                          amount: 0,
-                          count: 0
-                        };
+                    // 过滤支出
+                    const withinRange = filteredExpenses.filter(expense => {
+                      if (!expense.date) return false;
+                      let d: Date;
+                      if (typeof expense.date === 'string') {
+                        const [y, m, dd] = expense.date.split('-').map(Number);
+                        d = new Date(y, m - 1, dd);
+                      } else {
+                        d = new Date(expense.date);
                       }
-                      expensesByCategory[categoryName].amount += expense.amount;
-                      expensesByCategory[categoryName].count += 1;
+                      return d >= startDate && d <= endDate;
+                    });
+
+                    // 按大类汇总（父类 - 子类取父类）
+                    const expensesByCategory: Record<string, { name: string; amount: number; count: number }> = {};
+                    withinRange.forEach(expense => {
+                      const rawName = expense.category || '未分类';
+                      const parentName = rawName.includes(' - ') ? rawName.split(' - ')[0] : rawName;
+                      const key = parentName;
+                      if (!expensesByCategory[key]) {
+                        expensesByCategory[key] = { name: parentName, amount: 0, count: 0 };
+                      }
+                      expensesByCategory[key].amount += expense.amount;
+                      expensesByCategory[key].count += 1;
                     });
 
                     // Convert to array for pie chart
