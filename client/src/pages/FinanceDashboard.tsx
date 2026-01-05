@@ -2663,7 +2663,7 @@ const FinanceDashboard = () => {
                     const modes = budgetTrackingTab === 'weekly'
                       ? [{ mode: 'weekly', mult: 1 }]
                       : budgetTrackingTab === 'monthly'
-                        ? [{ mode: 'weekly', mult: 1 }, { mode: 'monthly', mult: 1 }]
+                        ? [{ mode: 'weekly', mult: 4 }, { mode: 'monthly', mult: 1 }]  // 周预算月化：*4
                         : [
                             { mode: 'weekly', mult: 52 },   // 周预算年化
                             { mode: 'monthly', mult: 12 },  // 月预算年化
@@ -2844,7 +2844,7 @@ const FinanceDashboard = () => {
                   const detailModes = budgetTrackingTab === 'weekly'
                     ? [{ mode: 'weekly', mult: 1 }]
                     : budgetTrackingTab === 'monthly'
-                      ? [{ mode: 'weekly', mult: 1 }, { mode: 'monthly', mult: 1 }]
+                      ? [{ mode: 'weekly', mult: 4 }, { mode: 'monthly', mult: 1 }]  // 周预算月化：*4
                       : [
                           { mode: 'weekly', mult: 52 },   // 周预算年化
                           { mode: 'monthly', mult: 12 },  // 月预算年化
