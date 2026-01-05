@@ -4488,7 +4488,8 @@ const FinanceDashboard = () => {
             {/* Budget Management UI */}
             {!showBudgetWizard && budgetCategories && (
               <div>
-                {/* Top Bar: Month Selector + Tabs */}
+                {/* 支出管理 - 已移动到收支管理tab */}
+                <div style={{ display: 'none' }}>
                 <div style={{
                   background: COLORS.card,
                   borderRadius: '1rem',
@@ -5011,6 +5012,7 @@ const FinanceDashboard = () => {
                       </>
                     );
                   })()}
+                </div>
                 </div>
 
                 {/* Categories List */}
