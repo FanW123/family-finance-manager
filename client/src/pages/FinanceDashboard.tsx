@@ -2659,11 +2659,15 @@ const FinanceDashboard = () => {
                     let totalBudget = 0;
                     let totalSpent = 0;
                     
-                    // 模式：周仅周；月包含周+月；年包含周+月+年（预算叠加）
+                    // 模式：周仅周；月包含周+月+年；年包含周+月+年（预算叠加）
                     const modes = budgetTrackingTab === 'weekly'
                       ? [{ mode: 'weekly', mult: 1 }]
                       : budgetTrackingTab === 'monthly'
-                        ? [{ mode: 'weekly', mult: 4 }, { mode: 'monthly', mult: 1 }]  // 周预算月化：*4
+                        ? [
+                            { mode: 'weekly', mult: 4 },      // 周预算月化：*4
+                            { mode: 'monthly', mult: 1 },     // 月预算
+                            { mode: 'yearly', mult: 1/12 }    // 年预算月化：/12
+                          ]
                         : [
                             { mode: 'weekly', mult: 52 },   // 周预算年化
                             { mode: 'monthly', mult: 12 },  // 月预算年化
@@ -2840,11 +2844,15 @@ const FinanceDashboard = () => {
 
                   {/* Budget Tracking Details List */}
                   {budgetCategories && (() => {
-                  // 模式：周仅周；月包含周+月；年包含周+月+年（预算叠加）
+                  // 模式：周仅周；月包含周+月+年；年包含周+月+年（预算叠加）
                   const detailModes = budgetTrackingTab === 'weekly'
                     ? [{ mode: 'weekly', mult: 1 }]
                     : budgetTrackingTab === 'monthly'
-                      ? [{ mode: 'weekly', mult: 4 }, { mode: 'monthly', mult: 1 }]  // 周预算月化：*4
+                      ? [
+                          { mode: 'weekly', mult: 4 },      // 周预算月化：*4
+                          { mode: 'monthly', mult: 1 },     // 月预算
+                          { mode: 'yearly', mult: 1/12 }    // 年预算月化：/12
+                        ]
                       : [
                           { mode: 'weekly', mult: 52 },   // 周预算年化
                           { mode: 'monthly', mult: 12 },  // 月预算年化
