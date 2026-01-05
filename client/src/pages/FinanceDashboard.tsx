@@ -5228,6 +5228,47 @@ const FinanceDashboard = () => {
                 </div>
                 </div>
 
+                {/* 全年预计开销卡片 */}
+                {(() => {
+                  const totalYearly = budgetCategories.reduce((sum: number, cat: any) => {
+                    return sum + calculateYearlyAmount(cat);
+                  }, 0);
+                  
+                  return (
+                    <div style={{
+                      background: COLORS.card,
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      marginBottom: '2rem',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                      border: `2px solid ${COLORS.highlight}`
+                    }}>
+                      <div style={{ 
+                        fontSize: '0.95rem', 
+                        color: COLORS.textMuted, 
+                        marginBottom: '0.75rem',
+                        fontWeight: '600'
+                      }}>
+                        全年预计开销
+                      </div>
+                      <div style={{ 
+                        fontSize: '3rem', 
+                        fontWeight: '700', 
+                        color: COLORS.highlight,
+                        marginBottom: '0.5rem'
+                      }}>
+                        ${totalYearly.toLocaleString()}
+                      </div>
+                      <div style={{ 
+                        fontSize: '0.85rem', 
+                        color: COLORS.textMuted 
+                      }}>
+                        基于当前所有预算设置计算
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Categories List */}
                 <div style={{
                   background: COLORS.card,
