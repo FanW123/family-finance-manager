@@ -2653,8 +2653,38 @@ const FinanceDashboard = () => {
                       : budgetTrackingTab === 'monthly'
                         ? ['weekly', 'monthly']
                         : ['weekly', 'monthly', 'yearly'];
-                    const trackableCategories = modes.flatMap(mode =>
-                      getAllTrackableCategories(budgetCategories, mode)
+                    const mergeTrackable = (items: any[]) => {
+                      const map = new Map();
+                      items.forEach((item: any) => {
+                        if (item.isGroupSummary) {
+                          const key = `g-${item.name}`;
+                          const existing: any = map.get(key);
+                          const children = item.trackableChildren || [];
+                          if (!existing) {
+                            map.set(key, { ...item, trackableChildren: [...children] });
+                          } else {
+                            const mergedChild = new Map();
+                            [...existing.trackableChildren, ...children].forEach((ch: any) => {
+                              const ck = ch.name;
+                              const prev = mergedChild.get(ck);
+                              mergedChild.set(ck, prev ? { ...ch, amount: (prev.amount || 0) + (ch.amount || 0) } : { ...ch });
+                            });
+                            existing.trackableChildren = Array.from(mergedChild.values());
+                          }
+                        } else {
+                          const key = `s-${item.name}`;
+                          const existing: any = map.get(key);
+                          if (existing) {
+                            existing.amount = (existing.amount || 0) + (item.amount || 0);
+                          } else {
+                            map.set(key, { ...item });
+                          }
+                        }
+                      });
+                      return Array.from(map.values());
+                    };
+                    const trackableCategories = mergeTrackable(
+                      modes.flatMap(mode => getAllTrackableCategories(budgetCategories, mode))
                     );
                   
                   // Calculate total budget
@@ -2790,8 +2820,38 @@ const FinanceDashboard = () => {
                     : budgetTrackingTab === 'monthly'
                       ? ['weekly', 'monthly']
                       : ['weekly', 'monthly', 'yearly'];
-                  const trackableCategories = detailModes.flatMap(mode =>
-                    getAllTrackableCategories(budgetCategories, mode)
+                  const mergeTrackable = (items: any[]) => {
+                    const map = new Map();
+                    items.forEach((item: any) => {
+                      if (item.isGroupSummary) {
+                        const key = `g-${item.name}`;
+                        const existing: any = map.get(key);
+                        const children = item.trackableChildren || [];
+                        if (!existing) {
+                          map.set(key, { ...item, trackableChildren: [...children] });
+                        } else {
+                          const mergedChild = new Map();
+                          [...existing.trackableChildren, ...children].forEach((ch: any) => {
+                            const ck = ch.name;
+                            const prev = mergedChild.get(ck);
+                            mergedChild.set(ck, prev ? { ...ch, amount: (prev.amount || 0) + (ch.amount || 0) } : { ...ch });
+                          });
+                          existing.trackableChildren = Array.from(mergedChild.values());
+                        }
+                      } else {
+                        const key = `s-${item.name}`;
+                        const existing: any = map.get(key);
+                        if (existing) {
+                          existing.amount = (existing.amount || 0) + (item.amount || 0);
+                        } else {
+                          map.set(key, { ...item });
+                        }
+                      }
+                    });
+                    return Array.from(map.values());
+                  };
+                  const trackableCategories = mergeTrackable(
+                    detailModes.flatMap(mode => getAllTrackableCategories(budgetCategories, mode))
                   );
                   
                   if (trackableCategories.length === 0) return null;
