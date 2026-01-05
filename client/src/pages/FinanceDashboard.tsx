@@ -2539,70 +2539,75 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
 
-                {/* 支出管理 - 新的Tab界面 */}
+                {/* 支出管理 - 统一大框包裹标题、Tab、汇总和明细 */}
                 <div style={{
-                  background: COLORS.card,
+                  background: '#1f2a3b', // 灰蓝背景
                   borderRadius: '1rem',
                   padding: '1.5rem 2rem',
                   marginBottom: '2rem',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '1rem'
-                }}>
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>支出管理</h2>
-                  
-                  {/* Month/Year Selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <select
-                      value={budgetMonth}
-                      onChange={(e) => setBudgetMonth(parseInt(e.target.value))}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '0.95rem',
-                        fontFamily: 'inherit',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                        <option key={m} value={m}>{m}月</option>
-                      ))}
-                    </select>
-                    <select
-                      value={budgetYear}
-                      onChange={(e) => setBudgetYear(parseInt(e.target.value))}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '0.95rem',
-                        fontFamily: 'inherit',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {[2023, 2024, 2025, 2026, 2027, 2028].map(y => (
-                        <option key={y} value={y}>{y}年</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div style={{
-                  background: '#1f2a3b', // 灰蓝背景，更明显的容器
-                  borderRadius: '1rem',
-                  padding: '1.25rem',
-                  marginBottom: '1.5rem',
                   boxShadow: '0 10px 36px rgba(0, 0, 0, 0.28)',
                   border: '1px solid #2b364a'
                 }}>
+                  {/* 标题与月份选择 */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '1rem',
+                    marginBottom: '1rem'
+                  }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>支出管理</h2>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <select
+                        value={budgetMonth}
+                        onChange={(e) => setBudgetMonth(parseInt(e.target.value))}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: COLORS.accent,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.95rem',
+                          fontFamily: 'inherit',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                          <option key={m} value={m}>{m}月</option>
+                        ))}
+                      </select>
+                      <select
+                        value={budgetYear}
+                        onChange={(e) => setBudgetYear(parseInt(e.target.value))}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: COLORS.accent,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.95rem',
+                          fontFamily: 'inherit',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {[2023, 2024, 2025, 2026, 2027, 2028].map(y => (
+                          <option key={y} value={y}>{y}年</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Tab + 汇总卡片 */}
+                  <div style={{
+                    background: '#1f2a3b', // 与外框同色，保持层次
+                    borderRadius: '1rem',
+                    padding: '1.25rem',
+                    marginBottom: '1rem',
+                    boxShadow: '0 10px 36px rgba(0, 0, 0, 0.28)',
+                    border: '1px solid #2b364a'
+                  }}>
                   {/* Budget Tracking Tabs */}
                   <div style={{
                     display: 'grid',
@@ -2772,8 +2777,8 @@ const FinanceDashboard = () => {
                   })()}
                 </div>
 
-                {/* Budget Tracking Details List */}
-                {budgetCategories && (() => {
+                  {/* Budget Tracking Details List */}
+                  {budgetCategories && (() => {
                   const trackableCategories = getAllTrackableCategories(
                     budgetCategories, 
                     budgetTrackingTab === 'weekly' ? 'weekly' : budgetTrackingTab === 'monthly' ? 'monthly' : 'yearly'
@@ -2805,189 +2810,190 @@ const FinanceDashboard = () => {
                     endDate = new Date(budgetYear, 11, 31);
                   }
                   
-                  return (
-                    <div style={{
-                      background: COLORS.card,
-                      borderRadius: '1rem',
-                      padding: '2rem',
-                      marginBottom: '1.5rem',
-                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-                    }}>
-                      {trackableCategories.map((item: any) => {
-                        if (item.isGroupSummary && item.trackableChildren) {
-                          const totalBudget = item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
-                          const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
-                            return sum + expenses
+                    return (
+                      <div style={{
+                        background: COLORS.card,
+                        borderRadius: '1rem',
+                        padding: '2rem',
+                        marginBottom: '1.5rem',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                      }}>
+                        {trackableCategories.map((item: any) => {
+                          if (item.isGroupSummary && item.trackableChildren) {
+                            const totalBudget = item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
+                            const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
+                              return sum + expenses
+                                .filter(exp => {
+                                  const expDate = new Date(exp.date);
+                                  return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
+                                })
+                                .reduce((s, e) => s + e.amount, 0);
+                            }, 0);
+                            const totalPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+                            const isExpanded = budgetTrackingTab === 'monthly' ? expandedMonthlyCategories.has(item.id) : 
+                                             budgetTrackingTab === 'weekly' ? expandedWeeklyCategories.has(item.id) : 
+                                             expandedYearlyCategories.has(item.id);
+                            
+                            return (
+                              <div key={item.id} style={{ marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                                  <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                      ${totalSpent.toFixed(0)} / ${Math.round(totalBudget)}
+                                    </span>
+                                    <span style={{ 
+                                      fontSize: '0.85rem', 
+                                      fontWeight: '600',
+                                      minWidth: '3rem',
+                                      textAlign: 'right',
+                                      color: totalPercentage > 100 ? COLORS.danger : COLORS.success 
+                                    }}>
+                                      {totalPercentage.toFixed(0)}%
+                                    </span>
+                                    <button
+                                      onClick={() => {
+                                        if (budgetTrackingTab === 'monthly') {
+                                          const newExpanded = new Set(expandedMonthlyCategories);
+                                          isExpanded ? newExpanded.delete(item.id) : newExpanded.add(item.id);
+                                          setExpandedMonthlyCategories(newExpanded);
+                                        } else if (budgetTrackingTab === 'weekly') {
+                                          const newExpanded = new Set(expandedWeeklyCategories);
+                                          isExpanded ? newExpanded.delete(item.id) : newExpanded.add(item.id);
+                                          setExpandedWeeklyCategories(newExpanded);
+                                        } else {
+                                          const newExpanded = new Set(expandedYearlyCategories);
+                                          isExpanded ? newExpanded.delete(item.id) : newExpanded.add(item.id);
+                                          setExpandedYearlyCategories(newExpanded);
+                                        }
+                                      }}
+                                      style={{
+                                        cursor: 'pointer',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: COLORS.textMuted,
+                                        fontSize: '1rem',
+                                        padding: '0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'transform 0.2s ease',
+                                        minWidth: '1.5rem'
+                                      }}
+                                    >
+                                      {isExpanded ? '▼' : '►'}
+                                    </button>
+                                  </div>
+                                </div>
+                                <div style={{
+                                  width: '100%',
+                                  height: '6px',
+                                  background: COLORS.accent,
+                                  borderRadius: '3px',
+                                  overflow: 'hidden',
+                                  marginBottom: isExpanded ? '0.75rem' : '0'
+                                }}>
+                                  <div style={{
+                                    width: `${Math.min(totalPercentage, 100)}%`,
+                                    height: '100%',
+                                    background: totalPercentage > 100 ? COLORS.danger : COLORS.success,
+                                    transition: 'width 0.3s ease'
+                                  }} />
+                                </div>
+                                
+                                {isExpanded && (
+                                  <div style={{ paddingLeft: '1rem' }}>
+                                    {item.trackableChildren.map((child: any) => {
+                                      const spent = expenses
+                                        .filter(exp => {
+                                          const expDate = new Date(exp.date);
+                                          return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
+                                        })
+                                        .reduce((sum, exp) => sum + exp.amount, 0);
+                                      
+                                      const percentage = (spent / child.amount) * 100;
+                                      
+                                      return (
+                                        <div key={child.id} style={{ marginBottom: '0.75rem', paddingLeft: '0.5rem' }}>
+                                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>├─ {child.name}</span>
+                                            <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
+                                              ${spent.toFixed(0)} / ${Math.round(child.amount)}
+                                            </span>
+                                          </div>
+                                          <div style={{
+                                            width: '100%',
+                                            height: '5px',
+                                            background: COLORS.accent,
+                                            borderRadius: '2.5px',
+                                            overflow: 'hidden'
+                                          }}>
+                                            <div style={{
+                                              width: `${Math.min(percentage, 100)}%`,
+                                              height: '100%',
+                                              background: percentage > 100 ? COLORS.danger : COLORS.success,
+                                              transition: 'width 0.3s ease'
+                                            }} />
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          } else {
+                            const spent = expenses
                               .filter(exp => {
                                 const expDate = new Date(exp.date);
-                                return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
+                                return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item);
                               })
-                              .reduce((s, e) => s + e.amount, 0);
-                          }, 0);
-                          const totalPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
-                          const isExpanded = budgetTrackingTab === 'monthly' ? expandedMonthlyCategories.has(item.id) : 
-                                           budgetTrackingTab === 'weekly' ? expandedWeeklyCategories.has(item.id) : 
-                                           expandedYearlyCategories.has(item.id);
-                          
-                          return (
-                            <div key={item.id} style={{ marginBottom: '1rem' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-                                <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                  <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                    ${totalSpent.toFixed(0)} / ${Math.round(totalBudget)}
-                                  </span>
-                                  <span style={{ 
-                                    fontSize: '0.85rem', 
-                                    fontWeight: '600',
-                                    minWidth: '3rem',
-                                    textAlign: 'right',
-                                    color: totalPercentage > 100 ? COLORS.danger : COLORS.success 
-                                  }}>
-                                    {totalPercentage.toFixed(0)}%
-                                  </span>
-                                  <button
-                                    onClick={() => {
-                                      if (budgetTrackingTab === 'monthly') {
-                                        const newExpanded = new Set(expandedMonthlyCategories);
-                                        isExpanded ? newExpanded.delete(item.id) : newExpanded.add(item.id);
-                                        setExpandedMonthlyCategories(newExpanded);
-                                      } else if (budgetTrackingTab === 'weekly') {
-                                        const newExpanded = new Set(expandedWeeklyCategories);
-                                        isExpanded ? newExpanded.delete(item.id) : newExpanded.add(item.id);
-                                        setExpandedWeeklyCategories(newExpanded);
-                                      } else {
-                                        const newExpanded = new Set(expandedYearlyCategories);
-                                        isExpanded ? newExpanded.delete(item.id) : newExpanded.add(item.id);
-                                        setExpandedYearlyCategories(newExpanded);
-                                      }
-                                    }}
-                                    style={{
-                                      cursor: 'pointer',
-                                      background: 'transparent',
-                                      border: 'none',
-                                      color: COLORS.textMuted,
-                                      fontSize: '1rem',
-                                      padding: '0',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      transition: 'transform 0.2s ease',
-                                      minWidth: '1.5rem'
-                                    }}
-                                  >
-                                    {isExpanded ? '▼' : '►'}
-                                  </button>
+                              .reduce((sum, exp) => sum + exp.amount, 0);
+                            
+                            const percentage = (spent / item.amount) * 100;
+                            
+                            return (
+                              <div key={item.id} style={{ marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                                  <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                      ${spent.toFixed(0)} / ${Math.round(item.amount)}
+                                    </span>
+                                    <span style={{ 
+                                      fontSize: '0.85rem', 
+                                      fontWeight: '600',
+                                      minWidth: '3rem',
+                                      textAlign: 'right',
+                                      color: percentage > 100 ? COLORS.danger : COLORS.success 
+                                    }}>
+                                      {percentage.toFixed(0)}%
+                                    </span>
+                                    <div style={{ minWidth: '1.5rem' }}></div>
+                                  </div>
                                 </div>
-                              </div>
-                              <div style={{
-                                width: '100%',
-                                height: '6px',
-                                background: COLORS.accent,
-                                borderRadius: '3px',
-                                overflow: 'hidden',
-                                marginBottom: isExpanded ? '0.75rem' : '0'
-                              }}>
                                 <div style={{
-                                  width: `${Math.min(totalPercentage, 100)}%`,
-                                  height: '100%',
-                                  background: totalPercentage > 100 ? COLORS.danger : COLORS.success,
-                                  transition: 'width 0.3s ease'
-                                }} />
-                              </div>
-                              
-                              {isExpanded && (
-                                <div style={{ paddingLeft: '1rem' }}>
-                                  {item.trackableChildren.map((child: any) => {
-                                    const spent = expenses
-                                      .filter(exp => {
-                                        const expDate = new Date(exp.date);
-                                        return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
-                                      })
-                                      .reduce((sum, exp) => sum + exp.amount, 0);
-                                    
-                                    const percentage = (spent / child.amount) * 100;
-                                    
-                                    return (
-                                      <div key={child.id} style={{ marginBottom: '0.75rem', paddingLeft: '0.5rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                                          <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>├─ {child.name}</span>
-                                          <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
-                                            ${spent.toFixed(0)} / ${Math.round(child.amount)}
-                                          </span>
-                                        </div>
-                                        <div style={{
-                                          width: '100%',
-                                          height: '5px',
-                                          background: COLORS.accent,
-                                          borderRadius: '2.5px',
-                                          overflow: 'hidden'
-                                        }}>
-                                          <div style={{
-                                            width: `${Math.min(percentage, 100)}%`,
-                                            height: '100%',
-                                            background: percentage > 100 ? COLORS.danger : COLORS.success,
-                                            transition: 'width 0.3s ease'
-                                          }} />
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        } else {
-                          const spent = expenses
-                            .filter(exp => {
-                              const expDate = new Date(exp.date);
-                              return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item);
-                            })
-                            .reduce((sum, exp) => sum + exp.amount, 0);
-                          
-                          const percentage = (spent / item.amount) * 100;
-                          
-                          return (
-                            <div key={item.id} style={{ marginBottom: '1rem' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-                                <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                  <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                    ${spent.toFixed(0)} / ${Math.round(item.amount)}
-                                  </span>
-                                  <span style={{ 
-                                    fontSize: '0.85rem', 
-                                    fontWeight: '600',
-                                    minWidth: '3rem',
-                                    textAlign: 'right',
-                                    color: percentage > 100 ? COLORS.danger : COLORS.success 
-                                  }}>
-                                    {percentage.toFixed(0)}%
-                                  </span>
-                                  <div style={{ minWidth: '1.5rem' }}></div>
+                                  width: '100%',
+                                  height: '6px',
+                                  background: COLORS.accent,
+                                  borderRadius: '3px',
+                                  overflow: 'hidden'
+                                }}>
+                                  <div style={{
+                                    width: `${Math.min(percentage, 100)}%`,
+                                    height: '100%',
+                                    background: percentage > 100 ? COLORS.danger : COLORS.success,
+                                    transition: 'width 0.3s ease'
+                                  }} />
                                 </div>
                               </div>
-                              <div style={{
-                                width: '100%',
-                                height: '6px',
-                                background: COLORS.accent,
-                                borderRadius: '3px',
-                                overflow: 'hidden'
-                              }}>
-                                <div style={{
-                                  width: `${Math.min(percentage, 100)}%`,
-                                  height: '100%',
-                                  background: percentage > 100 ? COLORS.danger : COLORS.success,
-                                  transition: 'width 0.3s ease'
-                                }} />
-                              </div>
-                            </div>
-                          );
-                        }
-                      })}
-                    </div>
-                  );
-                })()}
+                            );
+                          }
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
 
                 {/* OLD: 3. 本周预算追踪卡片 - 已移动到上面的支出管理界面 */}
                 {false && budgetCategories && getAllTrackableCategories(budgetCategories, 'weekly').length > 0 && (
