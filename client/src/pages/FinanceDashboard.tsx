@@ -2699,57 +2699,65 @@ const FinanceDashboard = () => {
                   
                   return (
                     <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, 1fr)',
-                      gap: '1.5rem',
-                      marginBottom: '2rem'
+                      background: COLORS.card,
+                      borderRadius: '1rem',
+                      padding: '1.25rem',
+                      marginBottom: '2rem',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                      border: `1px solid ${COLORS.accent}`
                     }}>
                       <div style={{
-                        background: COLORS.card,
-                        borderRadius: '1rem',
-                        padding: '2rem',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                        border: `2px solid ${COLORS.warning}`
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                        gap: '1rem'
                       }}>
-                        <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                          总支出
-                        </div>
-                        <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.warning }}>
-                          ${Math.round(totalSpent).toLocaleString()}
-                        </div>
-                      </div>
-                      
-                      <div style={{
-                        background: COLORS.card,
-                        borderRadius: '1rem',
-                        padding: '2rem',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                        border: `2px solid ${COLORS.textMuted}`
-                      }}>
-                        <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                          总预算
-                        </div>
-                        <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.text }}>
-                          ${Math.round(totalBudget).toLocaleString()}
-                        </div>
-                      </div>
-                      
-                      <div style={{
-                        background: COLORS.card,
-                        borderRadius: '1rem',
-                        padding: '2rem',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                        border: `2px solid ${usagePercentage > 100 ? COLORS.danger : COLORS.highlight}`
-                      }}>
-                        <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
-                          预算使用率
-                        </div>
-                        <div style={{ 
-                          fontSize: '2.5rem', 
-                          fontWeight: '700', 
-                          color: usagePercentage > 100 ? COLORS.danger : COLORS.highlight 
+                        <div style={{
+                          background: COLORS.card,
+                          borderRadius: '0.9rem',
+                          padding: '1.5rem',
+                          boxShadow: '0 6px 24px rgba(0, 0, 0, 0.25)',
+                          border: `2px solid ${COLORS.warning}`
                         }}>
-                          {usagePercentage.toFixed(0)}%
+                          <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.35rem' }}>
+                            总支出
+                          </div>
+                          <div style={{ fontSize: '2.3rem', fontWeight: '700', color: COLORS.warning }}>
+                            ${Math.round(totalSpent).toLocaleString()}
+                          </div>
+                        </div>
+                        
+                        <div style={{
+                          background: COLORS.card,
+                          borderRadius: '0.9rem',
+                          padding: '1.5rem',
+                          boxShadow: '0 6px 24px rgba(0, 0, 0, 0.25)',
+                          border: `2px solid ${COLORS.textMuted}`
+                        }}>
+                          <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.35rem' }}>
+                            总预算
+                          </div>
+                          <div style={{ fontSize: '2.3rem', fontWeight: '700', color: COLORS.text }}>
+                            ${Math.round(totalBudget).toLocaleString()}
+                          </div>
+                        </div>
+                        
+                        <div style={{
+                          background: COLORS.card,
+                          borderRadius: '0.9rem',
+                          padding: '1.5rem',
+                          boxShadow: '0 6px 24px rgba(0, 0, 0, 0.25)',
+                          border: `2px solid ${usagePercentage > 100 ? COLORS.danger : COLORS.highlight}`
+                        }}>
+                          <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.35rem' }}>
+                            预算使用率
+                          </div>
+                          <div style={{ 
+                            fontSize: '2.3rem', 
+                            fontWeight: '700', 
+                            color: usagePercentage > 100 ? COLORS.danger : COLORS.highlight 
+                          }}>
+                            {usagePercentage.toFixed(0)}%
+                          </div>
                         </div>
                       </div>
                     </div>
