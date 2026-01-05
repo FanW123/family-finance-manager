@@ -344,7 +344,7 @@ const FinanceDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [viewMode, setViewMode] = useState<'current' | 'trends'>('current');
-  const [expensesSubTab, setExpensesSubTab] = useState<'overview' | 'insights'>('overview');
+  const [expensesSubTab, setExpensesSubTab] = useState<'overview' | 'insights' | 'budget'>('overview');
   const [expenseFilterCategory, setExpenseFilterCategory] = useState<string>('all');
   const [expenseFilterDate, setExpenseFilterDate] = useState<string>('');
   const [budgetTrackingTab, setBudgetTrackingTab] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
@@ -1511,7 +1511,7 @@ const FinanceDashboard = () => {
           marginBottom: '2rem',
           borderBottom: `1px solid ${COLORS.accent}`
         }}>
-          {['dashboard', 'expenses', 'budget', 'portfolio', 'rebalance'].map(tab => (
+          {['dashboard', 'expenses', 'portfolio', 'rebalance'].map(tab => (
             <button
               key={tab}
               className="tab-button-mobile"
@@ -1529,7 +1529,7 @@ const FinanceDashboard = () => {
                 fontFamily: 'inherit'
               }}
             >
-              {tab === 'dashboard' ? 'FIRE总览' : tab === 'expenses' ? '收支管理' : tab === 'budget' ? '预算管理' : tab === 'portfolio' ? '投资组合' : '再平衡建议'}
+              {tab === 'dashboard' ? 'FIRE总览' : tab === 'expenses' ? '收支管理' : tab === 'portfolio' ? '投资组合' : '再平衡建议'}
             </button>
           ))}
         </div>
@@ -2303,10 +2303,10 @@ const FinanceDashboard = () => {
               marginTop: '1rem',
               marginBottom: '1.5rem'
             }}>
-              {['overview', 'insights'].map((tab) => (
+              {['overview', 'insights', 'budget'].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setExpensesSubTab(tab as 'overview' | 'insights')}
+                  onClick={() => setExpensesSubTab(tab as 'overview' | 'insights' | 'budget')}
                   style={{
                     background: 'none',
                     border: 'none',
@@ -2319,7 +2319,7 @@ const FinanceDashboard = () => {
                     fontFamily: 'inherit'
                   }}
                 >
-                  {tab === 'overview' ? '支出一览' : '支出洞察'}
+                  {tab === 'overview' ? '支出一览' : tab === 'insights' ? '支出洞察' : '预算管理'}
                 </button>
               ))}
             </div>
@@ -4607,11 +4607,9 @@ const FinanceDashboard = () => {
                 </div>
               </div>
             )}
-          </div>
-        )}
 
-        {/* Budget Tab */}
-        {activeTab === 'budget' && (
+            {/* Tab-3: 预算管理 */}
+            {expensesSubTab === 'budget' && (
           <div>
             {/* Budget Wizard for new users */}
             {showBudgetWizard && (
@@ -5630,6 +5628,8 @@ const FinanceDashboard = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
           </div>
         )}
 
