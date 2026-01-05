@@ -3922,7 +3922,14 @@ const FinanceDashboard = () => {
                                           </span>
                                         </div>
                                         <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                          {new Date(expense.date).toLocaleDateString('zh-CN')}
+                                          {(() => {
+                                            if (!expense.date) return '';
+                                            if (typeof expense.date === 'string') {
+                                              const [y, m, d] = expense.date.split('-').map(Number);
+                                              return new Date(y, m - 1, d).toLocaleDateString('zh-CN');
+                                            }
+                                            return new Date(expense.date).toLocaleDateString('zh-CN');
+                                          })()}
                                           {expense.description && ` · ${expense.description}`}
                                         </div>
                                       </div>
