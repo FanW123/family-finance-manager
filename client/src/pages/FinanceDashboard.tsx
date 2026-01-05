@@ -5269,6 +5269,175 @@ const FinanceDashboard = () => {
                   );
                 })()}
 
+                {/* Budget Overview by Fixed/Floating - Sorted by Amount */}
+                {(() => {
+                  // Collect all categories and subcategories with their yearly amounts
+                  const allItems: Array<{
+                    name: string;
+                    yearlyAmount: number;
+                    isFixed: boolean;
+                    icon?: string;
+                    fullName: string;
+                  }> = [];
+
+                  budgetCategories.forEach((cat: any) => {
+                    if (cat.isParent && cat.children) {
+                      // Parent category with children
+                      cat.children.forEach((child: any) => {
+                        const yearlyAmount = calculateYearlyAmount(child);
+                        const isFixed = child.budgetType === 'yearly' || child.budgetType === 'monthly';
+                        allItems.push({
+                          name: child.name,
+                          yearlyAmount,
+                          isFixed,
+                          fullName: `${cat.name} - ${child.name}`
+                        });
+                      });
+                    } else {
+                      // Standalone category
+                      const yearlyAmount = calculateYearlyAmount(cat);
+                      const isFixed = cat.budgetType === 'yearly' || cat.budgetType === 'monthly';
+                      allItems.push({
+                        name: cat.name,
+                        yearlyAmount,
+                        isFixed,
+                        icon: cat.name.match(/^[^\s]+/)?.[0], // Extract emoji if present
+                        fullName: cat.name
+                      });
+                    }
+                  });
+
+                  // Sort by yearly amount (descending)
+                  allItems.sort((a, b) => b.yearlyAmount - a.yearlyAmount);
+
+                  // Separate into fixed and floating
+                  const fixedItems = allItems.filter(item => item.isFixed);
+                  const floatingItems = allItems.filter(item => !item.isFixed);
+
+                  // Find max amount for scaling
+                  const maxAmount = Math.max(...allItems.map(item => item.yearlyAmount), 1);
+
+                  return (
+                    <div style={{
+                      background: COLORS.card,
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      marginBottom: '2rem',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                    }}>
+                      <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>预算概览</h2>
+                      
+                      {/* Fixed Expenses */}
+                      {fixedItems.length > 0 && (
+                        <div style={{ marginBottom: '2rem' }}>
+                          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', color: COLORS.textMuted }}>
+                            固定开支
+                          </h3>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {fixedItems.map((item, index) => {
+                              const percentage = (item.yearlyAmount / maxAmount) * 100;
+                              return (
+                                <div key={`fixed-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <div style={{ 
+                                    minWidth: '200px', 
+                                    fontSize: '0.9rem',
+                                    color: COLORS.text,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem'
+                                  }}>
+                                    {item.icon && <span>{item.icon}</span>}
+                                    <span>{item.fullName}</span>
+                                  </div>
+                                  <div style={{ 
+                                    flex: 1, 
+                                    height: '24px', 
+                                    background: COLORS.accent, 
+                                    borderRadius: '4px',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                  }}>
+                                    <div style={{
+                                      width: `${percentage}%`,
+                                      height: '100%',
+                                      background: COLORS.highlight,
+                                      borderRadius: '4px',
+                                      transition: 'width 0.3s ease'
+                                    }} />
+                                  </div>
+                                  <div style={{ 
+                                    minWidth: '100px', 
+                                    textAlign: 'right',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '600',
+                                    color: COLORS.text
+                                  }}>
+                                    ${item.yearlyAmount.toLocaleString()}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Floating Expenses */}
+                      {floatingItems.length > 0 && (
+                        <div>
+                          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', color: COLORS.textMuted }}>
+                            浮动开支
+                          </h3>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {floatingItems.map((item, index) => {
+                              const percentage = (item.yearlyAmount / maxAmount) * 100;
+                              return (
+                                <div key={`floating-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <div style={{ 
+                                    minWidth: '200px', 
+                                    fontSize: '0.9rem',
+                                    color: COLORS.text,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem'
+                                  }}>
+                                    {item.icon && <span>{item.icon}</span>}
+                                    <span>{item.fullName}</span>
+                                  </div>
+                                  <div style={{ 
+                                    flex: 1, 
+                                    height: '24px', 
+                                    background: COLORS.accent, 
+                                    borderRadius: '4px',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                  }}>
+                                    <div style={{
+                                      width: `${percentage}%`,
+                                      height: '100%',
+                                      background: COLORS.success,
+                                      borderRadius: '4px',
+                                      transition: 'width 0.3s ease'
+                                    }} />
+                                  </div>
+                                  <div style={{ 
+                                    minWidth: '100px', 
+                                    textAlign: 'right',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '600',
+                                    color: COLORS.text
+                                  }}>
+                                    ${item.yearlyAmount.toLocaleString()}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {/* Categories List */}
                 <div style={{
                   background: COLORS.card,
