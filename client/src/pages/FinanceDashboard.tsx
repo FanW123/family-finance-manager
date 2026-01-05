@@ -2539,8 +2539,442 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
 
-                {/* 3. 本周预算追踪卡片 */}
-                {budgetCategories && getAllTrackableCategories(budgetCategories, 'weekly').length > 0 && (
+                {/* 支出管理 - 新的Tab界面 */}
+                <div style={{
+                  background: COLORS.card,
+                  borderRadius: '1rem',
+                  padding: '1.5rem 2rem',
+                  marginBottom: '2rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '1rem'
+                }}>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>支出管理</h2>
+                  
+                  {/* Month/Year Selector */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <select
+                      value={budgetMonth}
+                      onChange={(e) => setBudgetMonth(parseInt(e.target.value))}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '0.95rem',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                        <option key={m} value={m}>{m}月</option>
+                      ))}
+                    </select>
+                    <select
+                      value={budgetYear}
+                      onChange={(e) => setBudgetYear(parseInt(e.target.value))}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: COLORS.accent,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '0.95rem',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {[2023, 2024, 2025, 2026, 2027, 2028].map(y => (
+                        <option key={y} value={y}>{y}年</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Budget Tracking Tabs */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '1rem',
+                  marginBottom: '2rem'
+                }}>
+                  {[
+                    { key: 'weekly', icon: '📅', label: '周支出' },
+                    { key: 'monthly', icon: '📆', label: '月支出' },
+                    { key: 'yearly', icon: '📊', label: '年支出' }
+                  ].map(tab => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setBudgetTrackingTab(tab.key as 'weekly' | 'monthly' | 'yearly')}
+                      style={{
+                        background: budgetTrackingTab === tab.key ? COLORS.highlight : COLORS.card,
+                        border: 'none',
+                        borderRadius: '1rem',
+                        padding: '1.5rem',
+                        cursor: 'pointer',
+                        color: budgetTrackingTab === tab.key ? COLORS.background : COLORS.text,
+                        fontSize: '1.1rem',
+                        fontWeight: '600',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                        transition: 'all 0.3s ease',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      {tab.icon} {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Summary Cards - 总支出/总预算/预算使用率 */}
+                {budgetCategories && (() => {
+                  let totalBudget = 0;
+                  let totalSpent = 0;
+                  
+                  const trackableCategories = getAllTrackableCategories(
+                    budgetCategories, 
+                    budgetTrackingTab === 'weekly' ? 'weekly' : budgetTrackingTab === 'monthly' ? 'monthly' : 'yearly'
+                  );
+                  
+                  // Calculate total budget
+                  trackableCategories.forEach((item: any) => {
+                    if (item.isGroupSummary && item.trackableChildren) {
+                      totalBudget += item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
+                    } else {
+                      totalBudget += item.amount || 0;
+                    }
+                  });
+                  
+                  // Calculate spent based on selected period
+                  const matchesCategory = (expenseCategory: string, category: any, child?: any): boolean => {
+                    if (child) {
+                      const expectedName = `${category.name} - ${child.name}`;
+                      return expenseCategory === expectedName || expenseCategory === child.name;
+                    } else {
+                      return expenseCategory === category.name;
+                    }
+                  };
+                  
+                  let startDate: Date;
+                  let endDate: Date = new Date(budgetYear, budgetMonth, 0);
+                  
+                  if (budgetTrackingTab === 'weekly') {
+                    const now = new Date();
+                    startDate = new Date(now);
+                    startDate.setDate(now.getDate() - now.getDay());
+                    startDate.setHours(0, 0, 0, 0);
+                  } else if (budgetTrackingTab === 'monthly') {
+                    startDate = new Date(budgetYear, budgetMonth - 1, 1);
+                  } else {
+                    startDate = new Date(budgetYear, 0, 1);
+                    endDate = new Date(budgetYear, 11, 31);
+                  }
+                  
+                  trackableCategories.forEach((item: any) => {
+                    if (item.isGroupSummary && item.trackableChildren) {
+                      item.trackableChildren.forEach((child: any) => {
+                        const childSpent = expenses
+                          .filter(exp => {
+                            const expDate = new Date(exp.date);
+                            return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
+                          })
+                          .reduce((sum, exp) => sum + exp.amount, 0);
+                        totalSpent += childSpent;
+                      });
+                    } else {
+                      const itemSpent = expenses
+                        .filter(exp => {
+                          const expDate = new Date(exp.date);
+                          return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item);
+                        })
+                        .reduce((sum, exp) => sum + exp.amount, 0);
+                      totalSpent += itemSpent;
+                    }
+                  });
+                  
+                  const usagePercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+                  
+                  return (
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gap: '1.5rem',
+                      marginBottom: '2rem'
+                    }}>
+                      <div style={{
+                        background: COLORS.card,
+                        borderRadius: '1rem',
+                        padding: '2rem',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                        border: `2px solid ${COLORS.warning}`
+                      }}>
+                        <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                          总支出
+                        </div>
+                        <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.warning }}>
+                          ${Math.round(totalSpent).toLocaleString()}
+                        </div>
+                      </div>
+                      
+                      <div style={{
+                        background: COLORS.card,
+                        borderRadius: '1rem',
+                        padding: '2rem',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                        border: `2px solid ${COLORS.textMuted}`
+                      }}>
+                        <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                          总预算
+                        </div>
+                        <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.text }}>
+                          ${Math.round(totalBudget).toLocaleString()}
+                        </div>
+                      </div>
+                      
+                      <div style={{
+                        background: COLORS.card,
+                        borderRadius: '1rem',
+                        padding: '2rem',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                        border: `2px solid ${usagePercentage > 100 ? COLORS.danger : COLORS.highlight}`
+                      }}>
+                        <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                          预算使用率
+                        </div>
+                        <div style={{ 
+                          fontSize: '2.5rem', 
+                          fontWeight: '700', 
+                          color: usagePercentage > 100 ? COLORS.danger : COLORS.highlight 
+                        }}>
+                          {usagePercentage.toFixed(0)}%
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Budget Tracking Details List */}
+                {budgetCategories && (() => {
+                  const trackableCategories = getAllTrackableCategories(
+                    budgetCategories, 
+                    budgetTrackingTab === 'weekly' ? 'weekly' : budgetTrackingTab === 'monthly' ? 'monthly' : 'yearly'
+                  );
+                  
+                  if (trackableCategories.length === 0) return null;
+                  
+                  const matchesCategory = (expenseCategory: string, category: any, child?: any): boolean => {
+                    if (child) {
+                      const expectedName = `${category.name} - ${child.name}`;
+                      return expenseCategory === expectedName || expenseCategory === child.name;
+                    } else {
+                      return expenseCategory === category.name;
+                    }
+                  };
+                  
+                  let startDate: Date;
+                  let endDate: Date = new Date(budgetYear, budgetMonth, 0);
+                  
+                  if (budgetTrackingTab === 'weekly') {
+                    const now = new Date();
+                    startDate = new Date(now);
+                    startDate.setDate(now.getDate() - now.getDay());
+                    startDate.setHours(0, 0, 0, 0);
+                  } else if (budgetTrackingTab === 'monthly') {
+                    startDate = new Date(budgetYear, budgetMonth - 1, 1);
+                  } else {
+                    startDate = new Date(budgetYear, 0, 1);
+                    endDate = new Date(budgetYear, 11, 31);
+                  }
+                  
+                  return (
+                    <div style={{
+                      background: COLORS.card,
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      marginBottom: '1.5rem',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                    }}>
+                      {trackableCategories.map((item: any) => {
+                        if (item.isGroupSummary && item.trackableChildren) {
+                          const totalBudget = item.trackableChildren.reduce((sum: number, child: any) => sum + child.amount, 0);
+                          const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
+                            return sum + expenses
+                              .filter(exp => {
+                                const expDate = new Date(exp.date);
+                                return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
+                              })
+                              .reduce((s, e) => s + e.amount, 0);
+                          }, 0);
+                          const totalPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+                          const isExpanded = budgetTrackingTab === 'monthly' ? expandedMonthlyCategories.has(item.id) : 
+                                           budgetTrackingTab === 'weekly' ? expandedWeeklyCategories.has(item.id) : 
+                                           expandedYearlyCategories.has(item.id);
+                          
+                          return (
+                            <div key={item.id} style={{ marginBottom: '1rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                                <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                    ${totalSpent.toFixed(0)} / ${Math.round(totalBudget)}
+                                  </span>
+                                  <span style={{ 
+                                    fontSize: '0.85rem', 
+                                    fontWeight: '600',
+                                    minWidth: '3rem',
+                                    textAlign: 'right',
+                                    color: totalPercentage > 100 ? COLORS.danger : COLORS.success 
+                                  }}>
+                                    {totalPercentage.toFixed(0)}%
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      if (budgetTrackingTab === 'monthly') {
+                                        const newExpanded = new Set(expandedMonthlyCategories);
+                                        isExpanded ? newExpanded.delete(item.id) : newExpanded.add(item.id);
+                                        setExpandedMonthlyCategories(newExpanded);
+                                      } else if (budgetTrackingTab === 'weekly') {
+                                        const newExpanded = new Set(expandedWeeklyCategories);
+                                        isExpanded ? newExpanded.delete(item.id) : newExpanded.add(item.id);
+                                        setExpandedWeeklyCategories(newExpanded);
+                                      } else {
+                                        const newExpanded = new Set(expandedYearlyCategories);
+                                        isExpanded ? newExpanded.delete(item.id) : newExpanded.add(item.id);
+                                        setExpandedYearlyCategories(newExpanded);
+                                      }
+                                    }}
+                                    style={{
+                                      cursor: 'pointer',
+                                      background: 'transparent',
+                                      border: 'none',
+                                      color: COLORS.textMuted,
+                                      fontSize: '1rem',
+                                      padding: '0',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      transition: 'transform 0.2s ease',
+                                      minWidth: '1.5rem'
+                                    }}
+                                  >
+                                    {isExpanded ? '▼' : '►'}
+                                  </button>
+                                </div>
+                              </div>
+                              <div style={{
+                                width: '100%',
+                                height: '6px',
+                                background: COLORS.accent,
+                                borderRadius: '3px',
+                                overflow: 'hidden',
+                                marginBottom: isExpanded ? '0.75rem' : '0'
+                              }}>
+                                <div style={{
+                                  width: `${Math.min(totalPercentage, 100)}%`,
+                                  height: '100%',
+                                  background: totalPercentage > 100 ? COLORS.danger : COLORS.success,
+                                  transition: 'width 0.3s ease'
+                                }} />
+                              </div>
+                              
+                              {isExpanded && (
+                                <div style={{ paddingLeft: '1rem' }}>
+                                  {item.trackableChildren.map((child: any) => {
+                                    const spent = expenses
+                                      .filter(exp => {
+                                        const expDate = new Date(exp.date);
+                                        return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
+                                      })
+                                      .reduce((sum, exp) => sum + exp.amount, 0);
+                                    
+                                    const percentage = (spent / child.amount) * 100;
+                                    
+                                    return (
+                                      <div key={child.id} style={{ marginBottom: '0.75rem', paddingLeft: '0.5rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                                          <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>├─ {child.name}</span>
+                                          <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
+                                            ${spent.toFixed(0)} / ${Math.round(child.amount)}
+                                          </span>
+                                        </div>
+                                        <div style={{
+                                          width: '100%',
+                                          height: '5px',
+                                          background: COLORS.accent,
+                                          borderRadius: '2.5px',
+                                          overflow: 'hidden'
+                                        }}>
+                                          <div style={{
+                                            width: `${Math.min(percentage, 100)}%`,
+                                            height: '100%',
+                                            background: percentage > 100 ? COLORS.danger : COLORS.success,
+                                            transition: 'width 0.3s ease'
+                                          }} />
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        } else {
+                          const spent = expenses
+                            .filter(exp => {
+                              const expDate = new Date(exp.date);
+                              return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item);
+                            })
+                            .reduce((sum, exp) => sum + exp.amount, 0);
+                          
+                          const percentage = (spent / item.amount) * 100;
+                          
+                          return (
+                            <div key={item.id} style={{ marginBottom: '1rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                                <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                    ${spent.toFixed(0)} / ${Math.round(item.amount)}
+                                  </span>
+                                  <span style={{ 
+                                    fontSize: '0.85rem', 
+                                    fontWeight: '600',
+                                    minWidth: '3rem',
+                                    textAlign: 'right',
+                                    color: percentage > 100 ? COLORS.danger : COLORS.success 
+                                  }}>
+                                    {percentage.toFixed(0)}%
+                                  </span>
+                                  <div style={{ minWidth: '1.5rem' }}></div>
+                                </div>
+                              </div>
+                              <div style={{
+                                width: '100%',
+                                height: '6px',
+                                background: COLORS.accent,
+                                borderRadius: '3px',
+                                overflow: 'hidden'
+                              }}>
+                                <div style={{
+                                  width: `${Math.min(percentage, 100)}%`,
+                                  height: '100%',
+                                  background: percentage > 100 ? COLORS.danger : COLORS.success,
+                                  transition: 'width 0.3s ease'
+                                }} />
+                              </div>
+                            </div>
+                          );
+                        }
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {/* OLD: 3. 本周预算追踪卡片 - 已移动到上面的支出管理界面 */}
+                {false && budgetCategories && getAllTrackableCategories(budgetCategories, 'weekly').length > 0 && (
                   <div style={{
                     background: COLORS.card,
                     borderRadius: '1rem',
@@ -2737,8 +3171,8 @@ const FinanceDashboard = () => {
                   </div>
                 )}
 
-                {/* 4. 月度预算追踪卡片 */}
-                {budgetCategories && getAllTrackableCategories(budgetCategories, 'monthly').length > 0 && (
+                {/* 4. 月度预算追踪卡片 - 已移动到上面的支出管理界面 */}
+                {false && budgetCategories && getAllTrackableCategories(budgetCategories, 'monthly').length > 0 && (
                   <div style={{
                     background: COLORS.card,
                     borderRadius: '1rem',
@@ -2935,8 +3369,8 @@ const FinanceDashboard = () => {
                   </div>
                 )}
 
-                {/* 5. 年度预算追踪卡片 */}
-                {budgetCategories && getAllTrackableCategories(budgetCategories, 'yearly').length > 0 && (
+                {/* 5. 年度预算追踪卡片 - 已移动到上面的支出管理界面 */}
+                {false && budgetCategories && getAllTrackableCategories(budgetCategories, 'yearly').length > 0 && (
                   <div style={{
                     background: COLORS.card,
                     borderRadius: '1rem',
