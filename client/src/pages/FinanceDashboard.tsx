@@ -2595,49 +2595,56 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
 
-                {/* Budget Tracking Tabs */}
                 <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '1rem',
-                  marginBottom: '2rem'
+                  background: COLORS.accent,
+                  borderRadius: '1rem',
+                  padding: '1.25rem',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
                 }}>
-                  {[
-                    { key: 'weekly', icon: '📅', label: '周支出' },
-                    { key: 'monthly', icon: '📆', label: '月支出' },
-                    { key: 'yearly', icon: '📊', label: '年支出' }
-                  ].map(tab => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setBudgetTrackingTab(tab.key as 'weekly' | 'monthly' | 'yearly')}
-                      style={{
-                        background: budgetTrackingTab === tab.key ? COLORS.highlight : COLORS.card,
-                        border: 'none',
-                        borderRadius: '1rem',
-                        padding: '1.5rem',
-                        cursor: 'pointer',
-                        color: budgetTrackingTab === tab.key ? COLORS.background : COLORS.text,
-                        fontSize: '1.1rem',
-                        fontWeight: '600',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                        transition: 'all 0.3s ease',
-                        fontFamily: 'inherit'
-                      }}
-                    >
-                      {tab.icon} {tab.label}
-                    </button>
-                  ))}
-                </div>
+                  {/* Budget Tracking Tabs */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '1rem',
+                    marginBottom: '1.25rem'
+                  }}>
+                    {[
+                      { key: 'weekly', icon: '📅', label: '周支出' },
+                      { key: 'monthly', icon: '📆', label: '月支出' },
+                      { key: 'yearly', icon: '📊', label: '年支出' }
+                    ].map(tab => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setBudgetTrackingTab(tab.key as 'weekly' | 'monthly' | 'yearly')}
+                        style={{
+                          background: budgetTrackingTab === tab.key ? COLORS.highlight : COLORS.card,
+                          border: 'none',
+                          borderRadius: '1rem',
+                          padding: '1.5rem',
+                          cursor: 'pointer',
+                          color: budgetTrackingTab === tab.key ? COLORS.background : COLORS.text,
+                          fontSize: '1.1rem',
+                          fontWeight: '600',
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                          transition: 'all 0.3s ease',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        {tab.icon} {tab.label}
+                      </button>
+                    ))}
+                  </div>
 
-                {/* Summary Cards - 总支出/总预算/预算使用率 */}
-                {budgetCategories && (() => {
-                  let totalBudget = 0;
-                  let totalSpent = 0;
-                  
-                  const trackableCategories = getAllTrackableCategories(
-                    budgetCategories, 
-                    budgetTrackingTab === 'weekly' ? 'weekly' : budgetTrackingTab === 'monthly' ? 'monthly' : 'yearly'
-                  );
+                  {/* Summary Cards - 总支出/总预算/预算使用率 */}
+                  {budgetCategories && (() => {
+                    let totalBudget = 0;
+                    let totalSpent = 0;
+                    
+                    const trackableCategories = getAllTrackableCategories(
+                      budgetCategories, 
+                      budgetTrackingTab === 'weekly' ? 'weekly' : budgetTrackingTab === 'monthly' ? 'monthly' : 'yearly'
+                    );
                   
                   // Calculate total budget
                   trackableCategories.forEach((item: any) => {
@@ -2697,72 +2704,72 @@ const FinanceDashboard = () => {
                   
                   const usagePercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
                   
-                  return (
-                    <div style={{
-                      background: COLORS.card,
-                      borderRadius: '0.9rem',
-                      padding: '0.85rem',
-                      marginBottom: '1.25rem',
-                      boxShadow: '0 6px 24px rgba(0, 0, 0, 0.25)',
-                      border: `1px solid ${COLORS.accent}`
-                    }}>
+                    return (
                       <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                        gap: '0.85rem'
+                        background: COLORS.card,
+                        borderRadius: '0.9rem',
+                        padding: '0.85rem',
+                        boxShadow: '0 6px 24px rgba(0, 0, 0, 0.25)',
+                        border: `1px solid ${COLORS.accent}`
                       }}>
                         <div style={{
-                          background: COLORS.card,
-                          borderRadius: '0.8rem',
-                          padding: '1.2rem 1.3rem',
-                          boxShadow: '0 4px 18px rgba(0, 0, 0, 0.2)',
-                          border: `2px solid ${COLORS.warning}`
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                          gap: '0.85rem'
                         }}>
-                          <div style={{ fontSize: '0.88rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                            总支出
-                          </div>
-                          <div style={{ fontSize: '2.1rem', fontWeight: '700', color: COLORS.warning }}>
-                            ${Math.round(totalSpent).toLocaleString()}
-                          </div>
-                        </div>
-                        
-                        <div style={{
-                          background: COLORS.card,
-                          borderRadius: '0.8rem',
-                          padding: '1.2rem 1.3rem',
-                          boxShadow: '0 4px 18px rgba(0, 0, 0, 0.2)',
-                          border: `2px solid ${COLORS.textMuted}`
-                        }}>
-                          <div style={{ fontSize: '0.88rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                            总预算
-                          </div>
-                          <div style={{ fontSize: '2.1rem', fontWeight: '700', color: COLORS.text }}>
-                            ${Math.round(totalBudget).toLocaleString()}
-                          </div>
-                        </div>
-                        
-                        <div style={{
-                          background: COLORS.card,
-                          borderRadius: '0.8rem',
-                          padding: '1.2rem 1.3rem',
-                          boxShadow: '0 4px 18px rgba(0, 0, 0, 0.2)',
-                          border: `2px solid ${usagePercentage > 100 ? COLORS.danger : COLORS.highlight}`
-                        }}>
-                          <div style={{ fontSize: '0.88rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                            预算使用率
-                          </div>
-                          <div style={{ 
-                            fontSize: '2.1rem', 
-                            fontWeight: '700', 
-                            color: usagePercentage > 100 ? COLORS.danger : COLORS.highlight 
+                          <div style={{
+                            background: COLORS.card,
+                            borderRadius: '0.8rem',
+                            padding: '1.2rem 1.3rem',
+                            boxShadow: '0 4px 18px rgba(0, 0, 0, 0.2)',
+                            border: `2px solid ${COLORS.warning}`
                           }}>
-                            {usagePercentage.toFixed(0)}%
+                            <div style={{ fontSize: '0.88rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              总支出
+                            </div>
+                            <div style={{ fontSize: '2.1rem', fontWeight: '700', color: COLORS.warning }}>
+                              ${Math.round(totalSpent).toLocaleString()}
+                            </div>
+                          </div>
+                          
+                          <div style={{
+                            background: COLORS.card,
+                            borderRadius: '0.8rem',
+                            padding: '1.2rem 1.3rem',
+                            boxShadow: '0 4px 18px rgba(0, 0, 0, 0.2)',
+                            border: `2px solid ${COLORS.textMuted}`
+                          }}>
+                            <div style={{ fontSize: '0.88rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              总预算
+                            </div>
+                            <div style={{ fontSize: '2.1rem', fontWeight: '700', color: COLORS.text }}>
+                              ${Math.round(totalBudget).toLocaleString()}
+                            </div>
+                          </div>
+                          
+                          <div style={{
+                            background: COLORS.card,
+                            borderRadius: '0.8rem',
+                            padding: '1.2rem 1.3rem',
+                            boxShadow: '0 4px 18px rgba(0, 0, 0, 0.2)',
+                            border: `2px solid ${usagePercentage > 100 ? COLORS.danger : COLORS.highlight}`
+                          }}>
+                            <div style={{ fontSize: '0.88rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                              预算使用率
+                            </div>
+                            <div style={{ 
+                              fontSize: '2.1rem', 
+                              fontWeight: '700', 
+                              color: usagePercentage > 100 ? COLORS.danger : COLORS.highlight 
+                            }}>
+                              {usagePercentage.toFixed(0)}%
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })()}
+                    );
+                  })()}
+                </div>
 
                 {/* Budget Tracking Details List */}
                 {budgetCategories && (() => {
