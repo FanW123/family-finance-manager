@@ -19,6 +19,15 @@ const COLORS = {
   textMuted: '#a0a0b0'
 };
 
+// Helper function to parse expense dates correctly (avoiding timezone issues)
+const parseExpenseDate = (date: any): Date => {
+  if (typeof date === 'string') {
+    const [y, m, d] = date.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date(date);
+};
+
 // City living cost database (monthly cost in USD for housing + basic living)
 const CITY_COSTS = {
   '中国': [
@@ -1786,7 +1795,7 @@ const FinanceDashboard = () => {
                   const currentYearStart = new Date(currentYear, 0, 1);
                   const currentYearExpenses = expenses
                     .filter(exp => {
-                      const expDate = new Date(exp.date);
+                      const expDate = parseExpenseDate(exp.date);
                       return expDate >= currentYearStart;
                     })
                     .reduce((sum, exp) => sum + exp.amount, 0);
@@ -2743,7 +2752,7 @@ const FinanceDashboard = () => {
                       item.trackableChildren.forEach((child: any) => {
                         const childSpent = expenses
                           .filter(exp => {
-                            const expDate = new Date(exp.date);
+                            const expDate = parseExpenseDate(exp.date);
                             return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
@@ -2752,7 +2761,7 @@ const FinanceDashboard = () => {
                     } else {
                       const itemSpent = expenses
                         .filter(exp => {
-                          const expDate = new Date(exp.date);
+                          const expDate = parseExpenseDate(exp.date);
                           return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item);
                         })
                         .reduce((sum, exp) => sum + exp.amount, 0);
@@ -2925,7 +2934,7 @@ const FinanceDashboard = () => {
                             const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
                               return sum + expenses
                                 .filter(exp => {
-                                  const expDate = new Date(exp.date);
+                                  const expDate = parseExpenseDate(exp.date);
                                   return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
                                 })
                                 .reduce((s, e) => s + e.amount, 0);
@@ -3007,7 +3016,7 @@ const FinanceDashboard = () => {
                                     {item.trackableChildren.map((child: any) => {
                                       const spent = expenses
                                         .filter(exp => {
-                                          const expDate = new Date(exp.date);
+                                          const expDate = parseExpenseDate(exp.date);
                                           return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
                                         })
                                         .reduce((sum, exp) => sum + exp.amount, 0);
@@ -3046,7 +3055,7 @@ const FinanceDashboard = () => {
                           } else {
                             const spent = expenses
                               .filter(exp => {
-                                const expDate = new Date(exp.date);
+                                const expDate = parseExpenseDate(exp.date);
                                 return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item);
                               })
                               .reduce((sum, exp) => sum + exp.amount, 0);
@@ -3127,7 +3136,7 @@ const FinanceDashboard = () => {
                         const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
                           return sum + expenses
                             .filter(exp => {
-                              const expDate = new Date(exp.date);
+                              const expDate = parseExpenseDate(exp.date);
                               return expDate >= weekStart && matchesCategory(exp.category, item, child);
                             })
                             .reduce((s, e) => s + e.amount, 0);
@@ -3205,7 +3214,7 @@ const FinanceDashboard = () => {
                                 {item.trackableChildren.map((child: any) => {
                                   const spent = expenses
                                     .filter(exp => {
-                                      const expDate = new Date(exp.date);
+                                      const expDate = parseExpenseDate(exp.date);
                                       return expDate >= weekStart && matchesCategory(exp.category, item, child);
                                     })
                                     .reduce((sum, exp) => sum + exp.amount, 0);
@@ -3245,7 +3254,7 @@ const FinanceDashboard = () => {
                         // Standalone category
                         const spent = expenses
                           .filter(exp => {
-                            const expDate = new Date(exp.date);
+                            const expDate = parseExpenseDate(exp.date);
                             return expDate >= weekStart && matchesCategory(exp.category, item);
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
@@ -3325,7 +3334,7 @@ const FinanceDashboard = () => {
                         const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
                           return sum + expenses
                             .filter(exp => {
-                              const expDate = new Date(exp.date);
+                              const expDate = parseExpenseDate(exp.date);
                               return expDate >= monthStart && matchesCategory(exp.category, item, child);
                             })
                             .reduce((s, e) => s + e.amount, 0);
@@ -3403,7 +3412,7 @@ const FinanceDashboard = () => {
                                 {item.trackableChildren.map((child: any) => {
                                   const spent = expenses
                                     .filter(exp => {
-                                      const expDate = new Date(exp.date);
+                                      const expDate = parseExpenseDate(exp.date);
                                       return expDate >= monthStart && matchesCategory(exp.category, item, child);
                                     })
                                     .reduce((sum, exp) => sum + exp.amount, 0);
@@ -3443,7 +3452,7 @@ const FinanceDashboard = () => {
                         // Standalone category
                         const spent = expenses
                           .filter(exp => {
-                            const expDate = new Date(exp.date);
+                            const expDate = parseExpenseDate(exp.date);
                             return expDate >= monthStart && matchesCategory(exp.category, item);
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
@@ -3521,7 +3530,7 @@ const FinanceDashboard = () => {
                         const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
                           return sum + expenses
                             .filter(exp => {
-                              const expDate = new Date(exp.date);
+                              const expDate = parseExpenseDate(exp.date);
                               return expDate >= yearStart && matchesCategory(exp.category, item, child);
                             })
                             .reduce((s, e) => s + e.amount, 0);
@@ -3599,7 +3608,7 @@ const FinanceDashboard = () => {
                                 {item.trackableChildren.map((child: any) => {
                                   const spent = expenses
                                     .filter(exp => {
-                                      const expDate = new Date(exp.date);
+                                      const expDate = parseExpenseDate(exp.date);
                                       return expDate >= yearStart && matchesCategory(exp.category, item, child);
                                     })
                                     .reduce((sum, exp) => sum + exp.amount, 0);
@@ -3639,7 +3648,7 @@ const FinanceDashboard = () => {
                         // Standalone category
                         const spent = expenses
                           .filter(exp => {
-                            const expDate = new Date(exp.date);
+                            const expDate = parseExpenseDate(exp.date);
                             return expDate >= yearStart && matchesCategory(exp.category, item);
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
@@ -4098,7 +4107,7 @@ const FinanceDashboard = () => {
 
                   // 1. Budget overrun check
                   const currentMonthExpenses = expenses.filter(exp => {
-                    const expDate = new Date(exp.date);
+                    const expDate = parseExpenseDate(exp.date);
                     return expDate.getMonth() + 1 === selectedMonth && expDate.getFullYear() === selectedYear;
                   });
                   
@@ -4108,7 +4117,7 @@ const FinanceDashboard = () => {
                   weekStart.setHours(0, 0, 0, 0);
                   
                   const weeklyExpenses = currentMonthExpenses.filter(exp => {
-                    const expDate = new Date(exp.date);
+                    const expDate = parseExpenseDate(exp.date);
                     return expDate >= weekStart;
                   });
                   
@@ -4227,7 +4236,7 @@ const FinanceDashboard = () => {
                   const currentMonthTotal = currentMonthExpenses.reduce((sum, exp) => sum + exp.amount, 0);
                   const avgMonthlyExpense = expenses
                     .filter(exp => {
-                      const expDate = new Date(exp.date);
+                      const expDate = parseExpenseDate(exp.date);
                       const oneYearAgo = new Date();
                       oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
                       return expDate >= oneYearAgo;
@@ -4455,7 +4464,7 @@ const FinanceDashboard = () => {
                       
                       // Calculate essential and optional expenses
                       const monthExpenses = expenses.filter(exp => {
-                        const expDate = new Date(exp.date);
+                        const expDate = parseExpenseDate(exp.date);
                         return expDate.getMonth() === date.getMonth() && 
                                expDate.getFullYear() === date.getFullYear();
                       });
@@ -4825,7 +4834,7 @@ const FinanceDashboard = () => {
                       item.trackableChildren.forEach((child: any) => {
                         const childSpent = expenses
                           .filter(exp => {
-                            const expDate = new Date(exp.date);
+                            const expDate = parseExpenseDate(exp.date);
                             return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
                           })
                           .reduce((sum, exp) => sum + exp.amount, 0);
@@ -4834,7 +4843,7 @@ const FinanceDashboard = () => {
                     } else {
                       const itemSpent = expenses
                         .filter(exp => {
-                          const expDate = new Date(exp.date);
+                          const expDate = parseExpenseDate(exp.date);
                           return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item);
                         })
                         .reduce((sum, exp) => sum + exp.amount, 0);
@@ -4955,7 +4964,7 @@ const FinanceDashboard = () => {
                         {expenses.length > 0 && (() => {
                           const last12MonthsExpenses = expenses
                             .filter(exp => {
-                              const expDate = new Date(exp.date);
+                              const expDate = parseExpenseDate(exp.date);
                               const oneYearAgo = new Date();
                               oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
                               return expDate >= oneYearAgo;
@@ -5038,7 +5047,7 @@ const FinanceDashboard = () => {
                             const totalSpent = item.trackableChildren.reduce((sum: number, child: any) => {
                               return sum + expenses
                                 .filter(exp => {
-                                  const expDate = new Date(exp.date);
+                                  const expDate = parseExpenseDate(exp.date);
                                   return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
                                 })
                                 .reduce((s, e) => s + e.amount, 0);
@@ -5123,7 +5132,7 @@ const FinanceDashboard = () => {
                                     {item.trackableChildren.map((child: any) => {
                                       const spent = expenses
                                         .filter(exp => {
-                                          const expDate = new Date(exp.date);
+                                          const expDate = parseExpenseDate(exp.date);
                                           return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item, child);
                                         })
                                         .reduce((sum, exp) => sum + exp.amount, 0);
@@ -5162,7 +5171,7 @@ const FinanceDashboard = () => {
                           } else {
                             const spent = expenses
                               .filter(exp => {
-                                const expDate = new Date(exp.date);
+                                const expDate = parseExpenseDate(exp.date);
                                 return expDate >= startDate && expDate <= endDate && matchesCategory(exp.category, item);
                               })
                               .reduce((sum, exp) => sum + exp.amount, 0);
