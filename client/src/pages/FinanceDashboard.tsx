@@ -2596,11 +2596,12 @@ const FinanceDashboard = () => {
                 </div>
 
                 <div style={{
-                  background: COLORS.accent,
+                  background: '#1f2a3b', // 灰蓝背景，更明显的容器
                   borderRadius: '1rem',
                   padding: '1.25rem',
                   marginBottom: '1.5rem',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
+                  boxShadow: '0 10px 36px rgba(0, 0, 0, 0.28)',
+                  border: '1px solid #2b364a'
                 }}>
                   {/* Budget Tracking Tabs */}
                   <div style={{
