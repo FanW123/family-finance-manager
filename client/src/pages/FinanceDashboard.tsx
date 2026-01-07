@@ -718,45 +718,17 @@ const FinanceDashboard = () => {
               setShowBudgetWizard(true);
             }
           } else {
-            // Check old localStorage (without user ID) - this is for backward compatibility with existing users
-            // Only load if it exists, then migrate to database
-            const oldSaved = localStorage.getItem('budgetCategories');
-            if (oldSaved) {
-              try {
-                const parsed = JSON.parse(oldSaved);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                  // Found old data - migrate to database and user-specific localStorage
-                  setBudgetCategories(parsed);
-                  setShowBudgetWizard(false);
-                  // Save to user-specific localStorage
-                  localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(parsed));
-                  // Try to migrate to database
-                  try {
-                    await api.post('/budget-categories', { categories: parsed });
-                    // After successful migration, we can optionally clear old data
-                    // But we'll keep it as backup for now
-                  } catch (migrateError) {
-                    console.error('Error migrating budget categories to database:', migrateError);
-                  }
-                } else {
-                  setBudgetCategories(null);
-                  setShowBudgetWizard(true);
-                }
-              } catch (parseError) {
-                console.error('Error parsing old budget categories:', parseError);
-                setBudgetCategories(null);
-                setShowBudgetWizard(true);
-              }
-            } else {
-              // No data at all for this user, show wizard
-              setBudgetCategories(null);
-              setShowBudgetWizard(true);
-            }
+            // No data at all for this user, show wizard
+            // Don't load from old localStorage (without user ID) to prevent new users from seeing old data
+            // Old users should have their data migrated to database or user-specific localStorage already
+            setBudgetCategories(null);
+            setShowBudgetWizard(true);
           }
         }
       } catch (error: any) {
         console.error('Error loading budget categories:', error);
-        // On error, try to load from user-specific localStorage first
+        // On error, try to load from user-specific localStorage only
+        // Don't load from old localStorage to prevent new users from seeing old data
         const userSpecificSaved = localStorage.getItem(getUserStorageKey('budgetCategories'));
         if (userSpecificSaved) {
           try {
