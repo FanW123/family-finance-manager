@@ -806,21 +806,27 @@ const FinanceDashboard = () => {
   // Helper function to save budget categories to database and localStorage
   const saveBudgetCategories = async (categories: any[]) => {
     try {
-      // Save to user-specific localStorage as cache
-      if (currentUserId) {
-        localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(categories));
+      if (!currentUserId) {
+        console.error('[Budget] Cannot save budget categories: no user ID');
+        return;
       }
+      
+      console.log('[Budget] Saving budget categories for user:', currentUserId, 'count:', categories.length);
+      
+      // Save to user-specific localStorage as cache
+      localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(categories));
       
       // Save to database
       try {
         await api.post('/budget-categories', { categories });
+        console.log('[Budget] Successfully saved budget categories to database');
       } catch (error: any) {
-        console.error('Error saving budget categories to database:', error);
+        console.error('[Budget] Error saving budget categories to database:', error);
         // Don't show alert, just log - localStorage is still saved
         // This allows the app to work even if database is not set up yet
       }
     } catch (error) {
-      console.error('Error saving budget categories:', error);
+      console.error('[Budget] Error saving budget categories:', error);
     }
   };
 
