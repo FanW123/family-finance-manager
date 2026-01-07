@@ -724,17 +724,13 @@ const FinanceDashboard = () => {
               const parsed = JSON.parse(userSpecificSaved);
               if (Array.isArray(parsed) && parsed.length > 0) {
                 console.log('[Budget] Found data in user-specific localStorage, count:', parsed.length);
-                console.log('[Budget] Found data in user-specific localStorage, migrating to database for user:', currentUserId);
+                console.log('[Budget] Using localStorage as cache only - NOT migrating to database');
+                console.log('[Budget] If database has data, it will override this on next load');
+                // Only use localStorage as cache - don't migrate automatically
+                // Database is the source of truth, localStorage is just for offline/cache
                 setBudgetCategories(parsed);
                 setShowBudgetWizard(false);
-                // Try to migrate to database
-                try {
-                  console.log('[Budget] Calling API to save budget categories, user:', currentUserId, 'count:', parsed.length);
-                  await api.post('/budget-categories', { categories: parsed });
-                  console.log('[Budget] Successfully migrated budget categories to database');
-                } catch (migrateError) {
-                  console.error('[Budget] Error migrating budget categories to database:', migrateError);
-                }
+                // DO NOT migrate automatically - this prevents wrong data from being saved
               } else {
                 console.log('[Budget] User-specific localStorage data is empty');
                 setBudgetCategories(null);
@@ -753,29 +749,13 @@ const FinanceDashboard = () => {
           }
         }
       } catch (error: any) {
-        console.error('Error loading budget categories:', error);
-        // On error, try to load from user-specific localStorage only
-        // Don't load from old localStorage to prevent new users from seeing old data
-        const userSpecificSaved = localStorage.getItem(getUserStorageKey('budgetCategories'));
-        if (userSpecificSaved) {
-          try {
-            const parsed = JSON.parse(userSpecificSaved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setBudgetCategories(parsed);
-              setShowBudgetWizard(false);
-            } else {
-              setBudgetCategories(null);
-              setShowBudgetWizard(true);
-            }
-          } catch (parseError) {
-            console.error('Error parsing saved budget categories:', parseError);
-            setBudgetCategories(null);
-            setShowBudgetWizard(true);
-          }
-        } else {
-          setBudgetCategories(null);
-          setShowBudgetWizard(true);
-        }
+        console.error('[Budget] Error loading budget categories from database:', error);
+        // On error, don't load from localStorage - just show wizard
+        // Database is the source of truth, localStorage is only cache
+        // This prevents wrong data from being loaded
+        console.log('[Budget] Showing wizard instead of loading from localStorage');
+        setBudgetCategories(null);
+        setShowBudgetWizard(true);
       }
 
       // Load monthly income from user-specific localStorage (or could be from API)
