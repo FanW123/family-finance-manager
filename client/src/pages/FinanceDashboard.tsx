@@ -343,8 +343,10 @@ const FinanceDashboard = () => {
   
   // Reset all user-specific state when user changes
   useEffect(() => {
+    console.log('[User] User ID changed to:', currentUserId);
     if (!currentUserId) {
       // User logged out, clear all user-specific state
+      console.log('[User] User logged out, clearing budget categories');
       setBudgetCategories(null);
       setCityPlan([]);
       setAnnualTravelCosts({ flights: 0, visas: 0, insurance: 0 });
@@ -685,21 +687,43 @@ const FinanceDashboard = () => {
       }
       
       try {
+        // Add debug logging
+        console.log('[Budget] Loading budget categories for user:', currentUserId);
+        
         const budgetCategoriesRes = await api.get('/budget-categories');
+        console.log('[Budget] API response:', budgetCategoriesRes.data);
+        
         if (budgetCategoriesRes.data?.categories && Array.isArray(budgetCategoriesRes.data.categories) && budgetCategoriesRes.data.categories.length > 0) {
           // User has budget data in database
+          console.log('[Budget] Found budget data in database, count:', budgetCategoriesRes.data.categories.length);
           setBudgetCategories(budgetCategoriesRes.data.categories);
           setShowBudgetWizard(false);
           // Also save to localStorage as cache (user-specific)
-          localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(budgetCategoriesRes.data.categories));
+          if (currentUserId) {
+            localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(budgetCategoriesRes.data.categories));
+          }
         } else {
           // No data in database for this user
+          console.log('[Budget] No data in database for user:', currentUserId);
+          
+          // Only check user-specific localStorage if we have a user ID
+          if (!currentUserId) {
+            console.log('[Budget] No user ID, setting budget to null');
+            setBudgetCategories(null);
+            setShowBudgetWizard(true);
+            return;
+          }
+          
           // First check user-specific localStorage (for this user's cached data)
-          const userSpecificSaved = localStorage.getItem(getUserStorageKey('budgetCategories'));
+          const userSpecificKey = getUserStorageKey('budgetCategories');
+          console.log('[Budget] Checking user-specific localStorage with key:', userSpecificKey);
+          const userSpecificSaved = localStorage.getItem(userSpecificKey);
+          
           if (userSpecificSaved) {
             try {
               const parsed = JSON.parse(userSpecificSaved);
               if (Array.isArray(parsed) && parsed.length > 0) {
+                console.log('[Budget] Found data in user-specific localStorage, count:', parsed.length);
                 setBudgetCategories(parsed);
                 setShowBudgetWizard(false);
                 // Try to migrate to database
@@ -709,6 +733,7 @@ const FinanceDashboard = () => {
                   console.error('Error migrating budget categories to database:', migrateError);
                 }
               } else {
+                console.log('[Budget] User-specific localStorage data is empty');
                 setBudgetCategories(null);
                 setShowBudgetWizard(true);
               }
@@ -719,8 +744,7 @@ const FinanceDashboard = () => {
             }
           } else {
             // No data at all for this user, show wizard
-            // Don't load from old localStorage (without user ID) to prevent new users from seeing old data
-            // Old users should have their data migrated to database or user-specific localStorage already
+            console.log('[Budget] No data found for user, showing wizard');
             setBudgetCategories(null);
             setShowBudgetWizard(true);
           }
