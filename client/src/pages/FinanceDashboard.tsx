@@ -357,6 +357,15 @@ const FinanceDashboard = () => {
       setMonthlyIncome(0);
       setFireMultiplier(28.6);
       setRetirementYears(50);
+      // Clear old localStorage data (without user ID) to prevent loading old data for new users
+      localStorage.removeItem('budgetCategories');
+      localStorage.removeItem('cityPlan');
+      localStorage.removeItem('annualTravelCosts');
+      localStorage.removeItem('cashAccounts');
+      localStorage.removeItem('retirementExpenseAdjustments');
+      localStorage.removeItem('monthlyIncome');
+      localStorage.removeItem('fireMultiplier');
+      localStorage.removeItem('retirementYears');
       return;
     }
     
@@ -677,6 +686,7 @@ const FinanceDashboard = () => {
       // Load budget categories from database
       // Only load if we have a current user ID
       if (!currentUserId) {
+        setBudgetCategories(null);
         setShowBudgetWizard(true);
         return;
       }
@@ -690,59 +700,17 @@ const FinanceDashboard = () => {
           // Also save to localStorage as cache (user-specific)
           localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(budgetCategoriesRes.data.categories));
         } else {
-          // No data in database for this user - check user-specific localStorage (backward compatibility)
-          const saved = localStorage.getItem(getUserStorageKey('budgetCategories'));
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                setBudgetCategories(parsed);
-                setShowBudgetWizard(false);
-                // Migrate to database
-                try {
-                  await api.post('/budget-categories', { categories: parsed });
-                } catch (migrateError) {
-                  console.error('Error migrating budget categories to database:', migrateError);
-                }
-              } else {
-                // Empty or invalid data, show wizard
-                setBudgetCategories(null);
-                setShowBudgetWizard(true);
-              }
-            } catch (parseError) {
-              console.error('Error parsing saved budget categories:', parseError);
-              setBudgetCategories(null);
-              setShowBudgetWizard(true);
-            }
-          } else {
-            // No data at all for this user, show wizard
-            setBudgetCategories(null);
-            setShowBudgetWizard(true);
-          }
-        }
-      } catch (error: any) {
-        console.error('Error loading budget categories:', error);
-        // If table doesn't exist yet or error, check user-specific localStorage
-        const saved = localStorage.getItem(getUserStorageKey('budgetCategories'));
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setBudgetCategories(parsed);
-              setShowBudgetWizard(false);
-            } else {
-              setBudgetCategories(null);
-              setShowBudgetWizard(true);
-            }
-          } catch (parseError) {
-            console.error('Error parsing saved budget categories:', parseError);
-            setBudgetCategories(null);
-            setShowBudgetWizard(true);
-          }
-        } else {
+          // No data in database for this user - don't check localStorage, just show wizard
+          // This ensures new users start with empty budget
           setBudgetCategories(null);
           setShowBudgetWizard(true);
         }
+      } catch (error: any) {
+        console.error('Error loading budget categories:', error);
+        // On error, don't load from localStorage - just show wizard
+        // This ensures new users don't see old data
+        setBudgetCategories(null);
+        setShowBudgetWizard(true);
       }
 
       // Load monthly income from user-specific localStorage (or could be from API)
