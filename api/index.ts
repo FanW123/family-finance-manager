@@ -1183,7 +1183,22 @@ app.post('/budget-categories', async (req, res) => {
       });
     }
 
+    console.log('[API] Saving budget categories for user:', userId, 'count:', categories.length);
+    
+    // Check if this user already has data
     const sb = getSupabaseClient(req);
+    const { data: existingData } = await sb
+      .from('budget_categories')
+      .select('user_id, categories')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (existingData) {
+      const existingCount = Array.isArray(existingData.categories) ? existingData.categories.length : 0;
+      console.log('[API] User already has budget data, existing count:', existingCount, 'new count:', categories.length);
+    } else {
+      console.log('[API] User has no existing budget data, creating new record');
+    }
     
     // Use upsert to insert or update
     const { data, error } = await sb

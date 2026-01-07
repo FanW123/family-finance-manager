@@ -724,13 +724,16 @@ const FinanceDashboard = () => {
               const parsed = JSON.parse(userSpecificSaved);
               if (Array.isArray(parsed) && parsed.length > 0) {
                 console.log('[Budget] Found data in user-specific localStorage, count:', parsed.length);
+                console.log('[Budget] Found data in user-specific localStorage, migrating to database for user:', currentUserId);
                 setBudgetCategories(parsed);
                 setShowBudgetWizard(false);
                 // Try to migrate to database
                 try {
+                  console.log('[Budget] Calling API to save budget categories, user:', currentUserId, 'count:', parsed.length);
                   await api.post('/budget-categories', { categories: parsed });
+                  console.log('[Budget] Successfully migrated budget categories to database');
                 } catch (migrateError) {
-                  console.error('Error migrating budget categories to database:', migrateError);
+                  console.error('[Budget] Error migrating budget categories to database:', migrateError);
                 }
               } else {
                 console.log('[Budget] User-specific localStorage data is empty');
