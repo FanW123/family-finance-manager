@@ -341,10 +341,26 @@ const FinanceDashboard = () => {
     return () => subscription.unsubscribe();
   }, []);
   
-  // Load user-specific data from localStorage when user ID is available
+  // Reset all user-specific state when user changes
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      // User logged out, clear all user-specific state
+      setBudgetCategories(null);
+      setCityPlan([]);
+      setAnnualTravelCosts({ flights: 0, visas: 0, insurance: 0 });
+      setRetirementExpenseAdjustments({
+        essential: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false },
+        workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0, useCityPlanner: false },
+        discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false }
+      });
+      setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+      setMonthlyIncome(0);
+      setFireMultiplier(28.6);
+      setRetirementYears(50);
+      return;
+    }
     
+    // Load user-specific data from localStorage when user ID is available
     // Load city plan
     const savedCityPlan = localStorage.getItem(getUserStorageKey('cityPlan'));
     if (savedCityPlan) {
@@ -352,7 +368,10 @@ const FinanceDashboard = () => {
         setCityPlan(JSON.parse(savedCityPlan));
       } catch (e) {
         console.error('Failed to parse cityPlan:', e);
+        setCityPlan([]);
       }
+    } else {
+      setCityPlan([]);
     }
     
     // Load annual travel costs
@@ -362,7 +381,10 @@ const FinanceDashboard = () => {
         setAnnualTravelCosts(JSON.parse(savedTravelCosts));
       } catch (e) {
         console.error('Failed to parse annualTravelCosts:', e);
+        setAnnualTravelCosts({ flights: 0, visas: 0, insurance: 0 });
       }
+    } else {
+      setAnnualTravelCosts({ flights: 0, visas: 0, insurance: 0 });
     }
     
     // Load currency settings
@@ -382,7 +404,18 @@ const FinanceDashboard = () => {
         setRetirementExpenseAdjustments(JSON.parse(savedAdjustments));
       } catch (e) {
         console.error('Failed to parse retirementExpenseAdjustments:', e);
+        setRetirementExpenseAdjustments({
+          essential: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false },
+          workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0, useCityPlanner: false },
+          discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false }
+        });
       }
+    } else {
+      setRetirementExpenseAdjustments({
+        essential: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false },
+        workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0, useCityPlanner: false },
+        discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false }
+      });
     }
     
     // Load cash accounts
@@ -392,11 +425,20 @@ const FinanceDashboard = () => {
         const parsed = JSON.parse(savedAccounts);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setCashAccounts(parsed);
+        } else {
+          setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
         }
       } catch (e) {
         console.error('Failed to parse cashAccounts:', e);
+        setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
       }
+    } else {
+      setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
     }
+    
+    // Reset budget categories - will be loaded from database in loadData
+    setBudgetCategories(null);
+    setShowBudgetWizard(false);
   }, [currentUserId]);
   
   // User custom budget categories - don't load from localStorage in initial state, wait for user ID
@@ -524,7 +566,7 @@ const FinanceDashboard = () => {
   const [rebalanceMarketType, setRebalanceMarketType] = useState('us_stock');
   const [rebalanceStockVolatility, setRebalanceStockVolatility] = useState(18);
   const [rebalanceBondVolatility, setRebalanceBondVolatility] = useState(6);
-  const [cityPlan, setCityPlan] = useState(() => {
+  const [cityPlan, setCityPlan] = useState<Array<{ city: string; level: string; monthlyCost: number; months: number }>>(() => {
     // Don't load from localStorage in initial state - wait for user ID
     return [];
   });
@@ -560,17 +602,19 @@ const FinanceDashboard = () => {
     return [{ id: Date.now(), name: '', amount: '' }];
   });
 
-  // Load data from API
+  // Load data from API when month/year changes or when user changes
   useEffect(() => {
-    loadData();
-    checkAndRefreshPrices();
+    if (currentUserId) {
+      loadData();
+      checkAndRefreshPrices();
+    }
     
-    // Load last update time
+    // Load last update time (shared across users)
     const lastUpdate = localStorage.getItem('lastPriceUpdate');
     if (lastUpdate) {
       setLastPriceUpdate(lastUpdate);
     }
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, currentUserId]);
 
   const loadData = async () => {
     setLoading(true);
@@ -631,50 +675,72 @@ const FinanceDashboard = () => {
       }
 
       // Load budget categories from database
+      // Only load if we have a current user ID
+      if (!currentUserId) {
+        setShowBudgetWizard(true);
+        return;
+      }
+      
       try {
         const budgetCategoriesRes = await api.get('/budget-categories');
-        if (budgetCategoriesRes.data?.categories) {
+        if (budgetCategoriesRes.data?.categories && Array.isArray(budgetCategoriesRes.data.categories) && budgetCategoriesRes.data.categories.length > 0) {
+          // User has budget data in database
           setBudgetCategories(budgetCategoriesRes.data.categories);
           setShowBudgetWizard(false);
           // Also save to localStorage as cache (user-specific)
-          if (currentUserId) {
-            localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(budgetCategoriesRes.data.categories));
-          }
+          localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(budgetCategoriesRes.data.categories));
         } else {
-          // If no data in database, try loading from user-specific localStorage (backward compatibility)
-          if (currentUserId) {
-            const saved = localStorage.getItem(getUserStorageKey('budgetCategories'));
-            if (saved) {
+          // No data in database for this user - check user-specific localStorage (backward compatibility)
+          const saved = localStorage.getItem(getUserStorageKey('budgetCategories'));
+          if (saved) {
+            try {
               const parsed = JSON.parse(saved);
-              setBudgetCategories(parsed);
-              setShowBudgetWizard(false);
-              // Migrate to database
-              try {
-                await api.post('/budget-categories', { categories: parsed });
-              } catch (migrateError) {
-                console.error('Error migrating budget categories to database:', migrateError);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                setBudgetCategories(parsed);
+                setShowBudgetWizard(false);
+                // Migrate to database
+                try {
+                  await api.post('/budget-categories', { categories: parsed });
+                } catch (migrateError) {
+                  console.error('Error migrating budget categories to database:', migrateError);
+                }
+              } else {
+                // Empty or invalid data, show wizard
+                setBudgetCategories(null);
+                setShowBudgetWizard(true);
               }
-            } else {
-              // No data at all, show wizard
+            } catch (parseError) {
+              console.error('Error parsing saved budget categories:', parseError);
+              setBudgetCategories(null);
               setShowBudgetWizard(true);
             }
           } else {
-            // No user ID yet, show wizard
+            // No data at all for this user, show wizard
+            setBudgetCategories(null);
             setShowBudgetWizard(true);
           }
         }
       } catch (error: any) {
         console.error('Error loading budget categories:', error);
-        // If table doesn't exist yet, fall back to user-specific localStorage
-        if (currentUserId) {
-          const saved = localStorage.getItem(getUserStorageKey('budgetCategories'));
-          if (saved) {
-            setBudgetCategories(JSON.parse(saved));
-            setShowBudgetWizard(false);
-          } else {
+        // If table doesn't exist yet or error, check user-specific localStorage
+        const saved = localStorage.getItem(getUserStorageKey('budgetCategories'));
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setBudgetCategories(parsed);
+              setShowBudgetWizard(false);
+            } else {
+              setBudgetCategories(null);
+              setShowBudgetWizard(true);
+            }
+          } catch (parseError) {
+            console.error('Error parsing saved budget categories:', parseError);
+            setBudgetCategories(null);
             setShowBudgetWizard(true);
           }
         } else {
+          setBudgetCategories(null);
           setShowBudgetWizard(true);
         }
       }
@@ -3195,7 +3261,10 @@ const FinanceDashboard = () => {
                 </div>
 
                 {/* OLD: 3. 本周预算追踪卡片 - 已移动到上面的支出管理界面 */}
-                {false && budgetCategories && getAllTrackableCategories(budgetCategories, 'weekly').length > 0 && (
+                {false && (() => {
+                  if (!budgetCategories || budgetCategories.length === 0) return false;
+                  return getAllTrackableCategories(budgetCategories as any[], 'weekly').length > 0;
+                })() && (
                   <div style={{
                     background: COLORS.card,
                     borderRadius: '1rem',
@@ -3204,7 +3273,7 @@ const FinanceDashboard = () => {
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                   }}>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>本周预算追踪</h3>
-                    {getAllTrackableCategories(budgetCategories, 'weekly').map((item: any) => {
+                    {budgetCategories && getAllTrackableCategories(budgetCategories!, 'weekly').map((item: any) => {
                       const weekStart = new Date();
                       weekStart.setDate(weekStart.getDate() - weekStart.getDay());
                       weekStart.setHours(0, 0, 0, 0);
@@ -3393,7 +3462,10 @@ const FinanceDashboard = () => {
                 )}
 
                 {/* 4. 月度预算追踪卡片 - 已移动到上面的支出管理界面 */}
-                {false && budgetCategories && getAllTrackableCategories(budgetCategories, 'monthly').length > 0 && (
+                {false && (() => {
+                  if (!budgetCategories || budgetCategories.length === 0) return false;
+                  return getAllTrackableCategories(budgetCategories as any[], 'monthly').length > 0;
+                })() && (
                   <div style={{
                     background: COLORS.card,
                     borderRadius: '1rem',
@@ -3402,7 +3474,7 @@ const FinanceDashboard = () => {
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                   }}>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>本月预算追踪</h3>
-                    {getAllTrackableCategories(budgetCategories, 'monthly').map((item: any) => {
+                    {budgetCategories && getAllTrackableCategories(budgetCategories!, 'monthly').map((item: any) => {
                       const monthStart = new Date();
                       monthStart.setDate(1);
                       monthStart.setHours(0, 0, 0, 0);
@@ -3591,7 +3663,10 @@ const FinanceDashboard = () => {
                 )}
 
                 {/* 5. 年度预算追踪卡片 - 已移动到上面的支出管理界面 */}
-                {false && budgetCategories && getAllTrackableCategories(budgetCategories, 'yearly').length > 0 && (
+                {false && (() => {
+                  if (!budgetCategories || budgetCategories.length === 0) return false;
+                  return getAllTrackableCategories(budgetCategories as any[], 'yearly').length > 0;
+                })() && (
                   <div style={{
                     background: COLORS.card,
                     borderRadius: '1rem',
@@ -3600,7 +3675,7 @@ const FinanceDashboard = () => {
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
                   }}>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>年度预算追踪</h3>
-                    {getAllTrackableCategories(budgetCategories, 'yearly').map((item: any) => {
+                    {budgetCategories && getAllTrackableCategories(budgetCategories!, 'yearly').map((item: any) => {
                       const yearStart = new Date(new Date().getFullYear(), 0, 1);
                       
                       // Helper function to match expense category with budget category
@@ -5311,6 +5386,7 @@ const FinanceDashboard = () => {
 
                 {/* 全年预计开销卡片 */}
                 {(() => {
+                  if (!budgetCategories || budgetCategories.length === 0) return null;
                   const totalYearly = budgetCategories.reduce((sum: number, cat: any) => {
                     return sum + calculateYearlyAmount(cat);
                   }, 0);
@@ -5352,6 +5428,8 @@ const FinanceDashboard = () => {
 
                 {/* Budget Overview by Fixed/Floating - Sorted by Amount */}
                 {(() => {
+                  if (!budgetCategories || budgetCategories.length === 0) return null;
+                  
                   // Collect all categories and subcategories with their yearly amounts
                   const allItems: Array<{
                     name: string;
