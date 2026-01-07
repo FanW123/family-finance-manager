@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import api from '../apiClient';
+import { supabase } from '../lib/supabase';
 
 const COLORS = {
   primary: '#1a1a2e',
@@ -310,12 +311,96 @@ const FinanceDashboard = () => {
     bonds: 40,
     cash: 20
   });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  // User custom budget categories
-  const [budgetCategories, setBudgetCategories] = useState(() => {
-    const saved = localStorage.getItem('budgetCategories');
-    return saved ? JSON.parse(saved) : null; // null means not set up yet
-  });
+  // Helper function to get user-specific localStorage key
+  const getUserStorageKey = (key: string): string => {
+    if (!currentUserId) return key;
+    return `${key}_${currentUserId}`;
+  };
+  
+  // Get current user ID on mount and when auth changes
+  useEffect(() => {
+    const getUserId = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        setCurrentUserId(session.user.id);
+      }
+    };
+    getUserId();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.id) {
+        setCurrentUserId(session.user.id);
+      } else {
+        setCurrentUserId(null);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
+  
+  // Load user-specific data from localStorage when user ID is available
+  useEffect(() => {
+    if (!currentUserId) return;
+    
+    // Load city plan
+    const savedCityPlan = localStorage.getItem(getUserStorageKey('cityPlan'));
+    if (savedCityPlan) {
+      try {
+        setCityPlan(JSON.parse(savedCityPlan));
+      } catch (e) {
+        console.error('Failed to parse cityPlan:', e);
+      }
+    }
+    
+    // Load annual travel costs
+    const savedTravelCosts = localStorage.getItem(getUserStorageKey('annualTravelCosts'));
+    if (savedTravelCosts) {
+      try {
+        setAnnualTravelCosts(JSON.parse(savedTravelCosts));
+      } catch (e) {
+        console.error('Failed to parse annualTravelCosts:', e);
+      }
+    }
+    
+    // Load currency settings
+    const savedCurrency = localStorage.getItem(getUserStorageKey('currencySettings'));
+    if (savedCurrency) {
+      try {
+        setCurrencySettings(JSON.parse(savedCurrency));
+      } catch (e) {
+        console.error('Failed to parse currencySettings:', e);
+      }
+    }
+    
+    // Load retirement expense adjustments
+    const savedAdjustments = localStorage.getItem(getUserStorageKey('retirementExpenseAdjustments'));
+    if (savedAdjustments) {
+      try {
+        setRetirementExpenseAdjustments(JSON.parse(savedAdjustments));
+      } catch (e) {
+        console.error('Failed to parse retirementExpenseAdjustments:', e);
+      }
+    }
+    
+    // Load cash accounts
+    const savedAccounts = localStorage.getItem(getUserStorageKey('cashAccounts'));
+    if (savedAccounts) {
+      try {
+        const parsed = JSON.parse(savedAccounts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCashAccounts(parsed);
+        }
+      } catch (e) {
+        console.error('Failed to parse cashAccounts:', e);
+      }
+    }
+  }, [currentUserId]);
+  
+  // User custom budget categories - don't load from localStorage in initial state, wait for user ID
+  const [budgetCategories, setBudgetCategories] = useState<any[] | null>(null); // null means not set up yet, array when set up
   
   const [showBudgetWizard, setShowBudgetWizard] = useState(() => {
     // Will be updated after loadData runs
@@ -352,18 +437,16 @@ const FinanceDashboard = () => {
   const [budgetYear, setBudgetYear] = useState(new Date().getFullYear());
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'day'>('month');
   
-  // Budget tracking states
+  // Budget tracking states - initialize with empty defaults, will load from user-specific storage
   const [weeklyBudgets] = useState(() => {
-    const saved = localStorage.getItem('weeklyBudgets');
-    return saved ? JSON.parse(saved) : {
+    return {
       food_dining: { spent: 70, limit: 100 },
       transportation: { spent: 30, limit: 50 }
     };
   });
   
   const [monthlyBudgets] = useState(() => {
-    const saved = localStorage.getItem('monthlyBudgets');
-    return saved ? JSON.parse(saved) : {
+    return {
       shopping: { spent: 200, limit: 500 },
       entertainment: { spent: 150, limit: 300 },
       subscriptions: { spent: 100, limit: 200 },
@@ -373,8 +456,7 @@ const FinanceDashboard = () => {
   });
   
   const [annualBudgets] = useState(() => {
-    const saved = localStorage.getItem('annualBudgets');
-    return saved ? JSON.parse(saved) : {
+    return {
       housing: { spent: 36000, limit: 48000 },
       travel: { spent: 5000, limit: 15000 },
       healthcare: { spent: 2000, limit: 8000 },
@@ -443,16 +525,16 @@ const FinanceDashboard = () => {
   const [rebalanceStockVolatility, setRebalanceStockVolatility] = useState(18);
   const [rebalanceBondVolatility, setRebalanceBondVolatility] = useState(6);
   const [cityPlan, setCityPlan] = useState(() => {
-    const saved = localStorage.getItem('cityPlan');
-    return saved ? JSON.parse(saved) : [];
+    // Don't load from localStorage in initial state - wait for user ID
+    return [];
   });
   const [annualTravelCosts, setAnnualTravelCosts] = useState(() => {
-    const saved = localStorage.getItem('annualTravelCosts');
-    return saved ? JSON.parse(saved) : { flights: 0, visas: 0, insurance: 0 };
+    // Don't load from localStorage in initial state - wait for user ID
+    return { flights: 0, visas: 0, insurance: 0 };
   });
   const [currencySettings, setCurrencySettings] = useState(() => {
-    const saved = localStorage.getItem('currencySettings');
-    return saved ? JSON.parse(saved) : {
+    // Currency settings can be shared, but we'll still use user-specific key for consistency
+    return {
       baseCurrency: 'USD',
       exchangeRates: {
         USD: 1,
@@ -466,31 +548,15 @@ const FinanceDashboard = () => {
   const [customCost, setCustomCost] = useState('');
   const [customMonths, setCustomMonths] = useState('1');
   const [retirementExpenseAdjustments, setRetirementExpenseAdjustments] = useState(() => {
-    // 从 localStorage 恢复退休支出调整数据
-    const saved = localStorage.getItem('retirementExpenseAdjustments');
-    return saved ? JSON.parse(saved) : {
+    // Don't load from localStorage in initial state - wait for user ID
+    return {
       essential: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false },
       workRelated: { enabled: true, adjustmentPct: -100, customAmount: 0, useCityPlanner: false }, // 默认工作相关支出退休后消失
       discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false }
     };
   });
   const [cashAccounts, setCashAccounts] = useState(() => {
-    // 从 localStorage 恢复现金账户数据
-    const savedAccounts = localStorage.getItem('cashAccounts');
-    console.log('Initializing cashAccounts from localStorage:', savedAccounts);
-    if (savedAccounts) {
-      try {
-        const parsed = JSON.parse(savedAccounts);
-        console.log('Parsed cash accounts:', parsed);
-        // 验证数据有效性
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      } catch (e) {
-        console.error('Failed to parse saved cash accounts:', e);
-      }
-    }
-    console.log('Using default empty account');
+    // Don't load from localStorage in initial state - wait for user ID
     return [{ id: Date.now(), name: '', amount: '' }];
   });
 
@@ -570,52 +636,65 @@ const FinanceDashboard = () => {
         if (budgetCategoriesRes.data?.categories) {
           setBudgetCategories(budgetCategoriesRes.data.categories);
           setShowBudgetWizard(false);
-          // Also save to localStorage as cache
-          localStorage.setItem('budgetCategories', JSON.stringify(budgetCategoriesRes.data.categories));
+          // Also save to localStorage as cache (user-specific)
+          if (currentUserId) {
+            localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(budgetCategoriesRes.data.categories));
+          }
         } else {
-          // If no data in database, try loading from localStorage (backward compatibility)
-          const saved = localStorage.getItem('budgetCategories');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            setBudgetCategories(parsed);
-            setShowBudgetWizard(false);
-            // Migrate to database
-            try {
-              await api.post('/budget-categories', { categories: parsed });
-            } catch (migrateError) {
-              console.error('Error migrating budget categories to database:', migrateError);
+          // If no data in database, try loading from user-specific localStorage (backward compatibility)
+          if (currentUserId) {
+            const saved = localStorage.getItem(getUserStorageKey('budgetCategories'));
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              setBudgetCategories(parsed);
+              setShowBudgetWizard(false);
+              // Migrate to database
+              try {
+                await api.post('/budget-categories', { categories: parsed });
+              } catch (migrateError) {
+                console.error('Error migrating budget categories to database:', migrateError);
+              }
+            } else {
+              // No data at all, show wizard
+              setShowBudgetWizard(true);
             }
           } else {
-            // No data at all, show wizard
+            // No user ID yet, show wizard
             setShowBudgetWizard(true);
           }
         }
       } catch (error: any) {
         console.error('Error loading budget categories:', error);
-        // If table doesn't exist yet, fall back to localStorage
-        const saved = localStorage.getItem('budgetCategories');
-        if (saved) {
-          setBudgetCategories(JSON.parse(saved));
-          setShowBudgetWizard(false);
+        // If table doesn't exist yet, fall back to user-specific localStorage
+        if (currentUserId) {
+          const saved = localStorage.getItem(getUserStorageKey('budgetCategories'));
+          if (saved) {
+            setBudgetCategories(JSON.parse(saved));
+            setShowBudgetWizard(false);
+          } else {
+            setShowBudgetWizard(true);
+          }
         } else {
           setShowBudgetWizard(true);
         }
       }
 
-      // Load monthly income from localStorage (or could be from API)
-      const savedIncome = localStorage.getItem('monthlyIncome');
-      if (savedIncome) {
-        setMonthlyIncome(parseFloat(savedIncome));
-      }
+      // Load monthly income from user-specific localStorage (or could be from API)
+      if (currentUserId) {
+        const savedIncome = localStorage.getItem(getUserStorageKey('monthlyIncome'));
+        if (savedIncome) {
+          setMonthlyIncome(parseFloat(savedIncome));
+        }
 
-      const savedMultiplier = localStorage.getItem('fireMultiplier');
-      if (savedMultiplier) {
-        setFireMultiplier(parseFloat(savedMultiplier));
-      }
+        const savedMultiplier = localStorage.getItem(getUserStorageKey('fireMultiplier'));
+        if (savedMultiplier) {
+          setFireMultiplier(parseFloat(savedMultiplier));
+        }
 
-      const savedYears = localStorage.getItem('retirementYears');
-      if (savedYears) {
-        setRetirementYears(parseInt(savedYears));
+        const savedYears = localStorage.getItem(getUserStorageKey('retirementYears'));
+        if (savedYears) {
+          setRetirementYears(parseInt(savedYears));
+        }
       }
     } catch (error: any) {
       console.error('Error loading data:', error);
@@ -628,8 +707,10 @@ const FinanceDashboard = () => {
   // Helper function to save budget categories to database and localStorage
   const saveBudgetCategories = async (categories: any[]) => {
     try {
-      // Save to localStorage as cache
-      localStorage.setItem('budgetCategories', JSON.stringify(categories));
+      // Save to user-specific localStorage as cache
+      if (currentUserId) {
+        localStorage.setItem(getUserStorageKey('budgetCategories'), JSON.stringify(categories));
+      }
       
       // Save to database
       try {
@@ -5976,7 +6057,9 @@ const FinanceDashboard = () => {
                           newAccounts[index].name = e.target.value;
                           setCashAccounts(newAccounts);
                           // 实时保存到 localStorage
-                          localStorage.setItem('cashAccounts', JSON.stringify(newAccounts));
+                          if (currentUserId) {
+                            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(newAccounts));
+                          }
                         }}
                         placeholder="账户名称"
                         style={{
@@ -5998,7 +6081,9 @@ const FinanceDashboard = () => {
                           newAccounts[index].amount = e.target.value;
                           setCashAccounts(newAccounts);
                           // 实时保存到 localStorage
-                          localStorage.setItem('cashAccounts', JSON.stringify(newAccounts));
+                          if (currentUserId) {
+                            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(newAccounts));
+                          }
                         }}
                         placeholder="金额"
                         step="0.01"
@@ -6019,7 +6104,9 @@ const FinanceDashboard = () => {
                             const newAccounts = cashAccounts.filter((_: any, i: number) => i !== index);
                             setCashAccounts(newAccounts);
                             // 立即保存到 localStorage
-                            localStorage.setItem('cashAccounts', JSON.stringify(newAccounts));
+                            if (currentUserId) {
+                            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(newAccounts));
+                          }
                           }}
                           style={{
                             background: 'none',
@@ -6042,7 +6129,9 @@ const FinanceDashboard = () => {
                       const newAccounts = [...cashAccounts, { id: Date.now(), name: `账户${cashAccounts.length + 1}`, amount: '' }];
                       setCashAccounts(newAccounts);
                       // 立即保存到 localStorage
-                      localStorage.setItem('cashAccounts', JSON.stringify(newAccounts));
+                            if (currentUserId) {
+                              localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(newAccounts));
+                            }
                     }}
                     style={{
                       background: 'none',
@@ -6161,7 +6250,9 @@ const FinanceDashboard = () => {
                           console.log('After reload - cash investment:', updatedCashInvestment);
                           
                           // 保存现金账户到 localStorage
-                          localStorage.setItem('cashAccounts', JSON.stringify(cashAccounts));
+                          if (currentUserId) {
+                            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(cashAccounts));
+                          }
                           
                           setShowCashCalculator(false);
                           alert(`现金总额已更新为 $${totalCash.toLocaleString()}！请刷新页面查看更新。`);
@@ -8068,7 +8159,9 @@ const FinanceDashboard = () => {
                                     [cat.key]: { ...adj, enabled: e.target.checked }
                                   };
                                   setRetirementExpenseAdjustments(newAdj);
-                                  localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
+                                  if (currentUserId) {
+                                    localStorage.setItem(getUserStorageKey('retirementExpenseAdjustments'), JSON.stringify(newAdj));
+                                  }
                                 }}
                                 style={{ marginRight: '0.5rem', width: '18px', height: '18px', cursor: 'pointer' }}
                               />
@@ -8098,7 +8191,9 @@ const FinanceDashboard = () => {
                                           [cat.key]: { ...adj, useCityPlanner: e.target.checked }
                                         };
                                         setRetirementExpenseAdjustments(newAdj);
-                                        localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
+                                        if (currentUserId) {
+                                    localStorage.setItem(getUserStorageKey('retirementExpenseAdjustments'), JSON.stringify(newAdj));
+                                  }
                                       }}
                                       style={{ marginRight: '0.5rem', width: '18px', height: '18px', cursor: 'pointer' }}
                                     />
@@ -8206,7 +8301,9 @@ const FinanceDashboard = () => {
                                             [cat.key]: { ...adj, adjustmentPct: parseInt(e.target.value) }
                                           };
                                           setRetirementExpenseAdjustments(newAdj);
-                                          localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
+                                          if (currentUserId) {
+                                    localStorage.setItem(getUserStorageKey('retirementExpenseAdjustments'), JSON.stringify(newAdj));
+                                  }
                                         }}
                                         style={{ flex: 1 }}
                                       />
@@ -8286,7 +8383,9 @@ const FinanceDashboard = () => {
                                               [cat.key]: { ...adj, customAmount: value }
                                             };
                                             setRetirementExpenseAdjustments(newAdj);
-                                            localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(newAdj));
+                                            if (currentUserId) {
+                                    localStorage.setItem(getUserStorageKey('retirementExpenseAdjustments'), JSON.stringify(newAdj));
+                                  }
                                           }}
                                           style={{
                                             width: '100%',
@@ -8464,9 +8563,13 @@ const FinanceDashboard = () => {
                         discretionary: { enabled: false, adjustmentPct: 0, customAmount: 0, useCityPlanner: false }
                       };
                       setRetirementExpenseAdjustments(defaultAdj);
-                      localStorage.setItem('retirementExpenseAdjustments', JSON.stringify(defaultAdj));
+                      if (currentUserId) {
+                        localStorage.setItem(getUserStorageKey('retirementExpenseAdjustments'), JSON.stringify(defaultAdj));
+                      }
                       setCityPlan([]);
-                      localStorage.setItem('cityPlan', JSON.stringify([]));
+                      if (currentUserId) {
+                        localStorage.setItem(getUserStorageKey('cityPlan'), JSON.stringify([]));
+                      }
                     }}
                     style={{
                       flex: 1,
@@ -9785,7 +9888,9 @@ const FinanceDashboard = () => {
                               onClick={() => {
                                 const newPlan = cityPlan.filter((_: any, i: number) => i !== idx);
                                 setCityPlan(newPlan);
-                                localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                                if (currentUserId) {
+                                  localStorage.setItem(getUserStorageKey('cityPlan'), JSON.stringify(newPlan));
+                                }
                               }}
                               style={{
                                 background: 'transparent',
@@ -9832,7 +9937,9 @@ const FinanceDashboard = () => {
                                     const newPlan = [...cityPlan];
                                     newPlan[idx].monthlyCost = parseInt(e.target.value) || 0;
                                     setCityPlan(newPlan);
-                                    localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                                    if (currentUserId) {
+                                  localStorage.setItem(getUserStorageKey('cityPlan'), JSON.stringify(newPlan));
+                                }
                                   }}
                                   style={{
                                     width: '100%',
@@ -9875,7 +9982,9 @@ const FinanceDashboard = () => {
                                   }
                                   
                                   setCityPlan(newPlan);
-                                  localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                                  if (currentUserId) {
+                                  localStorage.setItem(getUserStorageKey('cityPlan'), JSON.stringify(newPlan));
+                                }
                                 }}
                                 style={{
                                   width: '100%',
@@ -9972,7 +10081,9 @@ const FinanceDashboard = () => {
                               onChange={(e) => {
                                 const newCosts = { ...annualTravelCosts, flights: parseInt(e.target.value) || 0 };
                                 setAnnualTravelCosts(newCosts);
-                                localStorage.setItem('annualTravelCosts', JSON.stringify(newCosts));
+                                if (currentUserId) {
+                                  localStorage.setItem(getUserStorageKey('annualTravelCosts'), JSON.stringify(newCosts));
+                                }
                               }}
                               style={{
                                 width: '120px',
@@ -10014,7 +10125,9 @@ const FinanceDashboard = () => {
                               onChange={(e) => {
                                 const newCosts = { ...annualTravelCosts, visas: parseInt(e.target.value) || 0 };
                                 setAnnualTravelCosts(newCosts);
-                                localStorage.setItem('annualTravelCosts', JSON.stringify(newCosts));
+                                if (currentUserId) {
+                                  localStorage.setItem(getUserStorageKey('annualTravelCosts'), JSON.stringify(newCosts));
+                                }
                               }}
                               style={{
                                 width: '120px',
@@ -10056,7 +10169,9 @@ const FinanceDashboard = () => {
                               onChange={(e) => {
                                 const newCosts = { ...annualTravelCosts, insurance: parseInt(e.target.value) || 0 };
                                 setAnnualTravelCosts(newCosts);
-                                localStorage.setItem('annualTravelCosts', JSON.stringify(newCosts));
+                                if (currentUserId) {
+                                  localStorage.setItem(getUserStorageKey('annualTravelCosts'), JSON.stringify(newCosts));
+                                }
                               }}
                               style={{
                                 width: '120px',
@@ -10226,7 +10341,9 @@ const FinanceDashboard = () => {
                             };
                             const newPlan = [...cityPlan, newCity];
                             setCityPlan(newPlan);
-                            localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                                    if (currentUserId) {
+                                      localStorage.setItem(getUserStorageKey('cityPlan'), JSON.stringify(newPlan));
+                                    }
                             // Reset form
                             setCustomCity('');
                             setCustomCost('');
@@ -10344,7 +10461,9 @@ const FinanceDashboard = () => {
                                     };
                                     const newPlan = [...cityPlan, newCity];
                                     setCityPlan(newPlan);
-                                    localStorage.setItem('cityPlan', JSON.stringify(newPlan));
+                                    if (currentUserId) {
+                                  localStorage.setItem(getUserStorageKey('cityPlan'), JSON.stringify(newPlan));
+                                }
                                   }}
                                   style={{
                                     background: COLORS.card,
@@ -10410,7 +10529,9 @@ const FinanceDashboard = () => {
                   <button
                     onClick={() => {
                       setCityPlan([]);
-                      localStorage.setItem('cityPlan', JSON.stringify([]));
+                      if (currentUserId) {
+                        localStorage.setItem(getUserStorageKey('cityPlan'), JSON.stringify([]));
+                      }
                     }}
                     style={{
                       flex: 1,
