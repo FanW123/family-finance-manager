@@ -1121,7 +1121,21 @@ app.get('/budget-categories', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    console.log('[API] Fetching budget categories for user:', userId);
     const sb = getSupabaseClient(req);
+    
+    // First, let's check what data exists in the database for debugging
+    const { data: allData, error: allError } = await sb
+      .from('budget_categories')
+      .select('user_id, categories')
+      .eq('user_id', userId);
+    
+    console.log('[API] Query result for user', userId, ':', {
+      found: !!allData,
+      count: allData?.length || 0,
+      error: allError?.message
+    });
+    
     const { data, error } = await sb
       .from('budget_categories')
       .select('categories')
@@ -1131,18 +1145,20 @@ app.get('/budget-categories', async (req, res) => {
     if (error) {
       // If no record found, return null (not an error)
       if (error.code === 'PGRST116') {
+        console.log('[API] No budget categories found for user:', userId);
         return res.json({ categories: null });
       }
-      console.error('Error fetching budget categories:', error);
+      console.error('[API] Error fetching budget categories:', error);
       return res.status(500).json({ 
         error: 'Failed to fetch budget categories',
         message: error.message
       });
     }
 
+    console.log('[API] Returning budget categories for user:', userId, 'count:', Array.isArray(data?.categories) ? data.categories.length : 0);
     res.json({ categories: data?.categories || null });
   } catch (error: any) {
-    console.error('Error fetching budget categories:', error);
+    console.error('[API] Exception fetching budget categories:', error);
     res.status(500).json({ 
       error: 'Failed to fetch budget categories',
       message: error?.message || '未知错误'
