@@ -1965,12 +1965,33 @@ const FinanceDashboard = () => {
               }}>
                 <button
                   onClick={() => {
-                    // Initialize calculator with zero values
-                    setCalcInitialAssets(0);
-                    setCalcGrowthRate(0);
-                    setCalcAnnualExpenses(0);
-                    setCalcYearsToProject(0);
-                    setCalcInflationRate(0);
+                    // Load saved calculator values or use defaults
+                    const savedCalc = localStorage.getItem(getUserStorageKey('fireCalculator'));
+                    if (savedCalc) {
+                      try {
+                        const parsed = JSON.parse(savedCalc);
+                        setCalcInitialAssets(parsed.initialAssets || 0);
+                        setCalcGrowthRate(parsed.growthRate || 0);
+                        setCalcAnnualExpenses(parsed.annualExpenses || 0);
+                        setCalcYearsToProject(parsed.yearsToProject || 0);
+                        setCalcInflationRate(parsed.inflationRate || 0);
+                      } catch (e) {
+                        console.error('Failed to parse saved calculator values:', e);
+                        // Fall back to defaults
+                        setCalcInitialAssets(fireNumber > 0 ? fireNumber : 0);
+                        setCalcGrowthRate(0);
+                        setCalcAnnualExpenses(0);
+                        setCalcYearsToProject(0);
+                        setCalcInflationRate(0);
+                      }
+                    } else {
+                      // Use FIRE target as initial assets, or 0 if not available
+                      setCalcInitialAssets(fireNumber > 0 ? fireNumber : 0);
+                      setCalcGrowthRate(0);
+                      setCalcAnnualExpenses(0);
+                      setCalcYearsToProject(0);
+                      setCalcInflationRate(0);
+                    }
                     setShowFireCalculator(true);
                   }}
                   style={{
@@ -9056,6 +9077,36 @@ const FinanceDashboard = () => {
                         }}
                       />
                     </div>
+                  </div>
+                  
+                  {/* Save Button */}
+                  <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={() => {
+                        const calcData = {
+                          initialAssets: calcInitialAssets,
+                          growthRate: calcGrowthRate,
+                          annualExpenses: calcAnnualExpenses,
+                          yearsToProject: calcYearsToProject,
+                          inflationRate: calcInflationRate
+                        };
+                        localStorage.setItem(getUserStorageKey('fireCalculator'), JSON.stringify(calcData));
+                        alert('✅ 计算器参数已保存！下次打开时将自动加载这些值。');
+                      }}
+                      style={{
+                        background: COLORS.success,
+                        color: COLORS.text,
+                        border: 'none',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '0.5rem',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      💾 保存参数
+                    </button>
                   </div>
                 </div>
 
