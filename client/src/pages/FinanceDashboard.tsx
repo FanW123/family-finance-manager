@@ -1662,6 +1662,52 @@ const FinanceDashboard = () => {
     cash: totalPortfolio > 0 ? (portfolio.cash / totalPortfolio * 100) : 0
   };
 
+  // Calculate historical returns from investment data
+  const calculateHistoricalReturns = () => {
+    // Calculate average returns based on current portfolio allocation
+    // Since we don't have historical price data, we'll use a simple estimation
+    // based on typical market returns adjusted by portfolio composition
+    
+    const totalStocks = portfolio.stocks;
+    const totalBonds = portfolio.bonds;
+    const totalCash = portfolio.cash;
+    const totalValue = totalStocks + totalBonds + totalCash;
+    
+    if (totalValue === 0) {
+      // No portfolio data, use defaults
+      return;
+    }
+    
+    // Estimate returns based on typical historical averages
+    // Stocks: ~10% annual return, Bonds: ~5% annual return, Cash: ~2% annual return
+    // These are rough estimates - in a real implementation, you'd calculate from actual historical prices
+    const estimatedStockReturn = 10; // Default if no data
+    const estimatedBondReturn = 5; // Default if no data
+    const estimatedCashReturn = 2; // Default if no data
+    
+    // Estimate volatility based on typical values
+    // Stocks: ~18% volatility, Bonds: ~6% volatility
+    const estimatedStockVolatility = 18;
+    const estimatedBondVolatility = 6;
+    
+    // Only update if fields haven't been manually edited
+    if (!rebalanceFieldsEdited.has('stockReturn')) {
+      setRebalanceStockReturn(estimatedStockReturn);
+    }
+    if (!rebalanceFieldsEdited.has('bondReturn')) {
+      setRebalanceBondReturn(estimatedBondReturn);
+    }
+    if (!rebalanceFieldsEdited.has('cashReturn')) {
+      setRebalanceCashReturn(estimatedCashReturn);
+    }
+    if (!rebalanceFieldsEdited.has('stockVolatility')) {
+      setRebalanceStockVolatility(estimatedStockVolatility);
+    }
+    if (!rebalanceFieldsEdited.has('bondVolatility')) {
+      setRebalanceBondVolatility(estimatedBondVolatility);
+    }
+  };
+
   const portfolioChartData = [
     { name: 'Stocks', current: portfolio.stocks, target: totalPortfolio * targetAllocation.stocks / 100 },
     { name: 'Bonds', current: portfolio.bonds, target: totalPortfolio * targetAllocation.bonds / 100 },
