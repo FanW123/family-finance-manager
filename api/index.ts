@@ -1258,6 +1258,117 @@ app.post('/budget-categories', async (req, res) => {
   }
 });
 
+// ---------- Cash Accounts Routes ----------
+
+// Get cash accounts
+app.get('/cash-accounts', async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    console.log('[API] Fetching cash accounts for user:', userId);
+    const sb = getSupabaseClient(req);
+    
+    const { data, error } = await sb
+      .from('cash_accounts')
+      .select('accounts')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      // If no record found, return empty array (not an error)
+      if (error.code === 'PGRST116') {
+        console.log('[API] No cash accounts found for user:', userId);
+        return res.json({ accounts: [] });
+      }
+      console.error('[API] Error fetching cash accounts:', error);
+      return res.status(500).json({ 
+        error: 'Failed to fetch cash accounts',
+        message: error.message
+      });
+    }
+
+    console.log('[API] Returning cash accounts for user:', userId, 'count:', Array.isArray(data?.accounts) ? data.accounts.length : 0);
+    res.json({ accounts: data?.accounts || [] });
+  } catch (error: any) {
+    console.error('[API] Exception fetching cash accounts:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch cash accounts',
+      message: error?.message || '未知错误'
+    });
+  }
+});
+
+// Save cash accounts
+app.post('/cash-accounts', async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { accounts } = req.body;
+
+    if (!accounts || !Array.isArray(accounts)) {
+      return res.status(400).json({ 
+        error: 'Invalid request',
+        message: 'accounts must be an array'
+      });
+    }
+
+    console.log('[API] Saving cash accounts for user:', userId, 'count:', accounts.length);
+    
+    const sb = getSupabaseClient(req);
+    
+    // Use upsert to insert or update
+    const { data, error } = await sb
+      .from('cash_accounts')
+      .upsert({
+        user_id: userId,
+        accounts: accounts,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[API] Error saving cash accounts:', error);
+      
+      let errorMessage = error.message;
+      let hint = '请检查数据格式或稍后重试';
+      
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        errorMessage = '数据库表不存在';
+        hint = '请在Supabase中执行create_cash_accounts_table.sql脚本创建表';
+      }
+      
+      return res.status(500).json({ 
+        error: 'Failed to save cash accounts',
+        message: errorMessage,
+        details: error.details,
+        hint: error.hint || hint,
+        code: error.code
+      });
+    }
+
+    console.log('[API] Cash accounts saved successfully for user:', userId);
+    res.json({ 
+      id: data.id, 
+      message: 'Cash accounts saved successfully' 
+    });
+  } catch (error: any) {
+    console.error('[API] Exception saving cash accounts:', error);
+    res.status(500).json({ 
+      error: 'Failed to save cash accounts',
+      message: error?.message || '未知错误'
+    });
+  }
+});
+
 // Global error handler (last)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('API Error:', err);

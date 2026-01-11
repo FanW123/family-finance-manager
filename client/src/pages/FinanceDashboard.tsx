@@ -430,28 +430,9 @@ const FinanceDashboard = () => {
       });
     }
     
-    // Load cash accounts - ONLY from user-specific localStorage
-    // Do NOT migrate from old localStorage to prevent data leakage between users
-    const savedAccounts = localStorage.getItem(getUserStorageKey('cashAccounts'));
-    if (savedAccounts) {
-      try {
-        const parsed = JSON.parse(savedAccounts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          console.log('[Cash] Loaded cash accounts from user-specific localStorage for user:', currentUserId, 'count:', parsed.length);
-          setCashAccounts(parsed);
-        } else {
-          console.log('[Cash] No valid cash accounts found, setting to empty');
-          setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
-        }
-      } catch (e) {
-        console.error('[Cash] Failed to parse cashAccounts:', e);
-        setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
-      }
-    } else {
-      // New user or no data - set to empty
-      console.log('[Cash] No cash accounts found for user:', currentUserId, '- setting to empty');
-      setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
-    }
+    // Cash accounts will be loaded from API in loadData function
+    // Reset to empty here, will be loaded from database
+    setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
     
     // Reset budget categories - will be loaded from database in loadData
     setBudgetCategories(null);
@@ -849,6 +830,31 @@ const FinanceDashboard = () => {
       console.error('Error details:', error.response?.data);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to save cash accounts to database
+  const saveCashAccounts = async (accounts: any[]) => {
+    try {
+      if (!currentUserId) {
+        console.error('[Cash] Cannot save cash accounts: no user ID');
+        return;
+      }
+      
+      console.log('[Cash] Saving cash accounts for user:', currentUserId, 'count:', accounts.length);
+      
+      // Save to database
+      try {
+        await api.post('/cash-accounts', { accounts });
+        console.log('[Cash] Successfully saved cash accounts to database');
+      } catch (error: any) {
+        console.error('[Cash] Error saving cash accounts to database:', error);
+        if (error.response?.status === 500 && error.response?.data?.hint?.includes('表不存在')) {
+          alert('⚠️ 现金账户表尚未创建\n\n请在 Supabase Dashboard → SQL Editor 中运行 create_cash_accounts_table.sql 脚本');
+        }
+      }
+    } catch (error: any) {
+      console.error('[Cash] Exception saving cash accounts:', error);
     }
   };
 
@@ -6222,10 +6228,8 @@ const FinanceDashboard = () => {
                           const newAccounts = [...cashAccounts];
                           newAccounts[index].name = e.target.value;
                           setCashAccounts(newAccounts);
-                          // 实时保存到 localStorage
-                          if (currentUserId) {
-                            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(newAccounts));
-                          }
+                          // 实时保存到数据库
+                          saveCashAccounts(newAccounts);
                         }}
                         placeholder="账户名称"
                         style={{
@@ -6246,10 +6250,8 @@ const FinanceDashboard = () => {
                           const newAccounts = [...cashAccounts];
                           newAccounts[index].amount = e.target.value;
                           setCashAccounts(newAccounts);
-                          // 实时保存到 localStorage
-                          if (currentUserId) {
-                            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(newAccounts));
-                          }
+                          // 实时保存到数据库
+                          saveCashAccounts(newAccounts);
                         }}
                         placeholder="金额"
                         step="0.01"
@@ -6269,10 +6271,8 @@ const FinanceDashboard = () => {
                           onClick={() => {
                             const newAccounts = cashAccounts.filter((_: any, i: number) => i !== index);
                             setCashAccounts(newAccounts);
-                            // 立即保存到 localStorage
-                            if (currentUserId) {
-                            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(newAccounts));
-                          }
+                            // 立即保存到数据库
+                            saveCashAccounts(newAccounts);
                           }}
                           style={{
                             background: 'none',
@@ -6294,10 +6294,8 @@ const FinanceDashboard = () => {
                     onClick={() => {
                       const newAccounts = [...cashAccounts, { id: Date.now(), name: `账户${cashAccounts.length + 1}`, amount: '' }];
                       setCashAccounts(newAccounts);
-                      // 立即保存到 localStorage
-                            if (currentUserId) {
-                              localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(newAccounts));
-                            }
+                      // 立即保存到数据库
+                      saveCashAccounts(newAccounts);
                     }}
                     style={{
                       background: 'none',
@@ -6415,10 +6413,8 @@ const FinanceDashboard = () => {
                           const updatedCashInvestment = investments.find(inv => inv.type === 'cash');
                           console.log('After reload - cash investment:', updatedCashInvestment);
                           
-                          // 保存现金账户到 localStorage
-                          if (currentUserId) {
-                            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(cashAccounts));
-                          }
+                          // 保存现金账户到数据库
+                          await saveCashAccounts(cashAccounts);
                           
                           setShowCashCalculator(false);
                           alert(`现金总额已更新为 $${totalCash.toLocaleString()}！请刷新页面查看更新。`);
