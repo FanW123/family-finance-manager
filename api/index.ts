@@ -41,14 +41,26 @@ async function getUserFromRequest(req: Request): Promise<string | null> {
     console.log('[Auth] Supabase URL configured:', supabaseUrl ? 'Yes' : 'No');
     console.log('[Auth] Supabase Key configured:', supabaseKey ? 'Yes' : 'No');
 
+    // Verify the JWT token using Supabase's getUser method
+    // This validates the token signature and expiration
     const { data, error } = await supabase.auth.getUser(token);
-    if (error || !data.user) {
-      console.error('[Auth] Error getting user from token:', {
-        message: error?.message,
-        status: error?.status,
-        name: error?.name,
-        hasUser: !!data?.user,
-      });
+    
+    if (error) {
+      // Handle specific error types
+      if (error.message === 'Auth session missing!' || error.name === 'AuthSessionMissingError') {
+        console.error('[Auth] Session missing - token may be invalid or expired');
+      } else {
+        console.error('[Auth] Error getting user from token:', {
+          message: error.message,
+          status: error.status,
+          name: error.name,
+        });
+      }
+      return null;
+    }
+    
+    if (!data?.user) {
+      console.error('[Auth] No user found in token response');
       return null;
     }
 
