@@ -833,16 +833,78 @@ const FinanceDashboard = () => {
             console.log('[Cash] Loaded cash accounts from database for user:', currentUserId, 'count:', accounts.length);
             setCashAccounts(accounts);
           } else {
-            console.log('[Cash] No cash accounts found in database for user:', currentUserId, '- setting to empty');
-            setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+            // Database is empty, check localStorage for migration
+            console.log('[Cash] No cash accounts found in database for user:', currentUserId);
+            const savedAccounts = localStorage.getItem(getUserStorageKey('cashAccounts'));
+            if (savedAccounts) {
+              try {
+                const parsed = JSON.parse(savedAccounts);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  // Check if accounts have valid data (not just empty placeholders)
+                  const validAccounts = parsed.filter((acc: any) => {
+                    const amount = parseFloat(acc.amount) || 0;
+                    return amount > 0 || (acc.name && acc.name.trim() !== '');
+                  });
+                  
+                  if (validAccounts.length > 0) {
+                    console.log('[Cash] Found cash accounts in localStorage, migrating to database, count:', validAccounts.length);
+                    // Migrate to database
+                    await api.post('/cash-accounts', { accounts: validAccounts });
+                    console.log('[Cash] Successfully migrated cash accounts to database');
+                    setCashAccounts(validAccounts);
+                    // Clear old localStorage data after successful migration
+                    localStorage.removeItem(getUserStorageKey('cashAccounts'));
+                    console.log('[Cash] Cleared old localStorage data');
+                  } else {
+                    console.log('[Cash] No valid cash accounts in localStorage, setting to empty');
+                    setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+                  }
+                } else {
+                  console.log('[Cash] Invalid cash accounts format in localStorage, setting to empty');
+                  setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+                }
+              } catch (e) {
+                console.error('[Cash] Failed to parse cashAccounts from localStorage:', e);
+                setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+              }
+            } else {
+              console.log('[Cash] No cash accounts in localStorage either, setting to empty');
+              setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+            }
           }
         } catch (error: any) {
           console.error('[Cash] Error loading cash accounts from API:', error);
-          // If table doesn't exist yet, just set to empty
+          // If table doesn't exist yet, try to load from localStorage as fallback
           if (error.response?.status === 500 && error.response?.data?.hint?.includes('表不存在')) {
-            console.log('[Cash] Cash accounts table does not exist yet, setting to empty');
+            console.log('[Cash] Cash accounts table does not exist yet, trying localStorage fallback');
+            const savedAccounts = localStorage.getItem(getUserStorageKey('cashAccounts'));
+            if (savedAccounts) {
+              try {
+                const parsed = JSON.parse(savedAccounts);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  const validAccounts = parsed.filter((acc: any) => {
+                    const amount = parseFloat(acc.amount) || 0;
+                    return amount > 0 || (acc.name && acc.name.trim() !== '');
+                  });
+                  if (validAccounts.length > 0) {
+                    console.log('[Cash] Using localStorage data as fallback, count:', validAccounts.length);
+                    setCashAccounts(validAccounts);
+                  } else {
+                    setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+                  }
+                } else {
+                  setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+                }
+              } catch (e) {
+                console.error('[Cash] Failed to parse localStorage fallback:', e);
+                setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+              }
+            } else {
+              setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+            }
+          } else {
+            setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
           }
-          setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
         }
       }
     } catch (error: any) {
