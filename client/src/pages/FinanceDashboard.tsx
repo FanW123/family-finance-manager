@@ -541,11 +541,11 @@ const FinanceDashboard = () => {
   const [expandedYearlyCategories, setExpandedYearlyCategories] = useState<Set<string>>(new Set());
   
   // Fire Calculator Parameters
-  const [calcInitialAssets, setCalcInitialAssets] = useState(1000000);
-  const [calcGrowthRate, setCalcGrowthRate] = useState(7);
-  const [calcAnnualExpenses, setCalcAnnualExpenses] = useState(40000);
-  const [calcYearsToProject, setCalcYearsToProject] = useState(30);
-  const [calcInflationRate, setCalcInflationRate] = useState(2.5);
+  const [calcInitialAssets, setCalcInitialAssets] = useState(0);
+  const [calcGrowthRate, setCalcGrowthRate] = useState(0);
+  const [calcAnnualExpenses, setCalcAnnualExpenses] = useState(0);
+  const [calcYearsToProject, setCalcYearsToProject] = useState(0);
+  const [calcInflationRate, setCalcInflationRate] = useState(0);
   const [fireExpenseRange, setFireExpenseRange] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   
   // Rebalance Simulator Parameters
@@ -1965,15 +1965,12 @@ const FinanceDashboard = () => {
               }}>
                 <button
                   onClick={() => {
-                    // Initialize calculator with current values (with reasonable bounds)
-                    setCalcInitialAssets(totalPortfolio > 0 && totalPortfolio < 100000000 ? totalPortfolio : 1000000);
-                    // Ensure growth rate is between 4-10%
-                    const reasonableGrowthRate = estimatedAnnualGrowth > 0 && estimatedAnnualGrowth <= 15 ? estimatedAnnualGrowth : 7;
-                    setCalcGrowthRate(reasonableGrowthRate);
-                    // Calculate total annual budget from budget categories
-                    const totalAnnualBudget = budgetCategories ? 
-                      budgetCategories.reduce((sum: number, cat: any) => sum + calculateYearlyAmount(cat), 0) : 0;
-                    setCalcAnnualExpenses(totalAnnualBudget > 0 && totalAnnualBudget < 10000000 ? totalAnnualBudget : 40000);
+                    // Initialize calculator with zero values
+                    setCalcInitialAssets(0);
+                    setCalcGrowthRate(0);
+                    setCalcAnnualExpenses(0);
+                    setCalcYearsToProject(0);
+                    setCalcInflationRate(0);
                     setShowFireCalculator(true);
                   }}
                   style={{
