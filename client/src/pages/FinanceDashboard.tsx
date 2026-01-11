@@ -1877,7 +1877,7 @@ const FinanceDashboard = () => {
                 marginBottom: '1.5rem',
                 color: COLORS.text // White text for label
               }}>
-                当前总资产: <span style={{ color: COLORS.success }}>${totalPortfolio.toLocaleString()}</span>
+                当前总资产: <span style={{ color: COLORS.success }}>${Math.round(totalPortfolio).toLocaleString()}</span>
               </div>
               
               {/* FIRE Progress Section */}
@@ -1904,7 +1904,7 @@ const FinanceDashboard = () => {
                     color: COLORS.text,
                     fontWeight: '600'
                   }}>
-                    FIRE目标: ${fireNumber.toLocaleString()}
+                    FIRE目标: ${Math.round(fireNumber).toLocaleString()}
                   </div>
                 </div>
                 
@@ -1947,7 +1947,7 @@ const FinanceDashboard = () => {
                         zIndex: 2,
                         pointerEvents: 'none'
                       }}>
-                        距离目标还差: <span style={{ color: COLORS.warning }}>${(fireNumber - totalPortfolio).toLocaleString()}</span>
+                        距离目标还差: <span style={{ color: COLORS.warning }}>${Math.round(fireNumber - totalPortfolio).toLocaleString()}</span>
                       </div>
                     )}
                   </div>
@@ -2183,7 +2183,7 @@ const FinanceDashboard = () => {
                   color: COLORS.success,
                   marginBottom: '0.5rem'
                 }}>
-                  ${monthlySavings.toLocaleString()}
+                  ${Math.round(monthlySavings).toLocaleString()}
                 </div>
               </div>
 
@@ -2223,13 +2223,13 @@ const FinanceDashboard = () => {
                   近12个月
                 </div>
                 <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.success, marginBottom: '1rem' }}>
-                  ${estimatedAnnualGrowth.toLocaleString()}
+                  ${Math.round(estimatedAnnualGrowth).toLocaleString()}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                  年增长: <span style={{ color: COLORS.success }}>+${estimatedAnnualGrowth.toLocaleString()}</span>
+                  年增长: <span style={{ color: COLORS.success }}>+${Math.round(estimatedAnnualGrowth).toLocaleString()}</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
-                  月均增长: <span style={{ color: COLORS.success }}>+${(estimatedAnnualGrowth / 12).toLocaleString()}</span>
+                  月均增长: <span style={{ color: COLORS.success }}>+${Math.round(estimatedAnnualGrowth / 12).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -2373,7 +2373,7 @@ const FinanceDashboard = () => {
                   }}>
                     <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>股票: {currentAllocation.stocks.toFixed(0)}%</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.stocks }}>
-                      ${portfolio.stocks.toLocaleString()}
+                      ${Math.round(portfolio.stocks).toLocaleString()}
                     </div>
                   </div>
                   <div style={{
@@ -2383,7 +2383,7 @@ const FinanceDashboard = () => {
                   }}>
                     <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>债券: {currentAllocation.bonds.toFixed(0)}%</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.bonds }}>
-                      ${portfolio.bonds.toLocaleString()}
+                      ${Math.round(portfolio.bonds).toLocaleString()}
                     </div>
                   </div>
                   <div style={{
@@ -2404,7 +2404,7 @@ const FinanceDashboard = () => {
                     }}>
                       <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>黄金: {((portfolio.crypto / totalPortfolio) * 100).toFixed(0)}%</div>
                       <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.warning }}>
-                        ${portfolio.crypto.toLocaleString()}
+                        ${Math.round(portfolio.crypto).toLocaleString()}
                       </div>
                     </div>
                   )}
@@ -2480,7 +2480,7 @@ const FinanceDashboard = () => {
                                   建议月度储蓄
                                 </div>
                                 <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.success }}>
-                                  ${requiredMonthlySavings.toLocaleString()}
+                                  ${Math.round(requiredMonthlySavings).toLocaleString()}
                                 </div>
                                 <div style={{ fontSize: '0.7rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
                                   储蓄率: {recommendedSavingsRate.toFixed(1)}%
@@ -6202,7 +6202,7 @@ const FinanceDashboard = () => {
                   border: `2px solid ${COLORS.secondary}`
                 }}>
                   <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>总资产</div>
-                  <div style={{ fontSize: '2rem', fontWeight: '700' }}>${totalPortfolio.toLocaleString()}</div>
+                  <div style={{ fontSize: '2rem', fontWeight: '700' }}>${Math.round(totalPortfolio).toLocaleString()}</div>
                 </div>
                 <div style={{
                   background: COLORS.accent,
@@ -6212,7 +6212,7 @@ const FinanceDashboard = () => {
                 }}>
                   <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>股票</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.stocks }}>
-                    ${portfolio.stocks.toLocaleString()}
+                    ${Math.round(portfolio.stocks).toLocaleString()}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                     {currentAllocation.stocks.toFixed(1)}%
@@ -6226,7 +6226,7 @@ const FinanceDashboard = () => {
                 }}>
                   <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>债券</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.bonds }}>
-                    ${portfolio.bonds.toLocaleString()}
+                    ${Math.round(portfolio.bonds).toLocaleString()}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                     {currentAllocation.bonds.toFixed(1)}%
@@ -6582,7 +6582,7 @@ const FinanceDashboard = () => {
                   <YAxis stroke={COLORS.textMuted} />
                   <Tooltip 
                     contentStyle={{ background: COLORS.accent, border: 'none', borderRadius: '0.5rem' }}
-                    formatter={(value) => `$${value.toLocaleString()}`}
+                    formatter={(value) => `$${Math.round(Number(value)).toLocaleString()}`}
                   />
                   <Legend />
                   <Bar dataKey="current" fill={COLORS.highlight} name="当前" />
