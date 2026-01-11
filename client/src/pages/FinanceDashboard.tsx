@@ -628,19 +628,40 @@ const FinanceDashboard = () => {
 
   // Load data from API when month/year changes or when user changes
   useEffect(() => {
-    if (currentUserId) {
-      loadData();
-      checkAndRefreshPrices();
+    if (!currentUserId) {
+      console.log('[FinanceDashboard] No user ID yet, skipping data load');
+      return;
+    }
+    
+    console.log('[FinanceDashboard] Loading data for user:', currentUserId);
+    try {
+      loadData().catch((error) => {
+        console.error('[FinanceDashboard] Error in loadData:', error);
+      });
+      checkAndRefreshPrices().catch((error) => {
+        console.error('[FinanceDashboard] Error in checkAndRefreshPrices:', error);
+      });
+    } catch (error) {
+      console.error('[FinanceDashboard] Exception loading data:', error);
     }
     
     // Load last update time (shared across users)
-    const lastUpdate = localStorage.getItem('lastPriceUpdate');
-    if (lastUpdate) {
-      setLastPriceUpdate(lastUpdate);
+    try {
+      const lastUpdate = localStorage.getItem('lastPriceUpdate');
+      if (lastUpdate) {
+        setLastPriceUpdate(lastUpdate);
+      }
+    } catch (error) {
+      console.error('[FinanceDashboard] Error loading lastPriceUpdate:', error);
     }
   }, [selectedMonth, selectedYear, currentUserId]);
 
   const loadData = async () => {
+    if (!currentUserId) {
+      console.warn('[FinanceDashboard] loadData called without user ID');
+      return;
+    }
+    
     setLoading(true);
     try {
       // Load expenses
