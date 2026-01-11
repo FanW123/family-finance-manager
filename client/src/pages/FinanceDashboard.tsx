@@ -428,6 +428,7 @@ const FinanceDashboard = () => {
       try {
         const parsed = JSON.parse(savedAccounts);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log('[Cash] Loaded cash accounts from user-specific localStorage, count:', parsed.length);
           setCashAccounts(parsed);
         } else {
           setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
@@ -437,7 +438,26 @@ const FinanceDashboard = () => {
         setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
       }
     } else {
-      setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+      // Check old localStorage (without user ID) for backward compatibility
+      const oldSavedAccounts = localStorage.getItem('cashAccounts');
+      if (oldSavedAccounts) {
+        try {
+          const parsed = JSON.parse(oldSavedAccounts);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log('[Cash] Found old cash accounts, migrating to user-specific localStorage, count:', parsed.length);
+            // Migrate to user-specific localStorage
+            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(parsed));
+            setCashAccounts(parsed);
+          } else {
+            setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+          }
+        } catch (e) {
+          console.error('Failed to parse old cashAccounts:', e);
+          setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+        }
+      } else {
+        setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+      }
     }
     
     // Reset budget categories - will be loaded from database in loadData
