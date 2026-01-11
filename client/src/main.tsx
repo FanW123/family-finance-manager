@@ -31,6 +31,15 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Global error handler
+window.addEventListener('error', (event) => {
+  console.error('[Global Error]', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Unhandled Promise Rejection]', event.reason);
+});
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
