@@ -824,6 +824,26 @@ const FinanceDashboard = () => {
           console.log('[Retirement] No retirement years found for user:', currentUserId, '- using default 50');
           setRetirementYears(50);
         }
+
+        // Load cash accounts from API
+        try {
+          const cashAccountsRes = await api.get('/cash-accounts');
+          const accounts = cashAccountsRes.data?.accounts || [];
+          if (Array.isArray(accounts) && accounts.length > 0) {
+            console.log('[Cash] Loaded cash accounts from database for user:', currentUserId, 'count:', accounts.length);
+            setCashAccounts(accounts);
+          } else {
+            console.log('[Cash] No cash accounts found in database for user:', currentUserId, '- setting to empty');
+            setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+          }
+        } catch (error: any) {
+          console.error('[Cash] Error loading cash accounts from API:', error);
+          // If table doesn't exist yet, just set to empty
+          if (error.response?.status === 500 && error.response?.data?.hint?.includes('表不存在')) {
+            console.log('[Cash] Cash accounts table does not exist yet, setting to empty');
+          }
+          setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+        }
       }
     } catch (error: any) {
       console.error('Error loading data:', error);
