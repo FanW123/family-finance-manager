@@ -8951,8 +8951,8 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={calcInitialAssets}
-                        onChange={(e) => setCalcInitialAssets(Number(e.target.value))}
+                        value={calcInitialAssets === 0 ? '' : calcInitialAssets}
+                        onChange={(e) => setCalcInitialAssets(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -8979,8 +8979,8 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={calcGrowthRate}
-                        onChange={(e) => setCalcGrowthRate(Number(e.target.value))}
+                        value={calcGrowthRate === 0 ? '' : calcGrowthRate}
+                        onChange={(e) => setCalcGrowthRate(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9006,8 +9006,8 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={calcAnnualExpenses}
-                        onChange={(e) => setCalcAnnualExpenses(Number(e.target.value))}
+                        value={calcAnnualExpenses === 0 ? '' : calcAnnualExpenses}
+                        onChange={(e) => setCalcAnnualExpenses(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9034,8 +9034,8 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={calcInflationRate}
-                        onChange={(e) => setCalcInflationRate(Number(e.target.value))}
+                        value={calcInflationRate === 0 ? '' : calcInflationRate}
+                        onChange={(e) => setCalcInflationRate(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9061,8 +9061,8 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={calcYearsToProject}
-                        onChange={(e) => setCalcYearsToProject(Number(e.target.value))}
+                        value={calcYearsToProject === 0 ? '' : calcYearsToProject}
+                        onChange={(e) => setCalcYearsToProject(e.target.value === '' ? 0 : Number(e.target.value))}
                         min="1"
                         max="50"
                         style={{
