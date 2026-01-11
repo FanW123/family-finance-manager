@@ -550,16 +550,16 @@ const FinanceDashboard = () => {
   
   // Rebalance Simulator Parameters
   const [showRebalanceSimulator, setShowRebalanceSimulator] = useState(false);
-  const [rebalanceInitialAssets, setRebalanceInitialAssets] = useState(1000000);
-  const [rebalanceStockRatio, setRebalanceStockRatio] = useState(70);
-  const [rebalanceBondRatio, setRebalanceBondRatio] = useState(20);
-  const [rebalanceCashRatio, setRebalanceCashRatio] = useState(10);
-  const [rebalanceStockReturn, setRebalanceStockReturn] = useState(10);
-  const [rebalanceBondReturn, setRebalanceBondReturn] = useState(5);
-  const [rebalanceCashReturn, setRebalanceCashReturn] = useState(2);
-  const [rebalanceInflation, setRebalanceInflation] = useState(2.5);
-  const [rebalanceAnnualWithdrawal, setRebalanceAnnualWithdrawal] = useState(40000);
-  const [rebalanceYears, setRebalanceYears] = useState(30);
+  const [rebalanceInitialAssets, setRebalanceInitialAssets] = useState(0);
+  const [rebalanceStockRatio, setRebalanceStockRatio] = useState(0);
+  const [rebalanceBondRatio, setRebalanceBondRatio] = useState(0);
+  const [rebalanceCashRatio, setRebalanceCashRatio] = useState(0);
+  const [rebalanceStockReturn, setRebalanceStockReturn] = useState(0);
+  const [rebalanceBondReturn, setRebalanceBondReturn] = useState(0);
+  const [rebalanceCashReturn, setRebalanceCashReturn] = useState(0);
+  const [rebalanceInflation, setRebalanceInflation] = useState(0);
+  const [rebalanceAnnualWithdrawal, setRebalanceAnnualWithdrawal] = useState(0);
+  const [rebalanceYears, setRebalanceYears] = useState(0);
   const [rebalanceUseVolatility, setRebalanceUseVolatility] = useState(false);
   const [rebalanceMarketType, setRebalanceMarketType] = useState('us_stock');
   const [rebalanceStockVolatility, setRebalanceStockVolatility] = useState(18);
@@ -2018,11 +2018,60 @@ const FinanceDashboard = () => {
                 
                 <button
                   onClick={() => {
-                    // Initialize rebalance simulator with current values (with reasonable bounds)
-                    setRebalanceInitialAssets(totalPortfolio > 0 && totalPortfolio < 100000000 ? totalPortfolio : 1000000);
-                    const totalAnnualBudget = budgetCategories ? 
-                      budgetCategories.reduce((sum: number, cat: any) => sum + calculateYearlyAmount(cat), 0) : 0;
-                    setRebalanceAnnualWithdrawal(totalAnnualBudget > 0 && totalAnnualBudget < 10000000 ? totalAnnualBudget : 40000);
+                    // Load saved rebalance simulator values or use defaults
+                    const savedRebalance = localStorage.getItem(getUserStorageKey('rebalanceSimulator'));
+                    if (savedRebalance) {
+                      try {
+                        const parsed = JSON.parse(savedRebalance);
+                        setRebalanceInitialAssets(parsed.initialAssets || 0);
+                        setRebalanceStockRatio(parsed.stockRatio || 0);
+                        setRebalanceBondRatio(parsed.bondRatio || 0);
+                        setRebalanceCashRatio(parsed.cashRatio || 0);
+                        setRebalanceStockReturn(parsed.stockReturn || 0);
+                        setRebalanceBondReturn(parsed.bondReturn || 0);
+                        setRebalanceCashReturn(parsed.cashReturn || 0);
+                        setRebalanceInflation(parsed.inflation || 0);
+                        setRebalanceAnnualWithdrawal(parsed.annualWithdrawal || 0);
+                        setRebalanceYears(parsed.years || 0);
+                        setRebalanceUseVolatility(parsed.useVolatility || false);
+                        setRebalanceMarketType(parsed.marketType || 'us_stock');
+                        setRebalanceStockVolatility(parsed.stockVolatility || 0);
+                        setRebalanceBondVolatility(parsed.bondVolatility || 0);
+                      } catch (e) {
+                        console.error('Failed to parse saved rebalance values:', e);
+                        // Fall back to defaults
+                        setRebalanceInitialAssets(fireNumber > 0 ? fireNumber : 0);
+                        setRebalanceStockRatio(0);
+                        setRebalanceBondRatio(0);
+                        setRebalanceCashRatio(0);
+                        setRebalanceStockReturn(0);
+                        setRebalanceBondReturn(0);
+                        setRebalanceCashReturn(0);
+                        setRebalanceInflation(0);
+                        setRebalanceAnnualWithdrawal(0);
+                        setRebalanceYears(0);
+                        setRebalanceUseVolatility(false);
+                        setRebalanceMarketType('us_stock');
+                        setRebalanceStockVolatility(0);
+                        setRebalanceBondVolatility(0);
+                      }
+                    } else {
+                      // Use FIRE target as initial assets, or 0 if not available
+                      setRebalanceInitialAssets(fireNumber > 0 ? fireNumber : 0);
+                      setRebalanceStockRatio(0);
+                      setRebalanceBondRatio(0);
+                      setRebalanceCashRatio(0);
+                      setRebalanceStockReturn(0);
+                      setRebalanceBondReturn(0);
+                      setRebalanceCashReturn(0);
+                      setRebalanceInflation(0);
+                      setRebalanceAnnualWithdrawal(0);
+                      setRebalanceYears(0);
+                      setRebalanceUseVolatility(false);
+                      setRebalanceMarketType('us_stock');
+                      setRebalanceStockVolatility(0);
+                      setRebalanceBondVolatility(0);
+                    }
                     setShowRebalanceSimulator(true);
                   }}
                   style={{
@@ -9348,8 +9397,8 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceInitialAssets}
-                        onChange={(e) => setRebalanceInitialAssets(Number(e.target.value))}
+                        value={rebalanceInitialAssets === 0 ? '' : rebalanceInitialAssets}
+                        onChange={(e) => setRebalanceInitialAssets(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9375,8 +9424,8 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceAnnualWithdrawal}
-                        onChange={(e) => setRebalanceAnnualWithdrawal(Number(e.target.value))}
+                        value={rebalanceAnnualWithdrawal === 0 ? '' : rebalanceAnnualWithdrawal}
+                        onChange={(e) => setRebalanceAnnualWithdrawal(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9402,8 +9451,8 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceYears}
-                        onChange={(e) => setRebalanceYears(Number(e.target.value))}
+                        value={rebalanceYears === 0 ? '' : rebalanceYears}
+                        onChange={(e) => setRebalanceYears(e.target.value === '' ? 0 : Number(e.target.value))}
                         min="1"
                         max="50"
                         style={{
@@ -9439,8 +9488,8 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceStockRatio}
-                        onChange={(e) => setRebalanceStockRatio(Number(e.target.value))}
+                        value={rebalanceStockRatio === 0 ? '' : rebalanceStockRatio}
+                        onChange={(e) => setRebalanceStockRatio(e.target.value === '' ? 0 : Number(e.target.value))}
                         min="0"
                         max="100"
                         style={{
@@ -9467,8 +9516,8 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceBondRatio}
-                        onChange={(e) => setRebalanceBondRatio(Number(e.target.value))}
+                        value={rebalanceBondRatio === 0 ? '' : rebalanceBondRatio}
+                        onChange={(e) => setRebalanceBondRatio(e.target.value === '' ? 0 : Number(e.target.value))}
                         min="0"
                         max="100"
                         style={{
@@ -9495,8 +9544,8 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceCashRatio}
-                        onChange={(e) => setRebalanceCashRatio(Number(e.target.value))}
+                        value={rebalanceCashRatio === 0 ? '' : rebalanceCashRatio}
+                        onChange={(e) => setRebalanceCashRatio(e.target.value === '' ? 0 : Number(e.target.value))}
                         min="0"
                         max="100"
                         style={{
@@ -9532,8 +9581,8 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={rebalanceStockReturn}
-                        onChange={(e) => setRebalanceStockReturn(Number(e.target.value))}
+                        value={rebalanceStockReturn === 0 ? '' : rebalanceStockReturn}
+                        onChange={(e) => setRebalanceStockReturn(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9559,8 +9608,8 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={rebalanceBondReturn}
-                        onChange={(e) => setRebalanceBondReturn(Number(e.target.value))}
+                        value={rebalanceBondReturn === 0 ? '' : rebalanceBondReturn}
+                        onChange={(e) => setRebalanceBondReturn(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9586,8 +9635,8 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={rebalanceCashReturn}
-                        onChange={(e) => setRebalanceCashReturn(Number(e.target.value))}
+                        value={rebalanceCashReturn === 0 ? '' : rebalanceCashReturn}
+                        onChange={(e) => setRebalanceCashReturn(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9613,8 +9662,8 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={rebalanceInflation}
-                        onChange={(e) => setRebalanceInflation(Number(e.target.value))}
+                        value={rebalanceInflation === 0 ? '' : rebalanceInflation}
+                        onChange={(e) => setRebalanceInflation(e.target.value === '' ? 0 : Number(e.target.value))}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9723,8 +9772,8 @@ const FinanceDashboard = () => {
                             <input
                               type="number"
                               step="0.1"
-                              value={rebalanceStockVolatility}
-                              onChange={(e) => setRebalanceStockVolatility(Number(e.target.value))}
+                              value={rebalanceStockVolatility === 0 ? '' : rebalanceStockVolatility}
+                              onChange={(e) => setRebalanceStockVolatility(e.target.value === '' ? 0 : Number(e.target.value))}
                               disabled={rebalanceMarketType !== 'custom'}
                               style={{
                                 width: '100%',
@@ -9752,8 +9801,8 @@ const FinanceDashboard = () => {
                             <input
                               type="number"
                               step="0.1"
-                              value={rebalanceBondVolatility}
-                              onChange={(e) => setRebalanceBondVolatility(Number(e.target.value))}
+                              value={rebalanceBondVolatility === 0 ? '' : rebalanceBondVolatility}
+                              onChange={(e) => setRebalanceBondVolatility(e.target.value === '' ? 0 : Number(e.target.value))}
                               disabled={rebalanceMarketType !== 'custom'}
                               style={{
                                 width: '100%',
@@ -9782,6 +9831,45 @@ const FinanceDashboard = () => {
                         </div>
                       </div>
                     )}
+                  </div>
+                  
+                  {/* Save Button */}
+                  <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={() => {
+                        const rebalanceData = {
+                          initialAssets: rebalanceInitialAssets,
+                          stockRatio: rebalanceStockRatio,
+                          bondRatio: rebalanceBondRatio,
+                          cashRatio: rebalanceCashRatio,
+                          stockReturn: rebalanceStockReturn,
+                          bondReturn: rebalanceBondReturn,
+                          cashReturn: rebalanceCashReturn,
+                          inflation: rebalanceInflation,
+                          annualWithdrawal: rebalanceAnnualWithdrawal,
+                          years: rebalanceYears,
+                          useVolatility: rebalanceUseVolatility,
+                          marketType: rebalanceMarketType,
+                          stockVolatility: rebalanceStockVolatility,
+                          bondVolatility: rebalanceBondVolatility
+                        };
+                        localStorage.setItem(getUserStorageKey('rebalanceSimulator'), JSON.stringify(rebalanceData));
+                        alert('✅ 再平衡模拟器参数已保存！下次打开时将自动加载这些值。');
+                      }}
+                      style={{
+                        background: COLORS.success,
+                        color: COLORS.text,
+                        border: 'none',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '0.5rem',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      💾 保存参数
+                    </button>
                   </div>
                 </div>
 
