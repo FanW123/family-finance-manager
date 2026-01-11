@@ -359,10 +359,18 @@ const FinanceDashboard = () => {
       setMonthlyIncome(0);
       setFireMultiplier(28.6);
       setRetirementYears(50);
-      // Don't clear old localStorage data here - it might be needed for migration
-      // We'll only load from user-specific keys, so old data won't affect new users
-      return;
+        return;
     }
+    
+    // User logged in or switched - immediately reset state to prevent showing old user's data
+    console.log('[User] User logged in/switched, resetting state for user:', currentUserId);
+    setBudgetCategories(null);
+    setShowBudgetWizard(false);
+    // Reset cash accounts immediately to prevent showing old user's data
+    setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
+    setMonthlyIncome(0);
+    setFireMultiplier(28.6);
+    setRetirementYears(50);
     
     // Load user-specific data from localStorage when user ID is available
     // Load city plan
@@ -422,42 +430,27 @@ const FinanceDashboard = () => {
       });
     }
     
-    // Load cash accounts
+    // Load cash accounts - ONLY from user-specific localStorage
+    // Do NOT migrate from old localStorage to prevent data leakage between users
     const savedAccounts = localStorage.getItem(getUserStorageKey('cashAccounts'));
     if (savedAccounts) {
       try {
         const parsed = JSON.parse(savedAccounts);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          console.log('[Cash] Loaded cash accounts from user-specific localStorage, count:', parsed.length);
+          console.log('[Cash] Loaded cash accounts from user-specific localStorage for user:', currentUserId, 'count:', parsed.length);
           setCashAccounts(parsed);
         } else {
+          console.log('[Cash] No valid cash accounts found, setting to empty');
           setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
         }
       } catch (e) {
-        console.error('Failed to parse cashAccounts:', e);
+        console.error('[Cash] Failed to parse cashAccounts:', e);
         setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
       }
     } else {
-      // Check old localStorage (without user ID) for backward compatibility
-      const oldSavedAccounts = localStorage.getItem('cashAccounts');
-      if (oldSavedAccounts) {
-        try {
-          const parsed = JSON.parse(oldSavedAccounts);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            console.log('[Cash] Found old cash accounts, migrating to user-specific localStorage, count:', parsed.length);
-            // Migrate to user-specific localStorage
-            localStorage.setItem(getUserStorageKey('cashAccounts'), JSON.stringify(parsed));
-            setCashAccounts(parsed);
-          } else {
-            setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
-          }
-        } catch (e) {
-          console.error('Failed to parse old cashAccounts:', e);
-          setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
-        }
-      } else {
-        setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
-      }
+      // New user or no data - set to empty
+      console.log('[Cash] No cash accounts found for user:', currentUserId, '- setting to empty');
+      setCashAccounts([{ id: Date.now(), name: '', amount: '' }]);
     }
     
     // Reset budget categories - will be loaded from database in loadData
@@ -802,43 +795,53 @@ const FinanceDashboard = () => {
       // Load monthly income from user-specific localStorage (or could be from API)
       if (currentUserId) {
         // Try user-specific localStorage first
+        // Load monthly income - ONLY from user-specific localStorage
+        // Do NOT migrate from old localStorage to prevent data leakage
         const savedIncome = localStorage.getItem(getUserStorageKey('monthlyIncome'));
         if (savedIncome) {
-          setMonthlyIncome(parseFloat(savedIncome));
-        } else {
-          // Check old localStorage for backward compatibility
-          const oldIncome = localStorage.getItem('monthlyIncome');
-          if (oldIncome) {
-            const income = parseFloat(oldIncome);
+          const income = parseFloat(savedIncome);
+          if (!isNaN(income)) {
+            console.log('[Income] Loaded monthly income for user:', currentUserId, 'amount:', income);
             setMonthlyIncome(income);
-            localStorage.setItem(getUserStorageKey('monthlyIncome'), oldIncome);
+          } else {
+            console.log('[Income] Invalid monthly income value, setting to 0');
+            setMonthlyIncome(0);
           }
+        } else {
+          console.log('[Income] No monthly income found for user:', currentUserId, '- setting to 0');
+          setMonthlyIncome(0);
         }
 
+        // Load fire multiplier - ONLY from user-specific localStorage
         const savedMultiplier = localStorage.getItem(getUserStorageKey('fireMultiplier'));
         if (savedMultiplier) {
-          setFireMultiplier(parseFloat(savedMultiplier));
-        } else {
-          // Check old localStorage for backward compatibility
-          const oldMultiplier = localStorage.getItem('fireMultiplier');
-          if (oldMultiplier) {
-            const multiplier = parseFloat(oldMultiplier);
+          const multiplier = parseFloat(savedMultiplier);
+          if (!isNaN(multiplier)) {
+            console.log('[FIRE] Loaded fire multiplier for user:', currentUserId, 'value:', multiplier);
             setFireMultiplier(multiplier);
-            localStorage.setItem(getUserStorageKey('fireMultiplier'), oldMultiplier);
+          } else {
+            console.log('[FIRE] Invalid fire multiplier value, using default 28.6');
+            setFireMultiplier(28.6);
           }
+        } else {
+          console.log('[FIRE] No fire multiplier found for user:', currentUserId, '- using default 28.6');
+          setFireMultiplier(28.6);
         }
 
+        // Load retirement years - ONLY from user-specific localStorage
         const savedYears = localStorage.getItem(getUserStorageKey('retirementYears'));
         if (savedYears) {
-          setRetirementYears(parseInt(savedYears));
-        } else {
-          // Check old localStorage for backward compatibility
-          const oldYears = localStorage.getItem('retirementYears');
-          if (oldYears) {
-            const years = parseInt(oldYears);
+          const years = parseInt(savedYears);
+          if (!isNaN(years)) {
+            console.log('[Retirement] Loaded retirement years for user:', currentUserId, 'years:', years);
             setRetirementYears(years);
-            localStorage.setItem(getUserStorageKey('retirementYears'), oldYears);
+          } else {
+            console.log('[Retirement] Invalid retirement years value, using default 50');
+            setRetirementYears(50);
           }
+        } else {
+          console.log('[Retirement] No retirement years found for user:', currentUserId, '- using default 50');
+          setRetirementYears(50);
         }
       }
     } catch (error: any) {
