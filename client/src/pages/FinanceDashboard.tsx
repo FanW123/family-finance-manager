@@ -780,19 +780,44 @@ const FinanceDashboard = () => {
 
       // Load monthly income from user-specific localStorage (or could be from API)
       if (currentUserId) {
+        // Try user-specific localStorage first
         const savedIncome = localStorage.getItem(getUserStorageKey('monthlyIncome'));
         if (savedIncome) {
           setMonthlyIncome(parseFloat(savedIncome));
+        } else {
+          // Check old localStorage for backward compatibility
+          const oldIncome = localStorage.getItem('monthlyIncome');
+          if (oldIncome) {
+            const income = parseFloat(oldIncome);
+            setMonthlyIncome(income);
+            localStorage.setItem(getUserStorageKey('monthlyIncome'), oldIncome);
+          }
         }
 
         const savedMultiplier = localStorage.getItem(getUserStorageKey('fireMultiplier'));
         if (savedMultiplier) {
           setFireMultiplier(parseFloat(savedMultiplier));
+        } else {
+          // Check old localStorage for backward compatibility
+          const oldMultiplier = localStorage.getItem('fireMultiplier');
+          if (oldMultiplier) {
+            const multiplier = parseFloat(oldMultiplier);
+            setFireMultiplier(multiplier);
+            localStorage.setItem(getUserStorageKey('fireMultiplier'), oldMultiplier);
+          }
         }
 
         const savedYears = localStorage.getItem(getUserStorageKey('retirementYears'));
         if (savedYears) {
           setRetirementYears(parseInt(savedYears));
+        } else {
+          // Check old localStorage for backward compatibility
+          const oldYears = localStorage.getItem('retirementYears');
+          if (oldYears) {
+            const years = parseInt(oldYears);
+            setRetirementYears(years);
+            localStorage.setItem(getUserStorageKey('retirementYears'), oldYears);
+          }
         }
       }
     } catch (error: any) {
