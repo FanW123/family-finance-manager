@@ -9449,8 +9449,22 @@ const FinanceDashboard = () => {
                         type="number"
                         value={rebalanceInitialAssets === 0 && !rebalanceFieldsEdited.has('initialAssets') ? '' : rebalanceInitialAssets}
                         onChange={(e) => {
-                          setRebalanceInitialAssets(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          // Allow empty string during editing, but convert to 0 when field loses focus or is empty
+                          if (value === '' || value === '-') {
+                            // Keep as empty during editing
+                            setRebalanceInitialAssets(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceInitialAssets(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('initialAssets'));
+                        }}
+                        onBlur={(e) => {
+                          // When field loses focus, ensure it shows 0 if empty
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceInitialAssets(0);
+                          }
                         }}
                         style={{
                           width: '100%',
@@ -9479,8 +9493,19 @@ const FinanceDashboard = () => {
                         type="number"
                         value={rebalanceAnnualWithdrawal === 0 && !rebalanceFieldsEdited.has('annualWithdrawal') ? '' : rebalanceAnnualWithdrawal}
                         onChange={(e) => {
-                          setRebalanceAnnualWithdrawal(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          if (value === '' || value === '-') {
+                            setRebalanceAnnualWithdrawal(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceAnnualWithdrawal(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('annualWithdrawal'));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceAnnualWithdrawal(0);
+                          }
                         }}
                         style={{
                           width: '100%',
@@ -9509,8 +9534,19 @@ const FinanceDashboard = () => {
                         type="number"
                         value={rebalanceYears === 0 && !rebalanceFieldsEdited.has('years') ? '' : rebalanceYears}
                         onChange={(e) => {
-                          setRebalanceYears(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          if (value === '' || value === '-') {
+                            setRebalanceYears(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceYears(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('years'));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceYears(0);
+                          }
                         }}
                         min="1"
                         max="50"
@@ -9549,8 +9585,19 @@ const FinanceDashboard = () => {
                         type="number"
                         value={rebalanceStockRatio === 0 && !rebalanceFieldsEdited.has('stockRatio') ? '' : rebalanceStockRatio}
                         onChange={(e) => {
-                          setRebalanceStockRatio(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          if (value === '' || value === '-') {
+                            setRebalanceStockRatio(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceStockRatio(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('stockRatio'));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceStockRatio(0);
+                          }
                         }}
                         min="0"
                         max="100"
@@ -9580,8 +9627,19 @@ const FinanceDashboard = () => {
                         type="number"
                         value={rebalanceBondRatio === 0 && !rebalanceFieldsEdited.has('bondRatio') ? '' : rebalanceBondRatio}
                         onChange={(e) => {
-                          setRebalanceBondRatio(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          if (value === '' || value === '-') {
+                            setRebalanceBondRatio(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceBondRatio(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('bondRatio'));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceBondRatio(0);
+                          }
                         }}
                         min="0"
                         max="100"
@@ -9611,8 +9669,19 @@ const FinanceDashboard = () => {
                         type="number"
                         value={rebalanceCashRatio === 0 && !rebalanceFieldsEdited.has('cashRatio') ? '' : rebalanceCashRatio}
                         onChange={(e) => {
-                          setRebalanceCashRatio(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          if (value === '' || value === '-') {
+                            setRebalanceCashRatio(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceCashRatio(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('cashRatio'));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceCashRatio(0);
+                          }
                         }}
                         min="0"
                         max="100"
@@ -9651,8 +9720,19 @@ const FinanceDashboard = () => {
                         step="0.1"
                         value={rebalanceStockReturn === 0 && !rebalanceFieldsEdited.has('stockReturn') ? '' : rebalanceStockReturn}
                         onChange={(e) => {
-                          setRebalanceStockReturn(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          if (value === '' || value === '-') {
+                            setRebalanceStockReturn(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceStockReturn(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('stockReturn'));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceStockReturn(0);
+                          }
                         }}
                         style={{
                           width: '100%',
@@ -9681,8 +9761,19 @@ const FinanceDashboard = () => {
                         step="0.1"
                         value={rebalanceBondReturn === 0 && !rebalanceFieldsEdited.has('bondReturn') ? '' : rebalanceBondReturn}
                         onChange={(e) => {
-                          setRebalanceBondReturn(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          if (value === '' || value === '-') {
+                            setRebalanceBondReturn(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceBondReturn(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('bondReturn'));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceBondReturn(0);
+                          }
                         }}
                         style={{
                           width: '100%',
@@ -9711,8 +9802,19 @@ const FinanceDashboard = () => {
                         step="0.1"
                         value={rebalanceCashReturn === 0 && !rebalanceFieldsEdited.has('cashReturn') ? '' : rebalanceCashReturn}
                         onChange={(e) => {
-                          setRebalanceCashReturn(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          if (value === '' || value === '-') {
+                            setRebalanceCashReturn(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceCashReturn(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('cashReturn'));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceCashReturn(0);
+                          }
                         }}
                         style={{
                           width: '100%',
@@ -9741,8 +9843,19 @@ const FinanceDashboard = () => {
                         step="0.1"
                         value={rebalanceInflation === 0 && !rebalanceFieldsEdited.has('inflation') ? '' : rebalanceInflation}
                         onChange={(e) => {
-                          setRebalanceInflation(e.target.value === '' ? 0 : Number(e.target.value));
+                          const value = e.target.value;
+                          if (value === '' || value === '-') {
+                            setRebalanceInflation(0);
+                          } else {
+                            const numValue = Number(value);
+                            setRebalanceInflation(isNaN(numValue) ? 0 : numValue);
+                          }
                           setRebalanceFieldsEdited(prev => new Set(prev).add('inflation'));
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '' || e.target.value === '-') {
+                            setRebalanceInflation(0);
+                          }
                         }}
                         style={{
                           width: '100%',
@@ -9861,8 +9974,19 @@ const FinanceDashboard = () => {
                               step="0.1"
                               value={rebalanceStockVolatility === 0 && !rebalanceFieldsEdited.has('stockVolatility') ? '' : rebalanceStockVolatility}
                               onChange={(e) => {
-                                setRebalanceStockVolatility(e.target.value === '' ? 0 : Number(e.target.value));
+                                const value = e.target.value;
+                                if (value === '' || value === '-') {
+                                  setRebalanceStockVolatility(0);
+                                } else {
+                                  const numValue = Number(value);
+                                  setRebalanceStockVolatility(isNaN(numValue) ? 0 : numValue);
+                                }
                                 setRebalanceFieldsEdited(prev => new Set(prev).add('stockVolatility'));
+                              }}
+                              onBlur={(e) => {
+                                if (e.target.value === '' || e.target.value === '-') {
+                                  setRebalanceStockVolatility(0);
+                                }
                               }}
                               disabled={rebalanceMarketType !== 'custom'}
                               style={{
@@ -9893,8 +10017,19 @@ const FinanceDashboard = () => {
                               step="0.1"
                               value={rebalanceBondVolatility === 0 && !rebalanceFieldsEdited.has('bondVolatility') ? '' : rebalanceBondVolatility}
                               onChange={(e) => {
-                                setRebalanceBondVolatility(e.target.value === '' ? 0 : Number(e.target.value));
+                                const value = e.target.value;
+                                if (value === '' || value === '-') {
+                                  setRebalanceBondVolatility(0);
+                                } else {
+                                  const numValue = Number(value);
+                                  setRebalanceBondVolatility(isNaN(numValue) ? 0 : numValue);
+                                }
                                 setRebalanceFieldsEdited(prev => new Set(prev).add('bondVolatility'));
+                              }}
+                              onBlur={(e) => {
+                                if (e.target.value === '' || e.target.value === '-') {
+                                  setRebalanceBondVolatility(0);
+                                }
                               }}
                               disabled={rebalanceMarketType !== 'custom'}
                               style={{
