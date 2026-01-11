@@ -564,6 +564,8 @@ const FinanceDashboard = () => {
   const [rebalanceMarketType, setRebalanceMarketType] = useState('us_stock');
   const [rebalanceStockVolatility, setRebalanceStockVolatility] = useState(18);
   const [rebalanceBondVolatility, setRebalanceBondVolatility] = useState(6);
+  // Track which fields have been edited by user (to show 0 if user entered it)
+  const [rebalanceFieldsEdited, setRebalanceFieldsEdited] = useState<Set<string>>(new Set());
   const [cityPlan, setCityPlan] = useState<Array<{ city: string; level: string; monthlyCost: number; months: number }>>(() => {
     // Don't load from localStorage in initial state - wait for user ID
     return [];
@@ -2072,6 +2074,8 @@ const FinanceDashboard = () => {
                       setRebalanceStockVolatility(0);
                       setRebalanceBondVolatility(0);
                     }
+                    // Reset edited fields tracking
+                    setRebalanceFieldsEdited(new Set());
                     setShowRebalanceSimulator(true);
                   }}
                   style={{
@@ -9397,8 +9401,11 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceInitialAssets === 0 ? '' : rebalanceInitialAssets}
-                        onChange={(e) => setRebalanceInitialAssets(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceInitialAssets === 0 && !rebalanceFieldsEdited.has('initialAssets') ? '' : rebalanceInitialAssets}
+                        onChange={(e) => {
+                          setRebalanceInitialAssets(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('initialAssets'));
+                        }}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9424,8 +9431,11 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceAnnualWithdrawal === 0 ? '' : rebalanceAnnualWithdrawal}
-                        onChange={(e) => setRebalanceAnnualWithdrawal(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceAnnualWithdrawal === 0 && !rebalanceFieldsEdited.has('annualWithdrawal') ? '' : rebalanceAnnualWithdrawal}
+                        onChange={(e) => {
+                          setRebalanceAnnualWithdrawal(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('annualWithdrawal'));
+                        }}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9451,8 +9461,11 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceYears === 0 ? '' : rebalanceYears}
-                        onChange={(e) => setRebalanceYears(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceYears === 0 && !rebalanceFieldsEdited.has('years') ? '' : rebalanceYears}
+                        onChange={(e) => {
+                          setRebalanceYears(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('years'));
+                        }}
                         min="1"
                         max="50"
                         style={{
@@ -9488,8 +9501,11 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceStockRatio === 0 ? '' : rebalanceStockRatio}
-                        onChange={(e) => setRebalanceStockRatio(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceStockRatio === 0 && !rebalanceFieldsEdited.has('stockRatio') ? '' : rebalanceStockRatio}
+                        onChange={(e) => {
+                          setRebalanceStockRatio(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('stockRatio'));
+                        }}
                         min="0"
                         max="100"
                         style={{
@@ -9516,8 +9532,11 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceBondRatio === 0 ? '' : rebalanceBondRatio}
-                        onChange={(e) => setRebalanceBondRatio(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceBondRatio === 0 && !rebalanceFieldsEdited.has('bondRatio') ? '' : rebalanceBondRatio}
+                        onChange={(e) => {
+                          setRebalanceBondRatio(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('bondRatio'));
+                        }}
                         min="0"
                         max="100"
                         style={{
@@ -9544,8 +9563,11 @@ const FinanceDashboard = () => {
                       </label>
                       <input
                         type="number"
-                        value={rebalanceCashRatio === 0 ? '' : rebalanceCashRatio}
-                        onChange={(e) => setRebalanceCashRatio(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceCashRatio === 0 && !rebalanceFieldsEdited.has('cashRatio') ? '' : rebalanceCashRatio}
+                        onChange={(e) => {
+                          setRebalanceCashRatio(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('cashRatio'));
+                        }}
                         min="0"
                         max="100"
                         style={{
@@ -9581,8 +9603,11 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={rebalanceStockReturn === 0 ? '' : rebalanceStockReturn}
-                        onChange={(e) => setRebalanceStockReturn(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceStockReturn === 0 && !rebalanceFieldsEdited.has('stockReturn') ? '' : rebalanceStockReturn}
+                        onChange={(e) => {
+                          setRebalanceStockReturn(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('stockReturn'));
+                        }}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9608,8 +9633,11 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={rebalanceBondReturn === 0 ? '' : rebalanceBondReturn}
-                        onChange={(e) => setRebalanceBondReturn(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceBondReturn === 0 && !rebalanceFieldsEdited.has('bondReturn') ? '' : rebalanceBondReturn}
+                        onChange={(e) => {
+                          setRebalanceBondReturn(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('bondReturn'));
+                        }}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9635,8 +9663,11 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={rebalanceCashReturn === 0 ? '' : rebalanceCashReturn}
-                        onChange={(e) => setRebalanceCashReturn(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceCashReturn === 0 && !rebalanceFieldsEdited.has('cashReturn') ? '' : rebalanceCashReturn}
+                        onChange={(e) => {
+                          setRebalanceCashReturn(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('cashReturn'));
+                        }}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9662,8 +9693,11 @@ const FinanceDashboard = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={rebalanceInflation === 0 ? '' : rebalanceInflation}
-                        onChange={(e) => setRebalanceInflation(e.target.value === '' ? 0 : Number(e.target.value))}
+                        value={rebalanceInflation === 0 && !rebalanceFieldsEdited.has('inflation') ? '' : rebalanceInflation}
+                        onChange={(e) => {
+                          setRebalanceInflation(e.target.value === '' ? 0 : Number(e.target.value));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('inflation'));
+                        }}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -9695,7 +9729,14 @@ const FinanceDashboard = () => {
                       <input
                         type="checkbox"
                         checked={rebalanceUseVolatility}
-                        onChange={(e) => setRebalanceUseVolatility(e.target.checked)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setRebalanceUseVolatility(checked);
+                          // If enabling volatility, calculate from historical data
+                          if (checked) {
+                            calculateHistoricalReturns();
+                          }
+                        }}
                         style={{ marginRight: '0.5rem', width: '18px', height: '18px', cursor: 'pointer' }}
                       />
                       <span style={{ fontSize: '1rem', fontWeight: '600' }}>启用市场波动模拟</span>
@@ -9772,8 +9813,11 @@ const FinanceDashboard = () => {
                             <input
                               type="number"
                               step="0.1"
-                              value={rebalanceStockVolatility === 0 ? '' : rebalanceStockVolatility}
-                              onChange={(e) => setRebalanceStockVolatility(e.target.value === '' ? 0 : Number(e.target.value))}
+                              value={rebalanceStockVolatility === 0 && !rebalanceFieldsEdited.has('stockVolatility') ? '' : rebalanceStockVolatility}
+                              onChange={(e) => {
+                                setRebalanceStockVolatility(e.target.value === '' ? 0 : Number(e.target.value));
+                                setRebalanceFieldsEdited(prev => new Set(prev).add('stockVolatility'));
+                              }}
                               disabled={rebalanceMarketType !== 'custom'}
                               style={{
                                 width: '100%',
@@ -9801,8 +9845,11 @@ const FinanceDashboard = () => {
                             <input
                               type="number"
                               step="0.1"
-                              value={rebalanceBondVolatility === 0 ? '' : rebalanceBondVolatility}
-                              onChange={(e) => setRebalanceBondVolatility(e.target.value === '' ? 0 : Number(e.target.value))}
+                              value={rebalanceBondVolatility === 0 && !rebalanceFieldsEdited.has('bondVolatility') ? '' : rebalanceBondVolatility}
+                              onChange={(e) => {
+                                setRebalanceBondVolatility(e.target.value === '' ? 0 : Number(e.target.value));
+                                setRebalanceFieldsEdited(prev => new Set(prev).add('bondVolatility'));
+                              }}
                               disabled={rebalanceMarketType !== 'custom'}
                               style={{
                                 width: '100%',
