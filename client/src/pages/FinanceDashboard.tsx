@@ -621,10 +621,10 @@ const FinanceDashboard = () => {
     
     // Load last update time (shared across users)
     try {
-      const lastUpdate = localStorage.getItem('lastPriceUpdate');
-      if (lastUpdate) {
-        setLastPriceUpdate(lastUpdate);
-      }
+    const lastUpdate = localStorage.getItem('lastPriceUpdate');
+    if (lastUpdate) {
+      setLastPriceUpdate(lastUpdate);
+    }
     } catch (error) {
       console.error('[FinanceDashboard] Error loading lastPriceUpdate:', error);
     }
@@ -743,25 +743,25 @@ const FinanceDashboard = () => {
                 console.log('[Budget] If database has data, it will override this on next load');
                 // Only use localStorage as cache - don't migrate automatically
                 // Database is the source of truth, localStorage is just for offline/cache
-                setBudgetCategories(parsed);
-                setShowBudgetWizard(false);
+            setBudgetCategories(parsed);
+            setShowBudgetWizard(false);
                 // DO NOT migrate automatically - this prevents wrong data from being saved
-              } else {
+          } else {
                 console.log('[Budget] User-specific localStorage data is empty');
                 setBudgetCategories(null);
-                setShowBudgetWizard(true);
-              }
+            setShowBudgetWizard(true);
+          }
             } catch (parseError) {
               console.error('Error parsing saved budget categories:', parseError);
               setBudgetCategories(null);
               setShowBudgetWizard(true);
             }
-          } else {
+        } else {
             // No data at all for this user, show wizard
             console.log('[Budget] No data found for user, showing wizard');
             setBudgetCategories(null);
-            setShowBudgetWizard(true);
-          }
+          setShowBudgetWizard(true);
+        }
         }
       } catch (error: any) {
         console.error('[Budget] Error loading budget categories from database:', error);
@@ -779,7 +779,7 @@ const FinanceDashboard = () => {
         // Load monthly income - ONLY from user-specific localStorage
         // Do NOT migrate from old localStorage to prevent data leakage
         const savedIncome = localStorage.getItem(getUserStorageKey('monthlyIncome'));
-        if (savedIncome) {
+      if (savedIncome) {
           const income = parseFloat(savedIncome);
           if (!isNaN(income)) {
             console.log('[Income] Loaded monthly income for user:', currentUserId, 'amount:', income);
@@ -795,7 +795,7 @@ const FinanceDashboard = () => {
 
         // Load fire multiplier - ONLY from user-specific localStorage
         const savedMultiplier = localStorage.getItem(getUserStorageKey('fireMultiplier'));
-        if (savedMultiplier) {
+      if (savedMultiplier) {
           const multiplier = parseFloat(savedMultiplier);
           if (!isNaN(multiplier)) {
             console.log('[FIRE] Loaded fire multiplier for user:', currentUserId, 'value:', multiplier);
@@ -811,7 +811,7 @@ const FinanceDashboard = () => {
 
         // Load retirement years - ONLY from user-specific localStorage
         const savedYears = localStorage.getItem(getUserStorageKey('retirementYears'));
-        if (savedYears) {
+      if (savedYears) {
           const years = parseInt(savedYears);
           if (!isNaN(years)) {
             console.log('[Retirement] Loaded retirement years for user:', currentUserId, 'years:', years);
@@ -2393,7 +2393,7 @@ const FinanceDashboard = () => {
                   }}>
                     <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>现金: {currentAllocation.cash.toFixed(0)}%</div>
                     <div style={{ fontSize: '1.3rem', fontWeight: '700', color: COLORS.cash }}>
-                      ${portfolio.cash.toLocaleString()}
+                      ${Math.round(portfolio.cash).toLocaleString()}
                     </div>
                   </div>
                   {portfolio.crypto > 0 && (
@@ -6250,7 +6250,7 @@ const FinanceDashboard = () => {
                     <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem', opacity: 0.7 }}>🧮 点击计算</span>
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: '700', color: COLORS.cash }}>
-                    ${portfolio.cash.toLocaleString()}
+                    ${Math.round(portfolio.cash).toLocaleString()}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
                     {currentAllocation.cash.toFixed(1)}%
@@ -6336,7 +6336,7 @@ const FinanceDashboard = () => {
                           saveCashAccounts(newAccounts);
                         }}
                         placeholder="金额"
-                        step="0.01"
+                        step="1"
                         style={{
                           flex: '1',
                           padding: '0.75rem',
@@ -6411,7 +6411,7 @@ const FinanceDashboard = () => {
                           return sum + amount;
                         }, 0);
                         console.log(`Total cash: ${total}`);
-                        return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        return Math.round(total).toLocaleString();
                       })()}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
@@ -6499,7 +6499,7 @@ const FinanceDashboard = () => {
                           await saveCashAccounts(cashAccounts);
                           
                           setShowCashCalculator(false);
-                          alert(`现金总额已更新为 $${totalCash.toLocaleString()}！请刷新页面查看更新。`);
+                          alert(`现金总额已更新为 $${Math.round(totalCash).toLocaleString()}！请刷新页面查看更新。`);
                         } catch (error: any) {
                           console.error('Error updating cash:', error);
                           console.error('Error details:', error.response?.data);
