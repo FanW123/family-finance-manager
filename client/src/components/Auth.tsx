@@ -47,9 +47,14 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         }
       } else {
         // Sign up
+        // Get the current origin (works for both localhost and production)
+        const redirectTo = `${window.location.origin}/`;
         const { data, error } = await supabase.auth.signUp({
           email,
-          password
+          password,
+          options: {
+            emailRedirectTo: redirectTo
+          }
         });
 
         if (error) throw error;
