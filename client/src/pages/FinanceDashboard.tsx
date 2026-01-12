@@ -12093,36 +12093,84 @@ const FinanceDashboard = () => {
                   // Calculate withdrawal rate
                   const withdrawalRate = baseInitialAssets > 0 ? (baseAnnualExpenses / baseInitialAssets * 100) : 0;
                   
-                  // Generate recommendations
-                  const recommendations = [];
+                  // Generate recommendations based on test results
+                  const recommendations: Array<{
+                    priority: 'high' | 'medium' | 'low';
+                    type: 'success' | 'warning' | 'info';
+                    title: string;
+                    content: string;
+                  }> = [];
+                  
+                  // Overall survival rate recommendation
                   if (testResults.survivalRate === 1) {
                     recommendations.push({
+                      priority: 'low',
                       type: 'success',
                       title: '✅ 你的配置很稳健',
                       content: `通过所有${historicalScenarios.length}个历史熊市测试，${withdrawalRate.toFixed(1)}%取款率足够保守。`
                     });
+                  } else if (testResults.survivalRate < 0.75) {
+                    recommendations.push({
+                      priority: 'high',
+                      type: 'warning',
+                      title: '⚠️ 存活率偏低，需要优化',
+                      content: `在${testResults.failedScenarios.length}个场景中失败：${testResults.failedScenarios.join('、')}。建议立即调整配置。`
+                    });
                   } else {
                     recommendations.push({
+                      priority: 'medium',
                       type: 'warning',
                       title: '⚠️ 需要注意序列风险',
                       content: `在${testResults.failedScenarios.length}个场景中失败：${testResults.failedScenarios.join('、')}。建议降低取款率或调整资产配置。`
                     });
                   }
                   
+                  // Withdrawal rate recommendation
                   if (withdrawalRate > 4) {
                     recommendations.push({
+                      priority: 'high',
                       type: 'warning',
                       title: '⚠️ 取款率偏高',
-                      content: `当前取款率${withdrawalRate.toFixed(1)}%超过4%安全线，建议降低到3-4%。`
+                      content: `当前取款率${withdrawalRate.toFixed(1)}%超过4%安全线，建议降低到3-4%以提高存活率。`
+                    });
+                  } else if (withdrawalRate > 3.5 && testResults.survivalRate < 1) {
+                    recommendations.push({
+                      priority: 'medium',
+                      type: 'info',
+                      title: '💡 建议降低取款率',
+                      content: `将取款率从${withdrawalRate.toFixed(1)}%降低到3%可提高存活率约10-15%。`
+                    });
+                  }
+                  
+                  // Check for specific failed scenarios
+                  const japanScenario = testResults.results.find(r => r.scenario.includes('失落') || r.scenario.includes('30年'));
+                  if (japanScenario && !japanScenario.survived) {
+                    recommendations.push({
+                      priority: 'high',
+                      type: 'warning',
+                      title: '⚠️ 长期熊市抵抗力不足',
+                      content: `在日本失落30年场景下失败，建议增加债券比例到30-40%以增强长期熊市抵抗力。`
                     });
                   }
                   
                   // Bond tent strategy recommendation
-                  if (allocation.stock >= 0.6 && allocation.bond <= 0.3) {
+                  if (allocation.stock >= 0.6 && allocation.bond <= 0.3 && testResults.survivalRate < 1) {
                     recommendations.push({
+                      priority: 'medium',
                       type: 'info',
                       title: '💪 推荐策略：债券帐篷',
-                      content: `前5年: 50/40/10 (保守) → 5-10年: 70/20/10 (正常) → 10年后: 80/15/5 (略激进)`
+                      content: `前5年: 50/40/10 (保守) → 5-10年: 70/20/10 (正常) → 10年后: 80/15/5 (略激进)。可降低退休初期风险50%。`
+                    });
+                  }
+                  
+                  // Sequence risk recommendation
+                  const bearMarketScenario = testResults.results.find(r => r.scenario.includes('退休即熊市'));
+                  if (bearMarketScenario && !bearMarketScenario.survived) {
+                    recommendations.push({
+                      priority: 'high',
+                      type: 'warning',
+                      title: '⚠️ 序列风险高',
+                      content: `如果退休时遇到熊市，你的组合可能无法支撑。建议：1) 降低取款率 2) 增加现金缓冲 3) 考虑延迟退休3-6个月。`
                     });
                   }
                   
