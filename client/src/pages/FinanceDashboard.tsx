@@ -12126,35 +12126,140 @@ const FinanceDashboard = () => {
                   const baseYearsToProject = stressTestYears;
                   const baseInflationRate = calcInflationRate || 3;
                   
-                  // Historical scenarios with real data
+                  // All 15 stress test scenarios
                   const historicalScenarios = [
+                    // ===== 历史熊市（4个）=====
                     {
                       name: '2008金融危机',
                       returns: [-37, 5.9, 15.1, 2.1, 16.0, 32.4, 13.7, 12.0, 21.1, 14.3],
-                      description: '2008-2012，5年恢复',
+                      description: '2008-2017年，史上最严重金融危机',
                       icon: '📉',
-                      years: 10
+                      years: 10,
+                      category: 'historical'
                     },
                     {
                       name: '2000互联网泡沫',
                       returns: [-9.1, -11.9, -22.1, 28.7, 10.9, 4.9, 15.8, 5.5, -37.0, 26.5],
-                      description: '2000-2004，7年恢复',
+                      description: '2000-2009年，科技股泡沫破裂',
                       icon: '💻',
-                      years: 10
+                      years: 10,
+                      category: 'historical'
                     },
                     {
                       name: '1973石油危机',
                       returns: [-14.7, -26.5, 37.2, 23.8, -7.2, 6.6, 18.4, -5.0, 16.5, 32.3],
-                      description: '1973-1977，7年恢复',
+                      description: '1973-1982年，石油危机+滞胀',
                       icon: '🛢️',
-                      years: 10
+                      years: 10,
+                      category: 'historical'
                     },
                     {
-                      name: '退休即熊市（-50%第一年）',
-                      returns: [-50, 26, 15, 2, 16, 32, 13, 12, 21, 14, 12, 18, 28, 11, 22, 12, 9, 19, 29, 18, 16, 27, 19, 12, 8, 26, 19, 11, 22, 16],
-                      description: '退休第一年股市暴跌50%',
+                      name: '1929大萧条',
+                      returns: [-8.4, -24.9, -43.3, -8.2, 54.0, 32.3, -1.4, 47.7, 33.9, -35.0],
+                      description: '1929-1938年，美国大萧条时期',
                       icon: '💀',
-                      years: 30
+                      years: 10,
+                      category: 'historical'
+                    },
+                    
+                    // ===== 极端场景（4个）=====
+                    {
+                      name: '退休即熊市',
+                      returns: [-50, 26, 15, 2, 16, 32, 13, 12, 21, 14, 12, 18, 28, 11, 22, 12, 9, 19, 29, 18],
+                      description: '退休第一年股市暴跌50%',
+                      icon: '⚡',
+                      years: 20,
+                      category: 'extreme'
+                    },
+                    {
+                      name: '日本失落30年',
+                      returns: Array(30).fill(0).map((_, i) => i < 10 ? -5 : i < 20 ? 0 : 2),
+                      description: '股市30年零增长或负增长',
+                      icon: '🇯🇵',
+                      years: 30,
+                      category: 'extreme'
+                    },
+                    {
+                      name: '超级通胀',
+                      returns: Array(10).fill(3),
+                      description: '通胀率12%持续10年',
+                      icon: '📈',
+                      years: 10,
+                      category: 'extreme',
+                      highInflation: true
+                    },
+                    {
+                      name: '全球大萧条',
+                      returns: [-30, -15, -10, -5, 0, 5, 5, 8, 10, 12],
+                      description: '10年持续熊市',
+                      icon: '🌍',
+                      years: 10,
+                      category: 'extreme'
+                    },
+                    
+                    // ===== 序列风险（2个）=====
+                    {
+                      name: '最坏时机退休',
+                      returns: [-20, -10, -5, 0, 2, 5, 5, 5, 5, 5, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+                      description: '退休后立即遇到10年熊市',
+                      icon: '🔻',
+                      years: 20,
+                      category: 'sequence'
+                    },
+                    {
+                      name: '完美时机退休',
+                      returns: Array(30).fill(12).map((v, i) => i < 15 ? v : 4),
+                      description: '退休后先享受15年牛市',
+                      icon: '✅',
+                      years: 30,
+                      category: 'sequence'
+                    },
+                    
+                    // ===== 长期低回报（3个）=====
+                    {
+                      name: '长期低回报4%',
+                      returns: Array(30).fill(4),
+                      description: '30年持续低回报',
+                      icon: '📊',
+                      years: 30,
+                      category: 'lowReturn'
+                    },
+                    {
+                      name: '长期低回报2%',
+                      returns: Array(30).fill(2),
+                      description: '30年非常低回报',
+                      icon: '📉',
+                      years: 30,
+                      category: 'lowReturn'
+                    },
+                    {
+                      name: '波动的低回报',
+                      returns: Array(30).fill(0).map((_, i) => i % 2 === 0 ? -5 : 15),
+                      description: '高波动低平均回报',
+                      icon: '🎢',
+                      years: 30,
+                      category: 'lowReturn'
+                    },
+                    
+                    // ===== 通胀场景（2个）=====
+                    {
+                      name: '高通胀环境',
+                      returns: Array(20).fill(7),
+                      description: '持续高通胀侵蚀购买力',
+                      icon: '💸',
+                      years: 20,
+                      category: 'inflation',
+                      highInflation: true
+                    },
+                    {
+                      name: '通胀失控',
+                      returns: Array(15).fill(5),
+                      description: '极端通胀环境',
+                      icon: '🔥',
+                      years: 15,
+                      category: 'inflation',
+                      highInflation: true,
+                      extremeInflation: true
                     }
                   ];
                   
@@ -12218,7 +12323,15 @@ const FinanceDashboard = () => {
                         });
                         
                         // Adjust withdrawal for inflation
-                        currentWithdrawal *= (1 + inflationRate / 100);
+                        // Higher inflation for special scenarios
+                        let yearInflation = inflationRate / 100;
+                        if (scenario.highInflation) {
+                          yearInflation = 0.08; // 8% inflation
+                        }
+                        if (scenario.extremeInflation) {
+                          yearInflation = 0.12; // 12% extreme inflation
+                        }
+                        currentWithdrawal *= (1 + yearInflation);
                       }
                       
                       const maxDrawdown = maxPortfolio > 0 ? ((minPortfolio - maxPortfolio) / maxPortfolio) * 100 : 0;
@@ -12672,72 +12785,67 @@ const FinanceDashboard = () => {
                         
                         {/* Scenario Categories */}
                         {(() => {
-                          const historicalResults = testResults.results.filter(r => 
-                            r.scenario.includes('金融危机') || 
-                            r.scenario.includes('互联网泡沫') || 
-                            r.scenario.includes('石油危机')
-                          );
-                          const extremeResults = testResults.results.filter(r => 
-                            r.scenario.includes('退休即熊市') || 
-                            r.scenario.includes('失落') ||
-                            r.scenario.includes('30年')
-                          );
+                          // Group scenarios by category
+                          const categories = [
+                            { 
+                              name: '历史熊市', 
+                              icon: '📉', 
+                              filter: (r: any) => r.scenario.includes('金融危机') || r.scenario.includes('互联网泡沫') || r.scenario.includes('石油危机') || r.scenario.includes('大萧条')
+                            },
+                            { 
+                              name: '极端场景', 
+                              icon: '💀', 
+                              filter: (r: any) => r.scenario.includes('退休即熊市') || r.scenario.includes('失落') || r.scenario.includes('超级通胀') || r.scenario.includes('全球大萧条')
+                            },
+                            { 
+                              name: '序列风险', 
+                              icon: '🔻', 
+                              filter: (r: any) => r.scenario.includes('最坏时机') || r.scenario.includes('完美时机')
+                            },
+                            { 
+                              name: '长期低回报', 
+                              icon: '📊', 
+                              filter: (r: any) => r.scenario.includes('长期低回报') || r.scenario.includes('波动的低回报')
+                            },
+                            { 
+                              name: '通胀场景', 
+                              icon: '💸', 
+                              filter: (r: any) => r.scenario.includes('高通胀') || r.scenario.includes('通胀失控')
+                            }
+                          ];
                           
                           return (
                             <>
-                              {/* Historical Bear Market */}
-                              <div style={{
-                                background: COLORS.accent,
-                                borderRadius: '0.5rem',
-                                padding: '1rem',
-                                marginBottom: '1rem'
-                              }}>
-                                <div style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  marginBottom: '0.5rem'
-                                }}>
-                                  <div style={{ fontSize: '0.95rem', color: COLORS.text, fontWeight: '600' }}>
-                                    📉 历史熊市 ({historicalResults.filter(r => r.survived).length}/{historicalResults.length})
-                                  </div>
-                                  <div style={{
-                                    fontSize: '0.85rem',
-                                    color: historicalResults.every(r => r.survived) ? COLORS.success : COLORS.warning,
-                                    fontWeight: '600'
+                              {categories.map((category, idx) => {
+                                const categoryResults = testResults.results.filter(category.filter);
+                                if (categoryResults.length === 0) return null;
+                                
+                                return (
+                                  <div key={idx} style={{
+                                    background: COLORS.accent,
+                                    borderRadius: '0.5rem',
+                                    padding: '1rem',
+                                    marginBottom: '1rem'
                                   }}>
-                                    {historicalResults.every(r => r.survived) ? '✅ 全部通过' : '⚠️ 有风险'}
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {/* Extreme Scenarios */}
-                              {extremeResults.length > 0 && (
-                                <div style={{
-                                  background: COLORS.accent,
-                                  borderRadius: '0.5rem',
-                                  padding: '1rem',
-                                  marginBottom: '1rem'
-                                }}>
-                                  <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: '0.5rem'
-                                  }}>
-                                    <div style={{ fontSize: '0.95rem', color: COLORS.text, fontWeight: '600' }}>
-                                      💀 极端场景 ({extremeResults.filter(r => r.survived).length}/{extremeResults.length})
-                                    </div>
                                     <div style={{
-                                      fontSize: '0.85rem',
-                                      color: extremeResults.every(r => r.survived) ? COLORS.success : COLORS.warning,
-                                      fontWeight: '600'
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center'
                                     }}>
-                                      {extremeResults.every(r => r.survived) ? '✅ 全部通过' : '⚠️ 有风险'}
+                                      <div style={{ fontSize: '0.95rem', color: COLORS.text, fontWeight: '600' }}>
+                                        {category.icon} {category.name} ({categoryResults.filter(r => r.survived).length}/{categoryResults.length})
+                                      </div>
+                                      <div style={{
+                                        fontSize: '0.85rem',
+                                        color: categoryResults.every(r => r.survived) ? COLORS.success : COLORS.warning,
+                                        fontWeight: '600'
+                                      }}>
+                                        {categoryResults.every(r => r.survived) ? '✅ 全部通过' : '⚠️ 有风险'}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              )}
+                                );
+                              })}
                             </>
                           );
                         })()}
