@@ -2032,7 +2032,7 @@ const FinanceDashboard = () => {
               )}
               
               {/* FIRE Progress Section */}
-              <div style={{ marginBottom: '4rem' }}>
+              <div style={{ marginBottom: '2rem' }}>
                 {fireViewMode === 'progress' ? (
                   <>
                     {/* FIRE Progress and Target - Above the progress bar */}
@@ -2064,7 +2064,7 @@ const FinanceDashboard = () => {
                     {/* Progress Bar Container */}
                     <div style={{
                       position: 'relative',
-                      marginBottom: '1rem'
+                      marginBottom: '3rem'
                     }}>
                       {/* Progress Bar */}
                       <div style={{
@@ -2300,14 +2300,13 @@ const FinanceDashboard = () => {
                 )}
               </div>
               
-              {/* Action Buttons - Bottom Right */}
+              {/* Action Buttons - Below Progress Section */}
               <div style={{
-                position: 'absolute',
-                bottom: '2rem',
-                right: '2rem',
-                zIndex: 10, // Ensure buttons are above other elements
                 display: 'flex',
-                gap: '1rem'
+                gap: '1rem',
+                justifyContent: 'center',
+                marginTop: '1rem',
+                marginBottom: '2rem'
               }}>
                 <button
                   onClick={() => {
