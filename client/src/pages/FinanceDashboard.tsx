@@ -2106,65 +2106,105 @@ const FinanceDashboard = () => {
                         const data: Array<{ date: string; currentAssets: number; fireTarget: number }> = [];
                         const now = new Date();
                         let startDate = new Date();
-                        let intervalDays = 1;
+                        let endDate = new Date(now); // Always end at current time
+                        let intervalMonths = 1;
                         let dataPoints = 30;
                         
                         switch (fireTimeRange) {
                           case '1week':
                             startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                            intervalDays = 1;
+                            intervalMonths = 0; // Daily
                             dataPoints = 7;
                             break;
                           case '1month':
                             startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                            intervalDays = 1;
+                            intervalMonths = 0; // Daily
                             dataPoints = 30;
                             break;
                           case '1year':
-                            startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-                            intervalDays = 14;
-                            dataPoints = 26;
+                            startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+                            intervalMonths = 0.5; // Bi-weekly
+                            dataPoints = 24;
                             break;
                           case 'ytd':
                             startDate = new Date(now.getFullYear(), 0, 1);
-                            intervalDays = Math.ceil((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000) / 30);
-                            dataPoints = Math.ceil((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000) / intervalDays);
+                            intervalMonths = 1; // Monthly
+                            dataPoints = now.getMonth() + 1;
                             break;
                           case '5years':
-                            startDate = new Date(now.getTime() - 5 * 365 * 24 * 60 * 60 * 1000);
-                            intervalDays = 30;
+                            startDate = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
+                            intervalMonths = 1; // Monthly
                             dataPoints = 60;
                             break;
                         }
                         
                         // Estimate monthly growth rate (assume 5% annual return + monthly savings)
                         const estimatedMonthlyReturn = 0.05 / 12; // 5% annual return
+                        const totalMonths = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+                                          (endDate.getMonth() - startDate.getMonth()) + 
+                                          (endDate.getDate() - startDate.getDate()) / 30;
+                        
+                        // Calculate the number of months from start to now
+                        const monthsFromStartToNow = totalMonths;
                         
                         for (let i = 0; i <= dataPoints; i++) {
-                          const date = new Date(startDate.getTime() + i * intervalDays * 24 * 60 * 60 * 1000);
-                          const monthsFromStart = (date.getTime() - startDate.getTime()) / (30 * 24 * 60 * 60 * 1000);
-                          
-                          // Calculate estimated current assets (compound growth + savings)
-                          let estimatedAssets = totalPortfolio;
-                          if (monthsFromStart > 0) {
-                            // Project backwards: current = past * (1 + r)^n + savings * ((1 + r)^n - 1) / r
-                            const growthFactor = Math.pow(1 + estimatedMonthlyReturn, -monthsFromStart);
-                            estimatedAssets = totalPortfolio * growthFactor - monthlySavings * ((growthFactor - 1) / estimatedMonthlyReturn);
-                            estimatedAssets = Math.max(estimatedAssets, totalPortfolio * 0.1); // Don't go below 10% of current
-                          } else if (monthsFromStart < 0) {
-                            // Project forwards
-                            const growthFactor = Math.pow(1 + estimatedMonthlyReturn, Math.abs(monthsFromStart));
-                            estimatedAssets = totalPortfolio * growthFactor + monthlySavings * ((growthFactor - 1) / estimatedMonthlyReturn);
+                          let date: Date;
+                          if (intervalMonths === 0) {
+                            // Daily intervals
+                            const daysFromStart = (i / dataPoints) * ((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+                            date = new Date(startDate.getTime() + daysFromStart * 24 * 60 * 60 * 1000);
+                          } else {
+                            // Monthly intervals
+                            const monthsFromStart = (i / dataPoints) * monthsFromStartToNow;
+                            date = new Date(startDate.getFullYear(), startDate.getMonth() + monthsFromStart, startDate.getDate());
                           }
                           
-                          // FIRE target remains constant (or adjust for inflation if needed)
+                          // Ensure last point is exactly "now"
+                          if (i === dataPoints) {
+                            date = new Date(now);
+                          }
+                          
+                          // Calculate months from this date to now
+                          const monthsFromThisDate = (endDate.getFullYear() - date.getFullYear()) * 12 + 
+                                                    (endDate.getMonth() - date.getMonth()) + 
+                                                    (endDate.getDate() - date.getDate()) / 30;
+                          
+                          // Calculate estimated assets
+                          let estimatedAssets = totalPortfolio;
+                          if (monthsFromThisDate > 0) {
+                            // This is a past date, project backwards
+                            // Formula: past = (current - savings * ((1+r)^n - 1) / r) / (1+r)^n
+                            const growthFactor = Math.pow(1 + estimatedMonthlyReturn, monthsFromThisDate);
+                            if (estimatedMonthlyReturn > 0) {
+                              const savingsContribution = monthlySavings * ((growthFactor - 1) / estimatedMonthlyReturn);
+                              estimatedAssets = (totalPortfolio - savingsContribution) / growthFactor;
+                            } else {
+                              estimatedAssets = totalPortfolio - monthlySavings * monthsFromThisDate;
+                            }
+                            estimatedAssets = Math.max(estimatedAssets, totalPortfolio * 0.1); // Don't go below 10% of current
+                          } else if (monthsFromThisDate < 0) {
+                            // This is a future date, project forwards
+                            const growthFactor = Math.pow(1 + estimatedMonthlyReturn, Math.abs(monthsFromThisDate));
+                            if (estimatedMonthlyReturn > 0) {
+                              estimatedAssets = totalPortfolio * growthFactor + monthlySavings * ((growthFactor - 1) / estimatedMonthlyReturn);
+                            } else {
+                              estimatedAssets = totalPortfolio + monthlySavings * Math.abs(monthsFromThisDate);
+                            }
+                          }
+                          // If monthsFromThisDate === 0, use current totalPortfolio
+                          
+                          // FIRE target remains constant
                           const targetValue = fireNumber;
                           
-                          const dateStr = fireTimeRange === '1week' || fireTimeRange === '1month' 
-                            ? `${date.getMonth() + 1}/${date.getDate()}`
-                            : fireTimeRange === '1year'
-                            ? `${date.getMonth() + 1}/${date.getDate()}`
-                            : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                          // Format date string
+                          let dateStr: string;
+                          if (fireTimeRange === '1week' || fireTimeRange === '1month') {
+                            dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+                          } else if (fireTimeRange === '1year') {
+                            dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+                          } else {
+                            dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                          }
                           
                           data.push({
                             date: dateStr,
