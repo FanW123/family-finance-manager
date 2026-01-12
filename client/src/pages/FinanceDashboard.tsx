@@ -10602,12 +10602,7 @@ const FinanceDashboard = () => {
                       
                       const afterWithdrawalTotal = afterWithdrawalStocks + afterWithdrawalBonds + afterWithdrawalCash;
                       
-                      // Rebalance to target allocation (before investment growth)
-                      let rebalancedStocks = afterWithdrawalTotal * (rebalanceStockRatio / 100);
-                      let rebalancedBonds = afterWithdrawalTotal * (rebalanceBondRatio / 100);
-                      let rebalancedCash = afterWithdrawalTotal * (rebalanceCashRatio / 100);
-                      
-                      // Investment growth (with or without volatility)
+                      // Investment growth (based on assets after withdrawal, before rebalancing)
                       let actualStockReturn = stockReturn;
                       let actualBondReturn = bondReturn;
                       
@@ -10617,15 +10612,21 @@ const FinanceDashboard = () => {
                         actualBondReturn = randomNormal(bondReturn, bondVolatility);
                       }
                       
-                      const stockGrowth = rebalancedStocks * actualStockReturn;
-                      const bondGrowth = rebalancedBonds * actualBondReturn;
-                      const cashGrowth = rebalancedCash * cashReturn;
+                      // Calculate investment growth based on assets after withdrawal
+                      const stockGrowth = afterWithdrawalStocks * actualStockReturn;
+                      const bondGrowth = afterWithdrawalBonds * actualBondReturn;
+                      const cashGrowth = afterWithdrawalCash * cashReturn;
                       
-                      // Year end after investment growth
-                      const yearEndStocks = rebalancedStocks + stockGrowth;
-                      const yearEndBonds = rebalancedBonds + bondGrowth;
-                      const yearEndCash = rebalancedCash + cashGrowth;
+                      // Year end after investment growth (before rebalancing)
+                      const yearEndStocks = afterWithdrawalStocks + stockGrowth;
+                      const yearEndBonds = afterWithdrawalBonds + bondGrowth;
+                      const yearEndCash = afterWithdrawalCash + cashGrowth;
                       const yearEndTotal = yearEndStocks + yearEndBonds + yearEndCash;
+                      
+                      // Rebalance to target allocation (after investment growth)
+                      let rebalancedStocks = yearEndTotal * (rebalanceStockRatio / 100);
+                      let rebalancedBonds = yearEndTotal * (rebalanceBondRatio / 100);
+                      let rebalancedCash = yearEndTotal * (rebalanceCashRatio / 100);
                       
                       // For display: "year start" shows assets after withdrawal (cash is already withdrawn)
                       const displayYearStartStocks = afterWithdrawalStocks;
@@ -10656,10 +10657,10 @@ const FinanceDashboard = () => {
                         actualBondReturn: actualBondReturn * 100
                       });
                       
-                      // Update for next year (use year end values after investment growth)
-                      stocks = yearEndStocks;
-                      bonds = yearEndBonds;
-                      cash = yearEndCash;
+                      // Update for next year (use rebalanced values)
+                      stocks = rebalancedStocks;
+                      bonds = rebalancedBonds;
+                      cash = rebalancedCash;
                       
                       // Stop if depleted
                       if (afterWithdrawalTotal <= 0) break;
