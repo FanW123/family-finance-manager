@@ -11962,37 +11962,64 @@ const FinanceDashboard = () => {
                   const baseYearsToProject = stressTestYears;
                   const baseInflationRate = calcInflationRate || 3;
                   
-                  // Historical scenarios with annual returns
-                  const scenarios = [
+                  // Historical scenarios with real data
+                  const historicalScenarios = [
                     {
                       name: '2008金融危机',
-                      returns: [-37, 26, 15, 2, 16, 32, 13, 12, 21, 14, 12, 18, 28, 11, 22, 12, 9, 19, 29, 18, 16, 27, 19, 12, 8, 26, 19, 11, 22, 16]
+                      returns: [-37, 5.9, 15.1, 2.1, 16.0, 32.4, 13.7, 12.0, 21.1, 14.3],
+                      description: '2008-2012，5年恢复',
+                      icon: '📉',
+                      years: 10
                     },
                     {
                       name: '2000互联网泡沫',
-                      returns: [-9, -12, -22, 28, 11, 5, 15, 5, -37, 26, 15, 2, 16, 32, 13, 12, 21, 14, 12, 18, 28, 11, 22, 12, 9, 19, 29, 18, 16, 27]
+                      returns: [-9.1, -11.9, -22.1, 28.7, 10.9, 4.9, 15.8, 5.5, -37.0, 26.5],
+                      description: '2000-2004，7年恢复',
+                      icon: '💻',
+                      years: 10
                     },
                     {
                       name: '1973石油危机',
-                      returns: [-15, -26, 37, 24, -7, 7, 19, -5, 16, 32, -5, 21, 22, 6, 32, 19, 5, 17, 23, -3, 30, 8, 10, 31, 19, 14, 21, 14, 2, 16]
+                      returns: [-14.7, -26.5, 37.2, 23.8, -7.2, 6.6, 18.4, -5.0, 16.5, 32.3],
+                      description: '1973-1977，7年恢复',
+                      icon: '🛢️',
+                      years: 10
                     },
                     {
                       name: '退休即熊市（-50%第一年）',
-                      returns: [-50, 26, 15, 2, 16, 32, 13, 12, 21, 14, 12, 18, 28, 11, 22, 12, 9, 19, 29, 18, 16, 27, 19, 12, 8, 26, 19, 11, 22, 16]
+                      returns: [-50, 26, 15, 2, 16, 32, 13, 12, 21, 14, 12, 18, 28, 11, 22, 12, 9, 19, 29, 18, 16, 27, 19, 12, 8, 26, 19, 11, 22, 16],
+                      description: '退休第一年股市暴跌50%',
+                      icon: '💀',
+                      years: 30
                     }
                   ];
                   
-                  // Quick stress test function
+                  // Enhanced stress test function with year-by-year tracking
                   const quickStressTest = (assets: number, withdrawal: number, allocation: { stock: number; bond: number; cash: number }, years: number, inflationRate: number) => {
-                    const results: Array<{ scenario: string; survived: boolean; finalValue: number; failedYear?: number }> = [];
+                    const results: Array<{
+                      scenario: string;
+                      icon: string;
+                      description: string;
+                      survived: boolean;
+                      finalValue: number;
+                      failedYear?: number;
+                      maxDrawdown?: number;
+                      yearByYear?: Array<{ year: number; portfolio: number; withdrawal: number; stockReturn: number; portfolioReturn: number }>;
+                      minPortfolio?: number;
+                    }> = [];
                     
-                    for (const scenario of scenarios) {
+                    for (const scenario of historicalScenarios) {
                       let portfolio = assets;
                       let survived = true;
                       let failedYear = 0;
                       let currentWithdrawal = withdrawal;
+                      let maxPortfolio = assets;
+                      let minPortfolio = assets;
+                      const yearByYear: Array<{ year: number; portfolio: number; withdrawal: number; stockReturn: number; portfolioReturn: number }> = [];
                       
-                      for (let year = 0; year < years && year < scenario.returns.length; year++) {
+                      const testYears = Math.min(years, scenario.years || scenario.returns.length);
+                      
+                      for (let year = 0; year < testYears; year++) {
                         // Withdraw at beginning of year
                         portfolio -= currentWithdrawal;
                         if (portfolio <= 0) {
@@ -12014,15 +12041,34 @@ const FinanceDashboard = () => {
                         // Apply growth
                         portfolio *= (1 + portfolioReturn);
                         
+                        // Track min/max
+                        if (portfolio > maxPortfolio) maxPortfolio = portfolio;
+                        if (portfolio < minPortfolio) minPortfolio = portfolio;
+                        
+                        yearByYear.push({
+                          year: year + 1,
+                          portfolio,
+                          withdrawal: currentWithdrawal,
+                          stockReturn: stockReturn * 100,
+                          portfolioReturn: portfolioReturn * 100
+                        });
+                        
                         // Adjust withdrawal for inflation
                         currentWithdrawal *= (1 + inflationRate / 100);
                       }
                       
+                      const maxDrawdown = maxPortfolio > 0 ? ((minPortfolio - maxPortfolio) / maxPortfolio) * 100 : 0;
+                      
                       results.push({ 
-                        scenario: scenario.name, 
+                        scenario: scenario.name,
+                        icon: scenario.icon,
+                        description: scenario.description,
                         survived,
                         finalValue: portfolio,
-                        failedYear: failedYear || undefined
+                        failedYear: failedYear || undefined,
+                        maxDrawdown,
+                        yearByYear: survived ? yearByYear : undefined,
+                        minPortfolio
                       });
                     }
                     
@@ -12325,7 +12371,15 @@ const FinanceDashboard = () => {
                               当前配置
                             </div>
                             <div style={{ color: COLORS.text, fontWeight: '600' }}>
-                              股票 {Math.round(allocation.stock * 100)}% / 债券 {Math.round(allocation.bond * 100)}% / 现金 {Math.round(allocation.cash * 100)}%
+                              股票 {Math.round(stressTestStockRatio)}% / 债券 {Math.round(stressTestBondRatio)}% / 现金 {Math.round(stressTestCashRatio)}%
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ color: COLORS.textMuted, fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                              取款率
+                            </div>
+                            <div style={{ color: COLORS.text, fontWeight: '600' }}>
+                              {withdrawalRate.toFixed(1)}%
                             </div>
                           </div>
                         </div>
@@ -12338,8 +12392,13 @@ const FinanceDashboard = () => {
                         padding: '1.5rem',
                         marginBottom: '1.5rem'
                       }}>
-                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>🎯 个人建议</h3>
-                        {recommendations.map((rec, index) => (
+                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>💡 改进建议</h3>
+                        {recommendations
+                          .sort((a, b) => {
+                            const priorityOrder = { 'high': 0, 'medium': 1, 'low': 2 };
+                            return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+                          })
+                          .map((rec, index) => (
                           <div key={index} style={{
                             background: COLORS.card,
                             borderRadius: '0.5rem',
@@ -12352,11 +12411,29 @@ const FinanceDashboard = () => {
                             }`
                           }}>
                             <div style={{
-                              fontWeight: '600',
-                              marginBottom: '0.5rem',
-                              color: COLORS.text
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              marginBottom: '0.5rem'
                             }}>
-                              {rec.title}
+                              <div style={{
+                                fontWeight: '600',
+                                color: COLORS.text
+                              }}>
+                                {rec.title}
+                              </div>
+                              {rec.priority === 'high' && (
+                                <span style={{
+                                  fontSize: '0.75rem',
+                                  padding: '0.25rem 0.5rem',
+                                  background: COLORS.warning,
+                                  color: 'white',
+                                  borderRadius: '0.25rem',
+                                  fontWeight: '600'
+                                }}>
+                                  高优先级
+                                </span>
+                              )}
                             </div>
                             <div style={{
                               fontSize: '0.9rem',
