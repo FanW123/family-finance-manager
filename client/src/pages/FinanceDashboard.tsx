@@ -450,6 +450,7 @@ const FinanceDashboard = () => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showEditCategoryDropdown, setShowEditCategoryDropdown] = useState(false);
   const [showQuickAddCategory, setShowQuickAddCategory] = useState(false);
+  const [editingCategoryInModal, setEditingCategoryInModal] = useState<any>(null);
   const [quickNewCategory, setQuickNewCategory] = useState({
     name: '',
     icon: '📝',
@@ -7905,10 +7906,8 @@ const FinanceDashboard = () => {
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setShowAddExpense(false);
                                       setShowCategoryDropdown(false);
-                                      setActiveTab('budget');
-                                      // Scroll to the category (optional enhancement)
+                                      setEditingCategoryInModal(cat);
                                     }}
                                     style={{
                                       background: 'none',
@@ -8349,6 +8348,357 @@ const FinanceDashboard = () => {
           </div>
         )}
 
+        {/* Edit Category Modal */}
+        {editingCategoryInModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1001,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '1.5rem',
+                borderBottom: `1px solid ${COLORS.accent}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: '700' }}>管理分类</h3>
+                <button
+                  onClick={() => setEditingCategoryInModal(null)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: COLORS.text,
+                    fontSize: '1.3rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Category Card - Same style as budget management */}
+              <div style={{ padding: '1.5rem' }}>
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem'
+                }}>
+                  {/* Category Name and Delete */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                    <input
+                      type="text"
+                      value={editingCategoryInModal.name}
+                      onChange={(e) => {
+                        const updated = budgetCategories.map((cat: any) => 
+                          cat.id === editingCategoryInModal.id 
+                            ? { ...cat, name: e.target.value }
+                            : cat
+                        );
+                        setBudgetCategories(updated);
+                        setEditingCategoryInModal({ ...editingCategoryInModal, name: e.target.value });
+                      }}
+                      onBlur={() => saveBudgetCategories(budgetCategories)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: COLORS.text,
+                        fontSize: '1.2rem',
+                        fontWeight: '600',
+                        fontFamily: 'inherit',
+                        width: '100%',
+                        outline: 'none'
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        if (confirm(`确定要删除"${editingCategoryInModal.name}"吗？\n这将同时删除所有子分类。`)) {
+                          const updated = budgetCategories.filter((cat: any) => cat.id !== editingCategoryInModal.id);
+                          setBudgetCategories(updated);
+                          saveBudgetCategories(updated);
+                          setEditingCategoryInModal(null);
+                        }
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: COLORS.danger,
+                        fontSize: '1.2rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+
+                  {/* Child Categories List */}
+                  {editingCategoryInModal.children && editingCategoryInModal.children.length > 0 && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      {editingCategoryInModal.children.map((child: any, childIndex: number) => (
+                        <div key={child.id} style={{
+                          background: COLORS.card,
+                          borderRadius: '0.5rem',
+                          padding: '1rem',
+                          marginBottom: '0.75rem'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                            <input
+                              type="text"
+                              value={child.name}
+                              onChange={(e) => {
+                                const updated = budgetCategories.map((cat: any) => {
+                                  if (cat.id === editingCategoryInModal.id) {
+                                    const newChildren = [...cat.children];
+                                    newChildren[childIndex] = { ...newChildren[childIndex], name: e.target.value };
+                                    return { ...cat, children: newChildren };
+                                  }
+                                  return cat;
+                                });
+                                setBudgetCategories(updated);
+                                const updatedModal = { ...editingCategoryInModal };
+                                updatedModal.children[childIndex].name = e.target.value;
+                                setEditingCategoryInModal(updatedModal);
+                              }}
+                              onBlur={() => saveBudgetCategories(budgetCategories)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: COLORS.text,
+                                fontSize: '1rem',
+                                fontWeight: '600',
+                                fontFamily: 'inherit',
+                                flex: 1,
+                                outline: 'none'
+                              }}
+                            />
+                            <button
+                              onClick={() => {
+                                if (confirm(`确定要删除"${child.name}"吗？`)) {
+                                  const updated = budgetCategories.map((cat: any) => {
+                                    if (cat.id === editingCategoryInModal.id) {
+                                      return { 
+                                        ...cat, 
+                                        children: cat.children.filter((_: any, i: number) => i !== childIndex)
+                                      };
+                                    }
+                                    return cat;
+                                  });
+                                  setBudgetCategories(updated);
+                                  saveBudgetCategories(updated);
+                                  const updatedModal = { ...editingCategoryInModal };
+                                  updatedModal.children = updatedModal.children.filter((_: any, i: number) => i !== childIndex);
+                                  setEditingCategoryInModal(updatedModal);
+                                }
+                              }}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: COLORS.danger,
+                                fontSize: '1rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              🗑️
+                            </button>
+                          </div>
+
+                          {/* Budget Type and Amount for Child */}
+                          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                            <select
+                              value={child.budgetType}
+                              onChange={(e) => {
+                                const updated = budgetCategories.map((cat: any) => {
+                                  if (cat.id === editingCategoryInModal.id) {
+                                    const newChildren = [...cat.children];
+                                    newChildren[childIndex] = { ...newChildren[childIndex], budgetType: e.target.value };
+                                    return { ...cat, children: newChildren };
+                                  }
+                                  return cat;
+                                });
+                                setBudgetCategories(updated);
+                                saveBudgetCategories(updated);
+                                const updatedModal = { ...editingCategoryInModal };
+                                updatedModal.children[childIndex].budgetType = e.target.value;
+                                setEditingCategoryInModal(updatedModal);
+                              }}
+                              style={{
+                                padding: '0.4rem',
+                                background: COLORS.accent,
+                                border: 'none',
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '0.85rem',
+                                fontFamily: 'inherit',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <option value="weekly">周预算</option>
+                              <option value="monthly">月预算</option>
+                              <option value="yearly">年预算</option>
+                            </select>
+
+                            <input
+                              type="number"
+                              value={child.amount}
+                              onFocus={(e) => {
+                                if (child.amount === 0) {
+                                  setTimeout(() => e.target.select(), 0);
+                                }
+                              }}
+                              onChange={(e) => {
+                                const updated = budgetCategories.map((cat: any) => {
+                                  if (cat.id === editingCategoryInModal.id) {
+                                    const newChildren = [...cat.children];
+                                    newChildren[childIndex] = { 
+                                      ...newChildren[childIndex], 
+                                      amount: e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
+                                    };
+                                    return { ...cat, children: newChildren };
+                                  }
+                                  return cat;
+                                });
+                                setBudgetCategories(updated);
+                                const updatedModal = { ...editingCategoryInModal };
+                                updatedModal.children[childIndex].amount = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0;
+                                setEditingCategoryInModal(updatedModal);
+                              }}
+                              onBlur={(e) => {
+                                const updated = budgetCategories.map((cat: any) => {
+                                  if (cat.id === editingCategoryInModal.id) {
+                                    const newChildren = [...cat.children];
+                                    newChildren[childIndex] = { 
+                                      ...newChildren[childIndex], 
+                                      amount: parseFloat(e.target.value) || 0
+                                    };
+                                    return { ...cat, children: newChildren };
+                                  }
+                                  return cat;
+                                });
+                                setBudgetCategories(updated);
+                                saveBudgetCategories(updated);
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '0.4rem',
+                                background: COLORS.accent,
+                                border: 'none',
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '0.9rem',
+                                fontFamily: 'inherit',
+                                outline: 'none'
+                              }}
+                            />
+                            <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                              /{child.budgetType === 'weekly' ? '周' : child.budgetType === 'monthly' ? '月' : '年'}
+                            </span>
+                          </div>
+
+                          {/* Yearly amount for child */}
+                          <div style={{ 
+                            fontSize: '0.95rem',
+                            fontWeight: '600',
+                            color: COLORS.success,
+                            marginTop: '0.5rem'
+                          }}>
+                            → ${(() => {
+                              const multiplier = child.budgetType === 'weekly' ? 52 : 
+                                               child.budgetType === 'monthly' ? 12 : 1;
+                              return (child.amount * multiplier).toLocaleString();
+                            })()} / 年
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Total Yearly Amount */}
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    fontSize: '1.1rem',
+                    fontWeight: '600',
+                    color: COLORS.success,
+                    marginTop: '1rem',
+                    paddingTop: '1rem',
+                    borderTop: `1px solid ${COLORS.primary}`
+                  }}>
+                    <span>
+                      总计: ${(() => {
+                        if (!editingCategoryInModal.children) return '0';
+                        return editingCategoryInModal.children.reduce((sum: number, child: any) => {
+                          const multiplier = child.budgetType === 'weekly' ? 52 : 
+                                           child.budgetType === 'monthly' ? 12 : 1;
+                          return sum + (child.amount * multiplier);
+                        }, 0).toLocaleString();
+                      })()} / 年
+                    </span>
+                    
+                    <button
+                      onClick={() => {
+                        const newChild = {
+                          id: `${editingCategoryInModal.id}_child_${Date.now()}`,
+                          name: '新子分类',
+                          budgetType: 'monthly',
+                          amount: 0
+                        };
+                        const updated = budgetCategories.map((cat: any) => {
+                          if (cat.id === editingCategoryInModal.id) {
+                            return { 
+                              ...cat, 
+                              children: [...(cat.children || []), newChild]
+                            };
+                          }
+                          return cat;
+                        });
+                        setBudgetCategories(updated);
+                        saveBudgetCategories(updated);
+                        setEditingCategoryInModal({
+                          ...editingCategoryInModal,
+                          children: [...(editingCategoryInModal.children || []), newChild]
+                        });
+                      }}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        color: COLORS.text,
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      + 添加子分类
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Edit Expense Modal */}
         {editingExpense && (
           <div style={{
@@ -8526,9 +8876,8 @@ const FinanceDashboard = () => {
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setEditingExpense(null);
                                       setShowEditCategoryDropdown(false);
-                                      setActiveTab('budget');
+                                      setEditingCategoryInModal(cat);
                                     }}
                                     style={{
                                       background: 'none',
