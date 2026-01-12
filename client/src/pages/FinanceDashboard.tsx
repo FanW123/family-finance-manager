@@ -2463,24 +2463,27 @@ const FinanceDashboard = () => {
                   }}
                   style={{
                     padding: '0.5rem 1rem',
-                    background: COLORS.card,
-                    border: `1px solid ${COLORS.warning}`,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: '2px solid #764ba2',
                     borderRadius: '0.5rem',
-                    color: COLORS.text,
+                    color: 'white',
                     fontSize: '0.9rem',
                     fontWeight: '600',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 15px rgba(118, 75, 162, 0.4)'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = `${COLORS.warning}20`;
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(118, 75, 162, 0.6)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = COLORS.card;
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(118, 75, 162, 0.4)';
                   }}
                 >
-                  压力测试
+                  🛡️ 压力测试
                 </button>
               </div>
             </div>
@@ -9687,18 +9690,19 @@ const FinanceDashboard = () => {
                     }}
                     style={{
                       width: '100%',
-                      background: COLORS.warning,
-                      border: 'none',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      border: '2px solid #764ba2',
                       color: 'white',
                       padding: '0.75rem',
                       borderRadius: '0.5rem',
                       fontSize: '0.9rem',
                       fontWeight: '600',
                       cursor: 'pointer',
-                      fontFamily: 'inherit'
+                      fontFamily: 'inherit',
+                      boxShadow: '0 4px 15px rgba(118, 75, 162, 0.4)'
                     }}
                   >
-                    🔥 压力测试
+                    🛡️ 快速压力测试
                   </button>
                 </div>
 
@@ -11866,7 +11870,7 @@ const FinanceDashboard = () => {
                 background: COLORS.card,
                 zIndex: 1
               }}>
-                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>🔥 压力测试</h2>
+                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>🛡️ 压力测试</h2>
                 <button
                   onClick={() => setShowStressTest(false)}
                   style={{
@@ -11885,6 +11889,33 @@ const FinanceDashboard = () => {
 
               {/* Content */}
               <div style={{ padding: '2rem' }}>
+                {/* Introduction */}
+                <div style={{
+                  background: `linear-gradient(135deg, ${COLORS.accent} 0%, ${COLORS.card} 100%)`,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  marginBottom: '2rem',
+                  border: `2px solid #764ba2`
+                }}>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem', color: COLORS.text }}>
+                    🛡️ 你的组合能扛住2008金融危机吗？
+                  </h3>
+                  <p style={{ margin: '0 0 1rem 0', color: COLORS.textMuted, fontSize: '0.9rem' }}>
+                    压力测试将模拟不同市场条件下的资产表现，帮助你了解投资组合的抗风险能力。
+                  </p>
+                  <div style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
+                    fontSize: '0.85rem',
+                    color: COLORS.textMuted
+                  }}>
+                    <span>✓ 4个历史场景</span>
+                    <span>✓ 1分钟出结果</span>
+                    <span>✓ 专业建议</span>
+                  </div>
+                </div>
+
                 <div style={{
                   background: COLORS.accent,
                   borderRadius: '0.75rem',
@@ -11892,9 +11923,6 @@ const FinanceDashboard = () => {
                   marginBottom: '2rem'
                 }}>
                   <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📊 测试场景</h3>
-                  <p style={{ margin: '0 0 1.5rem 0', color: COLORS.textMuted, fontSize: '0.9rem' }}>
-                    压力测试将模拟不同市场条件下的资产表现，帮助你了解投资组合的抗风险能力。
-                  </p>
                   
                   {(() => {
                     // Get base values from FIRE calculator or use defaults
@@ -11908,31 +11936,35 @@ const FinanceDashboard = () => {
                     const scenarios = [
                       {
                         name: '基准场景',
-                        description: '使用当前参数',
+                        description: '使用当前参数，正常市场条件',
                         growthRate: baseGrowthRate,
                         inflationRate: baseInflationRate,
-                        color: COLORS.success
+                        color: COLORS.success,
+                        icon: '📈'
                       },
                       {
-                        name: '市场下跌',
-                        description: '投资回报率降低50%',
-                        growthRate: baseGrowthRate * 0.5,
+                        name: '2008金融危机',
+                        description: '股票下跌37%，类似2008年金融危机',
+                        growthRate: baseGrowthRate * 0.63, // 下跌37%
                         inflationRate: baseInflationRate,
-                        color: COLORS.warning
+                        color: COLORS.warning,
+                        icon: '💥'
                       },
                       {
-                        name: '通胀上升',
-                        description: '通胀率增加2%',
+                        name: '通胀飙升',
+                        description: '通胀率上升3%，类似1970年代滞胀',
                         growthRate: baseGrowthRate,
-                        inflationRate: baseInflationRate + 2,
-                        color: COLORS.highlight
+                        inflationRate: baseInflationRate + 3,
+                        color: COLORS.highlight,
+                        icon: '📊'
                       },
                       {
                         name: '双重打击',
-                        description: '市场下跌50% + 通胀上升2%',
+                        description: '市场下跌50% + 通胀上升3%',
                         growthRate: baseGrowthRate * 0.5,
-                        inflationRate: baseInflationRate + 2,
-                        color: '#ef4444'
+                        inflationRate: baseInflationRate + 3,
+                        color: '#ef4444',
+                        icon: '⚡'
                       }
                     ];
                     
@@ -11983,7 +12015,7 @@ const FinanceDashboard = () => {
                               }}>
                                 <div>
                                   <h4 style={{ margin: 0, fontSize: '1rem', color: scenario.color }}>
-                                    {scenario.name}
+                                    {scenario.icon} {scenario.name}
                                   </h4>
                                   <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: COLORS.textMuted }}>
                                     {scenario.description}
