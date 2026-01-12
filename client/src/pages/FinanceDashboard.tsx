@@ -447,6 +447,8 @@ const FinanceDashboard = () => {
     return false;
   });
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showEditCategoryDropdown, setShowEditCategoryDropdown] = useState(false);
   const [showQuickAddCategory, setShowQuickAddCategory] = useState(false);
   const [quickNewCategory, setQuickNewCategory] = useState({
     name: '',
@@ -7777,66 +7779,192 @@ const FinanceDashboard = () => {
               {/* Form Content */}
               <div style={{ padding: '2rem' }}>
                 {/* Category Selection */}
-                <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
                     支出类别
                   </label>
                   {budgetCategories && budgetCategories.length > 0 ? (
-                    <select
-                      value={newExpense.category}
-                      onChange={(e) => {
-                        if (e.target.value === '__ADD_NEW__') {
-                          setQuickNewCategory({
-                            name: '',
-                            icon: '📝',
-                            budgetType: 'monthly',
-                            amount: ''
-                          });
-                          setShowQuickAddCategory(true);
-                        } else {
-                          setNewExpense({ ...newExpense, category: e.target.value });
-                        }
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '1rem',
-                        fontFamily: 'inherit',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">选择类别...</option>
-                      <option value="__ADD_NEW__" style={{ color: COLORS.highlight, fontWeight: '600' }}>➕ 新分类</option>
-                      <option disabled>──────────</option>
-                      
-                      {/* Render all categories in order, parent categories can be selected */}
-                      {budgetCategories.flatMap((cat: any) => {
-                        if (cat.isParent && cat.children) {
-                          // Parent category with children
-                          return [
-                            <option key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </option>,
-                            ...cat.children.map((child: any) => (
-                              <option key={child.id} value={child.id}>
-                                &nbsp;&nbsp;&nbsp;&nbsp;↳ {child.name}
-                              </option>
-                            ))
-                          ];
-                        } else {
-                          // Standalone category
-                          return (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </option>
-                          );
-                        }
-                      })}
-                    </select>
+                    <>
+                      {/* Selected Category Display */}
+                      <div
+                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.accent,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <span>
+                          {newExpense.category 
+                            ? (() => {
+                                // Find the selected category name
+                                for (const cat of budgetCategories) {
+                                  if (cat.id === newExpense.category) return cat.name;
+                                  if (cat.isParent && cat.children) {
+                                    const child = cat.children.find((c: any) => c.id === newExpense.category);
+                                    if (child) return `${cat.name} → ${child.name}`;
+                                  }
+                                }
+                                return '选择类别...';
+                              })()
+                            : '选择类别...'}
+                        </span>
+                        <span style={{ fontSize: '0.8rem' }}>{showCategoryDropdown ? '▲' : '▼'}</span>
+                      </div>
+
+                      {/* Dropdown List */}
+                      {showCategoryDropdown && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          background: COLORS.card,
+                          borderRadius: '0.5rem',
+                          maxHeight: '300px',
+                          overflowY: 'auto',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                          zIndex: 1000,
+                          marginTop: '0.25rem'
+                        }}>
+                          {/* Add New Category Option */}
+                          <div
+                            onClick={() => {
+                              setQuickNewCategory({
+                                name: '',
+                                icon: '📝',
+                                budgetType: 'monthly',
+                                amount: ''
+                              });
+                              setShowQuickAddCategory(true);
+                              setShowCategoryDropdown(false);
+                            }}
+                            style={{
+                              padding: '0.75rem 1rem',
+                              cursor: 'pointer',
+                              borderBottom: `1px solid ${COLORS.accent}`,
+                              color: COLORS.highlight,
+                              fontWeight: '600',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = COLORS.accent}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <span>➕</span>
+                            <span>新分类</span>
+                          </div>
+
+                          {/* Category List */}
+                          {budgetCategories.map((cat: any) => (
+                            <div key={cat.id}>
+                              {/* Parent Category */}
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: '0.75rem 1rem',
+                                  cursor: 'pointer',
+                                  borderBottom: `1px solid ${COLORS.accent}`,
+                                  background: newExpense.category === cat.id ? `${COLORS.highlight}20` : 'transparent'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (newExpense.category !== cat.id) {
+                                    e.currentTarget.style.background = COLORS.accent;
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (newExpense.category !== cat.id) {
+                                    e.currentTarget.style.background = 'transparent';
+                                  }
+                                }}
+                              >
+                                <div
+                                  onClick={() => {
+                                    setNewExpense({ ...newExpense, category: cat.id });
+                                    setShowCategoryDropdown(false);
+                                  }}
+                                  style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                  {newExpense.category === cat.id && <span style={{ color: COLORS.highlight }}>✓</span>}
+                                  <span>{cat.name}</span>
+                                </div>
+                                
+                                {/* Edit Icon for Parent Categories */}
+                                {cat.isParent && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setShowAddExpense(false);
+                                      setShowCategoryDropdown(false);
+                                      setActiveTab('budget');
+                                      // Scroll to the category (optional enhancement)
+                                    }}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      color: COLORS.textMuted,
+                                      fontSize: '1rem',
+                                      cursor: 'pointer',
+                                      padding: '0.25rem',
+                                      display: 'flex',
+                                      alignItems: 'center'
+                                    }}
+                                    title="管理此分类"
+                                  >
+                                    ✏️
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Child Categories */}
+                              {cat.isParent && cat.children && cat.children.map((child: any) => (
+                                <div
+                                  key={child.id}
+                                  onClick={() => {
+                                    setNewExpense({ ...newExpense, category: child.id });
+                                    setShowCategoryDropdown(false);
+                                  }}
+                                  style={{
+                                    padding: '0.75rem 1rem 0.75rem 2.5rem',
+                                    cursor: 'pointer',
+                                    borderBottom: `1px solid ${COLORS.accent}`,
+                                    background: newExpense.category === child.id ? `${COLORS.highlight}20` : 'transparent',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (newExpense.category !== child.id) {
+                                      e.currentTarget.style.background = COLORS.accent;
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (newExpense.category !== child.id) {
+                                      e.currentTarget.style.background = 'transparent';
+                                    }
+                                  }}
+                                >
+                                  {newExpense.category === child.id && <span style={{ color: COLORS.highlight }}>✓</span>}
+                                  <span style={{ color: COLORS.textMuted, fontSize: '0.9rem' }}>↳</span>
+                                  <span>{child.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div style={{
                       padding: '1rem',
@@ -8272,66 +8400,191 @@ const FinanceDashboard = () => {
               {/* Form */}
               <div style={{ padding: '2rem' }}>
                 {/* Category */}
-                <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
                     类别
                   </label>
                   {budgetCategories && budgetCategories.length > 0 ? (
-                    <select
-                      value={editingExpense.category}
-                      onChange={(e) => {
-                        if (e.target.value === '__ADD_NEW__') {
-                          setQuickNewCategory({
-                            name: '',
-                            icon: '📝',
-                            budgetType: 'monthly',
-                            amount: ''
-                          });
-                          setShowQuickAddCategory(true);
-                        } else {
-                          setEditingExpense({ ...editingExpense, category: e.target.value });
-                        }
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        background: COLORS.accent,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '1rem',
-                        fontFamily: 'inherit',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">选择类别...</option>
-                      <option value="__ADD_NEW__" style={{ color: COLORS.highlight, fontWeight: '600' }}>➕ 新分类</option>
-                      <option disabled>──────────</option>
-                      
-                      {/* Render all categories in order, parent categories can be selected */}
-                      {budgetCategories.flatMap((cat: any) => {
-                        if (cat.isParent && cat.children) {
-                          // Parent category with children
-                          return [
-                            <option key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </option>,
-                            ...cat.children.map((child: any) => (
-                              <option key={child.id} value={child.id}>
-                                &nbsp;&nbsp;&nbsp;&nbsp;↳ {child.name}
-                              </option>
-                            ))
-                          ];
-                        } else {
-                          // Standalone category
-                          return (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </option>
-                          );
-                        }
-                      })}
-                    </select>
+                    <>
+                      {/* Selected Category Display */}
+                      <div
+                        onClick={() => setShowEditCategoryDropdown(!showEditCategoryDropdown)}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: COLORS.accent,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '1rem',
+                          fontFamily: 'inherit',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <span>
+                          {editingExpense.category 
+                            ? (() => {
+                                // Find the selected category name
+                                for (const cat of budgetCategories) {
+                                  if (cat.id === editingExpense.category) return cat.name;
+                                  if (cat.isParent && cat.children) {
+                                    const child = cat.children.find((c: any) => c.id === editingExpense.category);
+                                    if (child) return `${cat.name} → ${child.name}`;
+                                  }
+                                }
+                                return '选择类别...';
+                              })()
+                            : '选择类别...'}
+                        </span>
+                        <span style={{ fontSize: '0.8rem' }}>{showEditCategoryDropdown ? '▲' : '▼'}</span>
+                      </div>
+
+                      {/* Dropdown List */}
+                      {showEditCategoryDropdown && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          background: COLORS.card,
+                          borderRadius: '0.5rem',
+                          maxHeight: '300px',
+                          overflowY: 'auto',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                          zIndex: 1000,
+                          marginTop: '0.25rem'
+                        }}>
+                          {/* Add New Category Option */}
+                          <div
+                            onClick={() => {
+                              setQuickNewCategory({
+                                name: '',
+                                icon: '📝',
+                                budgetType: 'monthly',
+                                amount: ''
+                              });
+                              setShowQuickAddCategory(true);
+                              setShowEditCategoryDropdown(false);
+                            }}
+                            style={{
+                              padding: '0.75rem 1rem',
+                              cursor: 'pointer',
+                              borderBottom: `1px solid ${COLORS.accent}`,
+                              color: COLORS.highlight,
+                              fontWeight: '600',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = COLORS.accent}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <span>➕</span>
+                            <span>新分类</span>
+                          </div>
+
+                          {/* Category List */}
+                          {budgetCategories.map((cat: any) => (
+                            <div key={cat.id}>
+                              {/* Parent Category */}
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: '0.75rem 1rem',
+                                  cursor: 'pointer',
+                                  borderBottom: `1px solid ${COLORS.accent}`,
+                                  background: editingExpense.category === cat.id ? `${COLORS.highlight}20` : 'transparent'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (editingExpense.category !== cat.id) {
+                                    e.currentTarget.style.background = COLORS.accent;
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (editingExpense.category !== cat.id) {
+                                    e.currentTarget.style.background = 'transparent';
+                                  }
+                                }}
+                              >
+                                <div
+                                  onClick={() => {
+                                    setEditingExpense({ ...editingExpense, category: cat.id });
+                                    setShowEditCategoryDropdown(false);
+                                  }}
+                                  style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                  {editingExpense.category === cat.id && <span style={{ color: COLORS.highlight }}>✓</span>}
+                                  <span>{cat.name}</span>
+                                </div>
+                                
+                                {/* Edit Icon for Parent Categories */}
+                                {cat.isParent && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingExpense(null);
+                                      setShowEditCategoryDropdown(false);
+                                      setActiveTab('budget');
+                                    }}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      color: COLORS.textMuted,
+                                      fontSize: '1rem',
+                                      cursor: 'pointer',
+                                      padding: '0.25rem',
+                                      display: 'flex',
+                                      alignItems: 'center'
+                                    }}
+                                    title="管理此分类"
+                                  >
+                                    ✏️
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Child Categories */}
+                              {cat.isParent && cat.children && cat.children.map((child: any) => (
+                                <div
+                                  key={child.id}
+                                  onClick={() => {
+                                    setEditingExpense({ ...editingExpense, category: child.id });
+                                    setShowEditCategoryDropdown(false);
+                                  }}
+                                  style={{
+                                    padding: '0.75rem 1rem 0.75rem 2.5rem',
+                                    cursor: 'pointer',
+                                    borderBottom: `1px solid ${COLORS.accent}`,
+                                    background: editingExpense.category === child.id ? `${COLORS.highlight}20` : 'transparent',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (editingExpense.category !== child.id) {
+                                      e.currentTarget.style.background = COLORS.accent;
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (editingExpense.category !== child.id) {
+                                      e.currentTarget.style.background = 'transparent';
+                                    }
+                                  }}
+                                >
+                                  {editingExpense.category === child.id && <span style={{ color: COLORS.highlight }}>✓</span>}
+                                  <span style={{ color: COLORS.textMuted, fontSize: '0.9rem' }}>↳</span>
+                                  <span>{child.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div style={{
                       padding: '1rem',
