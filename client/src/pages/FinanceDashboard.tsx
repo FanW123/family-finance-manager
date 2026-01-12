@@ -2334,25 +2334,34 @@ const FinanceDashboard = () => {
                     setShowFireCalculator(true);
                   }}
                   style={{
-                    padding: '0.5rem 1rem',
+                    padding: '0.75rem 1rem',
                     background: COLORS.card,
-                    border: `1px solid ${COLORS.success}`,
+                    border: `1px solid ${COLORS.accent}`,
                     borderRadius: '0.5rem',
                     color: COLORS.text,
                     fontSize: '0.9rem',
                     fontWeight: '600',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    minWidth: '100px'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = `${COLORS.success}20`;
+                    e.currentTarget.style.background = `${COLORS.accent}50`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = COLORS.card;
                   }}
                 >
-                  FIRE计算器
+                  <span style={{ fontSize: '1.2rem' }}>🔥</span>
+                  <span>FIRE计算器</span>
+                  <span style={{ fontSize: '0.7rem', color: COLORS.textMuted, fontWeight: '400' }}>
+                    规划财务自由之路
+                  </span>
                 </button>
                 
                 <button
@@ -2416,25 +2425,34 @@ const FinanceDashboard = () => {
                     setShowRebalanceSimulator(true);
                   }}
                   style={{
-                    padding: '0.5rem 1rem',
+                    padding: '0.75rem 1rem',
                     background: COLORS.card,
-                    border: `1px solid ${COLORS.highlight}`,
+                    border: `1px solid ${COLORS.accent}`,
                     borderRadius: '0.5rem',
                     color: COLORS.text,
                     fontSize: '0.9rem',
                     fontWeight: '600',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    minWidth: '100px'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = `${COLORS.highlight}20`;
+                    e.currentTarget.style.background = `${COLORS.accent}50`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = COLORS.card;
                   }}
                 >
-                  再平衡模拟
+                  <span style={{ fontSize: '1.2rem' }}>⚖️</span>
+                  <span>再平衡模拟</span>
+                  <span style={{ fontSize: '0.7rem', color: COLORS.textMuted, fontWeight: '400' }}>
+                    优化配置
+                  </span>
                 </button>
                 
                 <button
@@ -2462,28 +2480,34 @@ const FinanceDashboard = () => {
                     setShowStressTest(true);
                   }}
                   style={{
-                    padding: '0.5rem 1rem',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    border: '2px solid #764ba2',
+                    padding: '0.75rem 1rem',
+                    background: COLORS.card,
+                    border: `1px solid ${COLORS.accent}`,
                     borderRadius: '0.5rem',
-                    color: 'white',
+                    color: COLORS.text,
                     fontSize: '0.9rem',
                     fontWeight: '600',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     transition: 'all 0.2s ease',
-                    boxShadow: '0 4px 15px rgba(118, 75, 162, 0.4)'
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    minWidth: '100px'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(118, 75, 162, 0.6)';
+                    e.currentTarget.style.background = `${COLORS.accent}50`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(118, 75, 162, 0.4)';
+                    e.currentTarget.style.background = COLORS.card;
                   }}
                 >
-                  🛡️ 压力测试
+                  <span style={{ fontSize: '1.2rem' }}>🛡️</span>
+                  <span>压力测试</span>
+                  <span style={{ fontSize: '0.7rem', color: COLORS.textMuted, fontWeight: '400' }}>
+                    测试风险承受能力
+                  </span>
                 </button>
               </div>
             </div>
