@@ -7793,9 +7793,6 @@ const FinanceDashboard = () => {
                             amount: ''
                           });
                           setShowQuickAddCategory(true);
-                        } else if (e.target.value === '__MANAGE__') {
-                          setShowAddExpense(false);
-                          setActiveTab('budget');
                         } else {
                           setNewExpense({ ...newExpense, category: e.target.value });
                         }
@@ -7839,9 +7836,6 @@ const FinanceDashboard = () => {
                           );
                         }
                       })}
-                      
-                      <option disabled>──────────</option>
-                      <option value="__MANAGE__" style={{ color: COLORS.textMuted, fontWeight: '600' }}>⚙️ 管理分类</option>
                     </select>
                   ) : (
                     <div style={{
@@ -8294,9 +8288,6 @@ const FinanceDashboard = () => {
                             amount: ''
                           });
                           setShowQuickAddCategory(true);
-                        } else if (e.target.value === '__MANAGE__') {
-                          setEditingExpense(null);
-                          setActiveTab('budget');
                         } else {
                           setEditingExpense({ ...editingExpense, category: e.target.value });
                         }
@@ -8340,9 +8331,6 @@ const FinanceDashboard = () => {
                           );
                         }
                       })}
-                      
-                      <option disabled>──────────</option>
-                      <option value="__MANAGE__" style={{ color: COLORS.textMuted, fontWeight: '600' }}>⚙️ 管理分类</option>
                     </select>
                   ) : (
                     <div style={{
