@@ -2305,8 +2305,8 @@ const FinanceDashboard = () => {
               {fireViewMode === 'progress' && (
                 <div style={{
                   display: 'flex',
-                  gap: '1rem',
-                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  justifyContent: 'flex-end',
                   marginTop: '1rem',
                   marginBottom: '2rem'
                 }}>
@@ -2365,7 +2365,6 @@ const FinanceDashboard = () => {
                     e.currentTarget.style.background = COLORS.card;
                   }}
                 >
-                  <span style={{ fontSize: '1.2rem' }}>🔥</span>
                   <span>FIRE计算器</span>
                   <span style={{ fontSize: '0.7rem', color: COLORS.textMuted, fontWeight: '400' }}>
                     规划财务自由之路
@@ -2456,7 +2455,6 @@ const FinanceDashboard = () => {
                     e.currentTarget.style.background = COLORS.card;
                   }}
                 >
-                  <span style={{ fontSize: '1.2rem' }}>⚖️</span>
                   <span>再平衡模拟</span>
                   <span style={{ fontSize: '0.7rem', color: COLORS.textMuted, fontWeight: '400' }}>
                     优化配置
@@ -2511,7 +2509,6 @@ const FinanceDashboard = () => {
                     e.currentTarget.style.background = COLORS.card;
                   }}
                 >
-                  <span style={{ fontSize: '1.2rem' }}>🛡️</span>
                   <span>压力测试</span>
                   <span style={{ fontSize: '0.7rem', color: COLORS.textMuted, fontWeight: '400' }}>
                     测试风险承受能力
@@ -11925,34 +11922,195 @@ const FinanceDashboard = () => {
 
               {/* Content */}
               <div style={{ padding: '2rem' }}>
-                {/* Introduction */}
-                <div style={{
-                  background: `linear-gradient(135deg, ${COLORS.accent} 0%, ${COLORS.card} 100%)`,
-                  borderRadius: '0.75rem',
-                  padding: '1.5rem',
-                  marginBottom: '2rem',
-                  border: `2px solid #764ba2`
-                }}>
-                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem', color: COLORS.text }}>
-                    🛡️ 你的组合能扛住2008金融危机吗？
-                  </h3>
-                  <p style={{ margin: '0 0 1rem 0', color: COLORS.textMuted, fontSize: '0.9rem' }}>
-                    压力测试将模拟不同市场条件下的资产表现，帮助你了解投资组合的抗风险能力。
-                  </p>
-                  <div style={{
-                    display: 'flex',
-                    gap: '1rem',
-                    flexWrap: 'wrap',
-                    fontSize: '0.85rem',
-                    color: COLORS.textMuted
-                  }}>
-                    <span>✓ 4个历史场景</span>
-                    <span>✓ 1分钟出结果</span>
-                    <span>✓ 专业建议</span>
-                  </div>
-                </div>
+                {stressTestView === 'main' ? (
+                  <>
+                    {/* Main Interface */}
+                    <div style={{
+                      background: COLORS.accent,
+                      borderRadius: '0.75rem',
+                      padding: '1.5rem',
+                      marginBottom: '2rem'
+                    }}>
+                      <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>你的配置</h3>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '1rem',
+                        marginBottom: '1.5rem'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>资产</div>
+                          <div style={{ fontSize: '1.1rem', color: COLORS.text, fontWeight: '600' }}>
+                            ${Math.round(stressTestInitialAssets || totalPortfolio || 0).toLocaleString()}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>年取</div>
+                          <div style={{ fontSize: '1.1rem', color: COLORS.text, fontWeight: '600' }}>
+                            ${Math.round(stressTestAnnualWithdrawal || 0).toLocaleString()} 
+                            {stressTestInitialAssets > 0 && (
+                              <span style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                ({((stressTestAnnualWithdrawal / stressTestInitialAssets) * 100).toFixed(1)}%)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>配置</div>
+                          <div style={{ fontSize: '1.1rem', color: COLORS.text, fontWeight: '600' }}>
+                            {stressTestStockRatio}/{stressTestBondRatio}/{stressTestCashRatio}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                {(() => {
+                    {/* Quick Test Card */}
+                    <div style={{
+                      background: COLORS.card,
+                      borderRadius: '0.75rem',
+                      padding: '1.5rem',
+                      marginBottom: '1.5rem',
+                      border: `2px solid ${COLORS.accent}`
+                    }}>
+                      <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: COLORS.text }}>
+                        快速测试 (4个场景)
+                      </h4>
+                      <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: COLORS.textMuted }}>
+                        测试4个历史熊市场景，1分钟出结果
+                      </p>
+                      <button
+                        onClick={() => setStressTestView('quick')}
+                        style={{
+                          width: '100%',
+                          background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                          border: 'none',
+                          color: 'white',
+                          padding: '0.75rem',
+                          borderRadius: '0.5rem',
+                          fontSize: '1rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        开始测试
+                      </button>
+                    </div>
+
+                    {/* Full Test Card */}
+                    <div style={{
+                      background: COLORS.card,
+                      borderRadius: '0.75rem',
+                      padding: '1.5rem',
+                      marginBottom: '1.5rem',
+                      border: `2px solid ${COLORS.accent}`
+                    }}>
+                      <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: COLORS.text }}>
+                        完整测试 (4个场景)
+                      </h4>
+                      <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: COLORS.textMuted }}>
+                        包含所有历史场景和详细分析
+                      </p>
+                      <button
+                        onClick={() => setStressTestView('full')}
+                        style={{
+                          width: '100%',
+                          background: COLORS.accent,
+                          border: `1px solid ${COLORS.highlight}`,
+                          color: COLORS.text,
+                          padding: '0.75rem',
+                          borderRadius: '0.5rem',
+                          fontSize: '1rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        深度分析
+                      </button>
+                    </div>
+
+                    {/* History Record */}
+                    {(() => {
+                      const savedHistory = localStorage.getItem(getUserStorageKey('stressTestHistory'));
+                      let lastTestDate: string | null = null;
+                      let lastSurvivalRate: number | null = null;
+                      let lastPassedCount: number | null = null;
+                      let lastTotalCount: number | null = null;
+                      
+                      if (savedHistory) {
+                        try {
+                          const history = JSON.parse(savedHistory);
+                          if (history.length > 0) {
+                            const last = history[history.length - 1];
+                            lastTestDate = last.date;
+                            lastSurvivalRate = last.survivalRate;
+                            lastPassedCount = last.passedCount;
+                            lastTotalCount = last.totalCount;
+                          }
+                        } catch (e) {
+                          console.error('Failed to parse stress test history:', e);
+                        }
+                      }
+                      
+                      if (lastTestDate) {
+                        const testDate = new Date(lastTestDate);
+                        const now = new Date();
+                        const daysDiff = Math.floor((now.getTime() - testDate.getTime()) / (1000 * 60 * 60 * 24));
+                        const daysText = daysDiff === 0 ? '今天' : daysDiff === 1 ? '1天前' : `${daysDiff}天前`;
+                        
+                        return (
+                          <div style={{
+                            background: COLORS.accent,
+                            borderRadius: '0.75rem',
+                            padding: '1rem',
+                            fontSize: '0.9rem',
+                            color: COLORS.text
+                          }}>
+                            <div style={{ marginBottom: '0.5rem' }}>
+                              <span style={{ color: COLORS.textMuted }}>历史记录: </span>
+                              <span style={{ fontWeight: '600' }}>上次测试 {daysText}</span>
+                            </div>
+                            <div>
+                              <span style={{ color: COLORS.textMuted }}>通过率: </span>
+                              <span style={{ 
+                                fontWeight: '600',
+                                color: lastSurvivalRate && lastSurvivalRate >= 0.75 ? COLORS.success : COLORS.warning
+                              }}>
+                                {lastSurvivalRate ? Math.round(lastSurvivalRate * 100) : 0}% 
+                                {lastPassedCount !== null && lastTotalCount !== null && ` (${lastPassedCount}/${lastTotalCount})`}
+                                {lastSurvivalRate && lastSurvivalRate < 0.75 ? ' ⚠️' : ' ✅'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </>
+                ) : (
+                  <>
+                    {/* Test Results View */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => setStressTestView('main')}
+                        style={{
+                          background: 'transparent',
+                          border: `1px solid ${COLORS.accent}`,
+                          color: COLORS.text,
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.9rem',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          marginBottom: '1rem'
+                        }}
+                      >
+                        ← 返回
+                      </button>
+                    </div>
+
+                    {(() => {
                   // Normalize allocation to sum to 100%
                   const totalRatio = stressTestStockRatio + stressTestBondRatio + stressTestCashRatio;
                   
