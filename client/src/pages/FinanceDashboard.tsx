@@ -542,7 +542,7 @@ const FinanceDashboard = () => {
   const [stressTestStockRatio, setStressTestStockRatio] = useState(70);
   const [stressTestBondRatio, setStressTestBondRatio] = useState(20);
   const [stressTestCashRatio, setStressTestCashRatio] = useState(10);
-  const [stressTestView, setStressTestView] = useState<'main' | 'quick' | 'full'>('main');
+  const [stressTestView, setStressTestView] = useState<'main' | 'results'>('main');
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
   const [fireViewMode, setFireViewMode] = useState<'progress' | 'trend'>('progress');
   const [fireTimeRange, setFireTimeRange] = useState<'1week' | '1month' | '1year' | 'ytd' | '5years'>('1year');
@@ -11965,7 +11965,7 @@ const FinanceDashboard = () => {
                       </div>
                     </div>
 
-                    {/* Quick Test Card */}
+                    {/* Test Card */}
                     <div style={{
                       background: COLORS.card,
                       borderRadius: '0.75rem',
@@ -11974,13 +11974,13 @@ const FinanceDashboard = () => {
                       border: `2px solid ${COLORS.accent}`
                     }}>
                       <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: COLORS.text }}>
-                        快速测试 (4个场景)
+                        快速测试 (15个场景)
                       </h4>
                       <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: COLORS.textMuted }}>
-                        测试4个历史熊市场景，1分钟出结果
+                        测试15个历史熊市场景，1分钟出结果
                       </p>
                       <button
-                        onClick={() => setStressTestView('quick')}
+                        onClick={() => setStressTestView('results')}
                         style={{
                           width: '100%',
                           background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
@@ -11995,39 +11995,6 @@ const FinanceDashboard = () => {
                         }}
                       >
                         开始测试
-                      </button>
-                    </div>
-
-                    {/* Full Test Card */}
-                    <div style={{
-                      background: COLORS.card,
-                      borderRadius: '0.75rem',
-                      padding: '1.5rem',
-                      marginBottom: '1.5rem',
-                      border: `2px solid ${COLORS.accent}`
-                    }}>
-                      <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: COLORS.text }}>
-                        完整测试 (4个场景)
-                      </h4>
-                      <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: COLORS.textMuted }}>
-                        包含所有历史场景和详细分析
-                      </p>
-                      <button
-                        onClick={() => setStressTestView('full')}
-                        style={{
-                          width: '100%',
-                          background: COLORS.accent,
-                          border: `1px solid ${COLORS.highlight}`,
-                          color: COLORS.text,
-                          padding: '0.75rem',
-                          borderRadius: '0.5rem',
-                          fontSize: '1rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          fontFamily: 'inherit'
-                        }}
-                      >
-                        深度分析
                       </button>
                     </div>
 
@@ -12416,7 +12383,7 @@ const FinanceDashboard = () => {
                   };
                   
                   // Save history when test is run
-                  if (stressTestView === 'quick' || stressTestView === 'full') {
+                  if (stressTestView === 'results') {
                     saveTestHistory();
                   }
                   
