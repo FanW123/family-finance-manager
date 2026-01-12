@@ -3814,21 +3814,6 @@ const FinanceDashboard = () => {
                                     </button>
                                   </div>
                                 </div>
-                                <div style={{
-                                  width: '100%',
-                                  height: '6px',
-                                  background: COLORS.accent,
-                                  borderRadius: '3px',
-                                  overflow: 'hidden',
-                                  marginBottom: isExpanded ? '0.75rem' : '0'
-                                }}>
-                                  <div style={{
-                                    width: `${Math.min(totalPercentage, 100)}%`,
-                                    height: '100%',
-                                    background: totalPercentage > 100 ? COLORS.danger : COLORS.success,
-                                    transition: 'width 0.3s ease'
-                                  }} />
-                                </div>
                                 
                                 {isExpanded && (
                                   <div style={{ paddingLeft: '1rem' }}>
@@ -3849,20 +3834,6 @@ const FinanceDashboard = () => {
                                             <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
                                               ${spent.toFixed(0)} / ${Math.round(child.amount)}
                                             </span>
-                                          </div>
-                                          <div style={{
-                                            width: '100%',
-                                            height: '5px',
-                                            background: COLORS.accent,
-                                            borderRadius: '2.5px',
-                                            overflow: 'hidden'
-                                          }}>
-                                            <div style={{
-                                              width: `${Math.min(percentage, 100)}%`,
-                                              height: '100%',
-                                              background: percentage > 100 ? COLORS.danger : COLORS.success,
-                                              transition: 'width 0.3s ease'
-                                            }} />
                                           </div>
                                         </div>
                                       );
@@ -3900,20 +3871,6 @@ const FinanceDashboard = () => {
                                     </span>
                                     <div style={{ minWidth: '1.5rem' }}></div>
                                   </div>
-                                </div>
-                                <div style={{
-                                  width: '100%',
-                                  height: '6px',
-                                  background: COLORS.accent,
-                                  borderRadius: '3px',
-                                  overflow: 'hidden'
-                                }}>
-                                  <div style={{
-                                    width: `${Math.min(percentage, 100)}%`,
-                                    height: '100%',
-                                    background: percentage > 100 ? COLORS.danger : COLORS.success,
-                                    transition: 'width 0.3s ease'
-                                  }} />
                                 </div>
                               </div>
                             );
@@ -5937,21 +5894,6 @@ const FinanceDashboard = () => {
                                     </button>
                                   </div>
                                 </div>
-                                <div style={{
-                                  width: '100%',
-                                  height: '6px',
-                                  background: COLORS.accent,
-                                  borderRadius: '3px',
-                                  overflow: 'hidden',
-                                  marginBottom: isExpanded ? '0.75rem' : '0'
-                                }}>
-                                  <div style={{
-                                    width: `${Math.min(totalPercentage, 100)}%`,
-                                    height: '100%',
-                                    background: totalPercentage > 100 ? COLORS.danger : COLORS.success,
-                                    transition: 'width 0.3s ease'
-                                  }} />
-                                </div>
                                 
                                 {isExpanded && (
                                   <div style={{ paddingLeft: '1rem' }}>
@@ -5972,20 +5914,6 @@ const FinanceDashboard = () => {
                                             <span style={{ fontSize: '0.8rem', color: COLORS.textMuted }}>
                                               ${spent.toFixed(0)} / ${Math.round(child.amount)}
                                             </span>
-                                          </div>
-                                          <div style={{
-                                            width: '100%',
-                                            height: '5px',
-                                            background: COLORS.accent,
-                                            borderRadius: '2.5px',
-                                            overflow: 'hidden'
-                                          }}>
-                                            <div style={{
-                                              width: `${Math.min(percentage, 100)}%`,
-                                              height: '100%',
-                                              background: percentage > 100 ? COLORS.danger : COLORS.success,
-                                              transition: 'width 0.3s ease'
-                                            }} />
                                           </div>
                                         </div>
                                       );
@@ -6023,20 +5951,6 @@ const FinanceDashboard = () => {
                                     </span>
                                     <div style={{ minWidth: '1.5rem' }}></div>
                                   </div>
-                                </div>
-                                <div style={{
-                                  width: '100%',
-                                  height: '6px',
-                                  background: COLORS.accent,
-                                  borderRadius: '3px',
-                                  overflow: 'hidden'
-                                }}>
-                                  <div style={{
-                                    width: `${Math.min(percentage, 100)}%`,
-                                    height: '100%',
-                                    background: percentage > 100 ? COLORS.danger : COLORS.success,
-                                    transition: 'width 0.3s ease'
-                                  }} />
                                 </div>
                               </div>
                             );
