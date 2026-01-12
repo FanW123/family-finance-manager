@@ -12597,118 +12597,184 @@ const FinanceDashboard = () => {
                         marginBottom: '1.5rem',
                         border: `2px solid ${testResults.survivalRate === 1 ? COLORS.success : COLORS.warning}`
                       }}>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '1rem'
-                        }}>
-                          <h3 style={{ margin: 0, fontSize: '1.2rem' }}>📊 测试结果</h3>
+                        <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.2rem' }}>📊 测试结果</h3>
+                        
+                        {/* Overall Survival Rate */}
+                        <div style={{ marginBottom: '1.5rem' }}>
                           <div style={{
-                            padding: '0.5rem 1rem',
-                            background: testResults.survivalRate === 1 ? `${COLORS.success}20` : `${COLORS.warning}20`,
-                            borderRadius: '0.5rem',
-                            color: testResults.survivalRate === 1 ? COLORS.success : COLORS.warning,
-                            fontWeight: '600',
-                            fontSize: '1rem'
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '0.75rem'
                           }}>
-                            存活率: {Math.round(testResults.survivalRate * 100)}% {testResults.survivalRate === 1 ? '✅' : '⚠️'}
+                            <div style={{ fontSize: '1rem', color: COLORS.text, fontWeight: '600' }}>
+                              总体存活率: {Math.round(testResults.survivalRate * 100)}% ({testResults.results.filter(r => r.survived).length}/{testResults.results.length})
+                            </div>
+                            <div style={{
+                              fontSize: '1rem',
+                              color: testResults.survivalRate >= 0.9 ? COLORS.success : testResults.survivalRate >= 0.75 ? COLORS.warning : COLORS.highlight,
+                              fontWeight: '600'
+                            }}>
+                              {testResults.survivalRate >= 0.9 ? '✅ 优秀' : testResults.survivalRate >= 0.75 ? '⚠️ 需要优化' : '❌ 风险较高'}
+                            </div>
+                          </div>
+                          
+                          {/* Progress Bar */}
+                          <div style={{
+                            background: COLORS.accent,
+                            borderRadius: '0.5rem',
+                            height: '1.5rem',
+                            position: 'relative',
+                            overflow: 'hidden'
+                          }}>
+                            <div style={{
+                              background: testResults.survivalRate >= 0.9 ? COLORS.success : testResults.survivalRate >= 0.75 ? COLORS.warning : COLORS.highlight,
+                              height: '100%',
+                              width: `${testResults.survivalRate * 100}%`,
+                              transition: 'width 0.3s ease',
+                              borderRadius: '0.5rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'white',
+                              fontSize: '0.75rem',
+                              fontWeight: '600'
+                            }}>
+                              {testResults.survivalRate >= 0.9 ? '██████████' : testResults.survivalRate >= 0.75 ? '████████░░' : '████░░░░░░'}
+                            </div>
                           </div>
                         </div>
                         
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(2, 1fr)',
-                          gap: '1rem',
-                          fontSize: '0.9rem'
-                        }}>
-                          <div>
-                            <div style={{ color: COLORS.textMuted, fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                              失败场景
+                        {/* Failed Scenarios */}
+                        {testResults.failedScenarios.length > 0 && (
+                          <div style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem', fontWeight: '600' }}>
+                              失败场景:
                             </div>
-                            <div style={{ color: COLORS.text, fontWeight: '600' }}>
-                              {testResults.failedScenarios.length > 0 ? testResults.failedScenarios.join('、') : '无'}
-                            </div>
+                            {testResults.failedScenarios.map((scenario, idx) => {
+                              const failedResult = testResults.results.find(r => r.scenario === scenario);
+                              const remainingPercent = failedResult && baseInitialAssets > 0 
+                                ? Math.round((failedResult.finalValue || 0) / baseInitialAssets * 100)
+                                : 0;
+                              return (
+                                <div key={idx} style={{
+                                  color: COLORS.highlight,
+                                  fontSize: '0.9rem',
+                                  marginBottom: '0.25rem'
+                                }}>
+                                  ❌ {scenario} {remainingPercent > 0 && `(资产剩${remainingPercent}%)`}
+                                </div>
+                              );
+                            })}
                           </div>
-                          <div>
-                            <div style={{ color: COLORS.textMuted, fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                              当前配置
-                            </div>
-                            <div style={{ color: COLORS.text, fontWeight: '600' }}>
-                              股票 {Math.round(stressTestStockRatio)}% / 债券 {Math.round(stressTestBondRatio)}% / 现金 {Math.round(stressTestCashRatio)}%
-                            </div>
-                          </div>
-                          <div>
-                            <div style={{ color: COLORS.textMuted, fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                              取款率
-                            </div>
-                            <div style={{ color: COLORS.text, fontWeight: '600' }}>
-                              {withdrawalRate.toFixed(1)}%
-                            </div>
-                          </div>
-                        </div>
+                        )}
+                        
+                        {/* Scenario Categories */}
+                        {(() => {
+                          const historicalResults = testResults.results.filter(r => 
+                            r.scenario.includes('金融危机') || 
+                            r.scenario.includes('互联网泡沫') || 
+                            r.scenario.includes('石油危机')
+                          );
+                          const extremeResults = testResults.results.filter(r => 
+                            r.scenario.includes('退休即熊市') || 
+                            r.scenario.includes('失落') ||
+                            r.scenario.includes('30年')
+                          );
+                          
+                          return (
+                            <>
+                              {/* Historical Bear Market */}
+                              <div style={{
+                                background: COLORS.accent,
+                                borderRadius: '0.5rem',
+                                padding: '1rem',
+                                marginBottom: '1rem'
+                              }}>
+                                <div style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  marginBottom: '0.5rem'
+                                }}>
+                                  <div style={{ fontSize: '0.95rem', color: COLORS.text, fontWeight: '600' }}>
+                                    📉 历史熊市 ({historicalResults.filter(r => r.survived).length}/{historicalResults.length})
+                                  </div>
+                                  <div style={{
+                                    fontSize: '0.85rem',
+                                    color: historicalResults.every(r => r.survived) ? COLORS.success : COLORS.warning,
+                                    fontWeight: '600'
+                                  }}>
+                                    {historicalResults.every(r => r.survived) ? '✅ 全部通过' : '⚠️ 有风险'}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Extreme Scenarios */}
+                              {extremeResults.length > 0 && (
+                                <div style={{
+                                  background: COLORS.accent,
+                                  borderRadius: '0.5rem',
+                                  padding: '1rem',
+                                  marginBottom: '1rem'
+                                }}>
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '0.5rem'
+                                  }}>
+                                    <div style={{ fontSize: '0.95rem', color: COLORS.text, fontWeight: '600' }}>
+                                      💀 极端场景 ({extremeResults.filter(r => r.survived).length}/{extremeResults.length})
+                                    </div>
+                                    <div style={{
+                                      fontSize: '0.85rem',
+                                      color: extremeResults.every(r => r.survived) ? COLORS.success : COLORS.warning,
+                                      fontWeight: '600'
+                                    }}>
+                                      {extremeResults.every(r => r.survived) ? '✅ 全部通过' : '⚠️ 有风险'}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                       
                       {/* Recommendations */}
-                      <div style={{
-                        background: COLORS.accent,
-                        borderRadius: '0.75rem',
-                        padding: '1.5rem',
-                        marginBottom: '1.5rem'
-                      }}>
-                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>💡 改进建议</h3>
-                        {recommendations
-                          .sort((a, b) => {
-                            const priorityOrder = { 'high': 0, 'medium': 1, 'low': 2 };
-                            return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
-                          })
-                          .map((rec, index) => (
-                          <div key={index} style={{
+                      {recommendations.length > 0 && (
+                        <div style={{
+                          background: COLORS.accent,
+                          borderRadius: '0.75rem',
+                          padding: '1.5rem',
+                          marginBottom: '1.5rem'
+                        }}>
+                          <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>💡 改进建议</h3>
+                          <div style={{
                             background: COLORS.card,
                             borderRadius: '0.5rem',
-                            padding: '1rem',
-                            marginBottom: index < recommendations.length - 1 ? '0.75rem' : 0,
-                            borderLeft: `4px solid ${
-                              rec.type === 'success' ? COLORS.success :
-                              rec.type === 'warning' ? COLORS.warning :
-                              COLORS.highlight
-                            }`
+                            padding: '1rem'
                           }}>
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              marginBottom: '0.5rem'
-                            }}>
-                              <div style={{
-                                fontWeight: '600',
-                                color: COLORS.text
-                              }}>
-                                {rec.title}
-                              </div>
-                              {rec.priority === 'high' && (
-                                <span style={{
-                                  fontSize: '0.75rem',
-                                  padding: '0.25rem 0.5rem',
-                                  background: COLORS.warning,
-                                  color: 'white',
-                                  borderRadius: '0.25rem',
-                                  fontWeight: '600'
+                            {recommendations
+                              .sort((a, b) => {
+                                const priorityOrder = { 'high': 0, 'medium': 1, 'low': 2 };
+                                return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+                              })
+                              .slice(0, 3) // Show top 3 recommendations
+                              .map((rec, index) => (
+                                <div key={index} style={{
+                                  fontSize: '0.9rem',
+                                  color: COLORS.text,
+                                  marginBottom: index < Math.min(recommendations.length, 3) - 1 ? '0.75rem' : 0,
+                                  lineHeight: '1.6'
                                 }}>
-                                  高优先级
-                                </span>
-                              )}
-                            </div>
-                            <div style={{
-                              fontSize: '0.9rem',
-                              color: COLORS.textMuted,
-                              lineHeight: '1.5'
-                            }}>
-                              {rec.content}
-                            </div>
+                                  {index + 1}. {rec.content.split('。')[0]} {/* Show first sentence only */}
+                                </div>
+                              ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
                       
                       {/* Detailed Results */}
                       <div style={{
