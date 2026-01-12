@@ -12099,7 +12099,7 @@ const FinanceDashboard = () => {
                     recommendations.push({
                       type: 'success',
                       title: '✅ 你的配置很稳健',
-                      content: `通过所有${scenarios.length}个历史熊市测试，${withdrawalRate.toFixed(1)}%取款率足够保守。`
+                      content: `通过所有${historicalScenarios.length}个历史熊市测试，${withdrawalRate.toFixed(1)}%取款率足够保守。`
                     });
                   } else {
                     recommendations.push({
