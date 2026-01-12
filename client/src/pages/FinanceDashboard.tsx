@@ -6209,16 +6209,19 @@ const FinanceDashboard = () => {
 
                   budgetCategories.forEach((cat: any) => {
                     if (cat.isParent && cat.children) {
-                      // Parent category with children
-                      cat.children.forEach((child: any) => {
-                        const yearlyAmount = calculateYearlyAmount(child);
-                        const isFixed = child.budgetType === 'yearly' || child.budgetType === 'monthly';
-                        allItems.push({
-                          name: child.name,
-                          yearlyAmount,
-                          isFixed,
-                          fullName: `${cat.name} - ${child.name}`
-                        });
+                      // Parent category with children - sum up all children
+                      const totalYearlyAmount = cat.children.reduce((sum: number, child: any) => {
+                        return sum + calculateYearlyAmount(child);
+                      }, 0);
+                      // Determine if fixed based on first child (or majority logic if needed)
+                      const isFixed = cat.children.length > 0 && 
+                        (cat.children[0].budgetType === 'yearly' || cat.children[0].budgetType === 'monthly');
+                      allItems.push({
+                        name: cat.name,
+                        yearlyAmount: totalYearlyAmount,
+                        isFixed,
+                        icon: cat.name.match(/^[^\s]+/)?.[0], // Extract emoji if present
+                        fullName: cat.name
                       });
                     } else {
                       // Standalone category
