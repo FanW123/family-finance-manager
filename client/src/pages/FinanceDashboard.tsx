@@ -542,6 +542,7 @@ const FinanceDashboard = () => {
   const [stressTestStockRatio, setStressTestStockRatio] = useState(70);
   const [stressTestBondRatio, setStressTestBondRatio] = useState(20);
   const [stressTestCashRatio, setStressTestCashRatio] = useState(10);
+  const [stressTestView, setStressTestView] = useState<'main' | 'quick' | 'full'>('main');
   const [fireViewMode, setFireViewMode] = useState<'progress' | 'trend'>('progress');
   const [fireTimeRange, setFireTimeRange] = useState<'1week' | '1month' | '1year' | 'ytd' | '5years'>('1year');
   
@@ -11904,7 +11905,10 @@ const FinanceDashboard = () => {
               }}>
                 <h2 style={{ margin: 0, fontSize: '1.5rem' }}>🛡️ 压力测试</h2>
                 <button
-                  onClick={() => setShowStressTest(false)}
+                  onClick={() => {
+                    setShowStressTest(false);
+                    setStressTestView('main');
+                  }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -12090,6 +12094,59 @@ const FinanceDashboard = () => {
                     baseYearsToProject,
                     baseInflationRate
                   );
+                  
+                  // Save test history
+                  const saveTestHistory = () => {
+                    const historyKey = getUserStorageKey('stressTestHistory');
+                    const existingHistory = localStorage.getItem(historyKey);
+                    let history: Array<{
+                      date: string;
+                      survivalRate: number;
+                      passedCount: number;
+                      totalCount: number;
+                      parameters: {
+                        assets: number;
+                        withdrawal: number;
+                        allocation: { stock: number; bond: number; cash: number };
+                      };
+                    }> = [];
+                    
+                    if (existingHistory) {
+                      try {
+                        history = JSON.parse(existingHistory);
+                      } catch (e) {
+                        console.error('Failed to parse stress test history:', e);
+                      }
+                    }
+                    
+                    history.push({
+                      date: new Date().toISOString(),
+                      survivalRate: testResults.survivalRate,
+                      passedCount: testResults.results.filter(r => r.survived).length,
+                      totalCount: testResults.results.length,
+                      parameters: {
+                        assets: baseInitialAssets,
+                        withdrawal: baseAnnualExpenses,
+                        allocation: {
+                          stock: Math.round(stressTestStockRatio),
+                          bond: Math.round(stressTestBondRatio),
+                          cash: Math.round(stressTestCashRatio)
+                        }
+                      }
+                    });
+                    
+                    // Keep only last 10 tests
+                    if (history.length > 10) {
+                      history = history.slice(-10);
+                    }
+                    
+                    localStorage.setItem(historyKey, JSON.stringify(history));
+                  };
+                  
+                  // Save history when test is run
+                  if (stressTestView === 'quick' || stressTestView === 'full') {
+                    saveTestHistory();
+                  }
                   
                   // Calculate withdrawal rate
                   const withdrawalRate = baseInitialAssets > 0 ? (baseAnnualExpenses / baseInitialAssets * 100) : 0;
