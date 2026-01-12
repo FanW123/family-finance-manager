@@ -7901,29 +7901,27 @@ const FinanceDashboard = () => {
                                   <span>{cat.name}</span>
                                 </div>
                                 
-                                {/* Edit Icon for Parent Categories */}
-                                {cat.isParent && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setShowCategoryDropdown(false);
-                                      setEditingCategoryInModal(cat);
-                                    }}
-                                    style={{
-                                      background: 'none',
-                                      border: 'none',
-                                      color: COLORS.textMuted,
-                                      fontSize: '1rem',
-                                      cursor: 'pointer',
-                                      padding: '0.25rem',
-                                      display: 'flex',
-                                      alignItems: 'center'
-                                    }}
-                                    title="管理此分类"
-                                  >
-                                    ✏️
-                                  </button>
-                                )}
+                                {/* Edit Icon for All Categories */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowCategoryDropdown(false);
+                                    setEditingCategoryInModal(cat);
+                                  }}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: COLORS.textMuted,
+                                    fontSize: '1rem',
+                                    cursor: 'pointer',
+                                    padding: '0.25rem',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}
+                                  title="管理此分类"
+                                >
+                                  ✏️
+                                </button>
                               </div>
 
                               {/* Child Categories */}
@@ -8431,7 +8429,10 @@ const FinanceDashboard = () => {
                     />
                     <button
                       onClick={() => {
-                        if (confirm(`确定要删除"${editingCategoryInModal.name}"吗？\n这将同时删除所有子分类。`)) {
+                        const message = editingCategoryInModal.isParent 
+                          ? `确定要删除"${editingCategoryInModal.name}"吗？\n这将同时删除所有子分类。`
+                          : `确定要删除"${editingCategoryInModal.name}"吗？`;
+                        if (confirm(message)) {
                           const updated = budgetCategories.filter((cat: any) => cat.id !== editingCategoryInModal.id);
                           setBudgetCategories(updated);
                           saveBudgetCategories(updated);
@@ -8449,6 +8450,100 @@ const FinanceDashboard = () => {
                       🗑️
                     </button>
                   </div>
+
+                  {/* For standalone categories (non-parent), show budget type and amount */}
+                  {!editingCategoryInModal.isParent && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <select
+                          value={editingCategoryInModal.budgetType}
+                          onChange={(e) => {
+                            const updated = budgetCategories.map((cat: any) => 
+                              cat.id === editingCategoryInModal.id 
+                                ? { ...cat, budgetType: e.target.value }
+                                : cat
+                            );
+                            setBudgetCategories(updated);
+                            saveBudgetCategories(updated);
+                            setEditingCategoryInModal({ ...editingCategoryInModal, budgetType: e.target.value });
+                          }}
+                          style={{
+                            padding: '0.5rem',
+                            background: COLORS.card,
+                            border: 'none',
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '0.9rem',
+                            fontFamily: 'inherit',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="weekly">周预算</option>
+                          <option value="monthly">月预算</option>
+                          <option value="yearly">年预算</option>
+                        </select>
+
+                        <input
+                          type="number"
+                          value={editingCategoryInModal.amount}
+                          onFocus={(e) => {
+                            if (editingCategoryInModal.amount === 0) {
+                              setTimeout(() => e.target.select(), 0);
+                            }
+                          }}
+                          onChange={(e) => {
+                            const updated = budgetCategories.map((cat: any) => 
+                              cat.id === editingCategoryInModal.id 
+                                ? { ...cat, amount: e.target.value === '' ? 0 : parseFloat(e.target.value) || 0 }
+                                : cat
+                            );
+                            setBudgetCategories(updated);
+                            setEditingCategoryInModal({ 
+                              ...editingCategoryInModal, 
+                              amount: e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
+                            });
+                          }}
+                          onBlur={(e) => {
+                            const updated = budgetCategories.map((cat: any) => 
+                              cat.id === editingCategoryInModal.id 
+                                ? { ...cat, amount: parseFloat(e.target.value) || 0 }
+                                : cat
+                            );
+                            setBudgetCategories(updated);
+                            saveBudgetCategories(updated);
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '0.5rem',
+                            background: COLORS.card,
+                            border: 'none',
+                            borderRadius: '0.5rem',
+                            color: COLORS.text,
+                            fontSize: '1rem',
+                            fontFamily: 'inherit',
+                            outline: 'none'
+                          }}
+                        />
+                        <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                          /{editingCategoryInModal.budgetType === 'weekly' ? '周' : editingCategoryInModal.budgetType === 'monthly' ? '月' : '年'}
+                        </span>
+                      </div>
+
+                      {/* Yearly amount display */}
+                      <div style={{ 
+                        fontSize: '1.1rem',
+                        fontWeight: '600',
+                        color: COLORS.success,
+                        marginTop: '0.5rem'
+                      }}>
+                        → ${(() => {
+                          const multiplier = editingCategoryInModal.budgetType === 'weekly' ? 52 : 
+                                           editingCategoryInModal.budgetType === 'monthly' ? 12 : 1;
+                          return ((editingCategoryInModal.amount || 0) * multiplier).toLocaleString();
+                        })()} / 年
+                      </div>
+                    </div>
+                  )}
 
                   {/* Child Categories List */}
                   {editingCategoryInModal.children && editingCategoryInModal.children.length > 0 && (
@@ -8631,68 +8726,70 @@ const FinanceDashboard = () => {
                     </div>
                   )}
 
-                  {/* Total Yearly Amount */}
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    fontSize: '1.1rem',
-                    fontWeight: '600',
-                    color: COLORS.success,
-                    marginTop: '1rem',
-                    paddingTop: '1rem',
-                    borderTop: `1px solid ${COLORS.primary}`
-                  }}>
-                    <span>
-                      总计: ${(() => {
-                        if (!editingCategoryInModal.children) return '0';
-                        return editingCategoryInModal.children.reduce((sum: number, child: any) => {
-                          const multiplier = child.budgetType === 'weekly' ? 52 : 
-                                           child.budgetType === 'monthly' ? 12 : 1;
-                          return sum + (child.amount * multiplier);
-                        }, 0).toLocaleString();
-                      })()} / 年
-                    </span>
-                    
-                    <button
-                      onClick={() => {
-                        const newChild = {
-                          id: `${editingCategoryInModal.id}_child_${Date.now()}`,
-                          name: '新子分类',
-                          budgetType: 'monthly',
-                          amount: 0
-                        };
-                        const updated = budgetCategories.map((cat: any) => {
-                          if (cat.id === editingCategoryInModal.id) {
-                            return { 
-                              ...cat, 
-                              children: [...(cat.children || []), newChild]
-                            };
-                          }
-                          return cat;
-                        });
-                        setBudgetCategories(updated);
-                        saveBudgetCategories(updated);
-                        setEditingCategoryInModal({
-                          ...editingCategoryInModal,
-                          children: [...(editingCategoryInModal.children || []), newChild]
-                        });
-                      }}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        color: COLORS.text,
-                        fontSize: '0.85rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit'
-                      }}
-                    >
-                      + 添加子分类
-                    </button>
-                  </div>
+                  {/* Total Yearly Amount and Add Child Button - Only for parent categories */}
+                  {editingCategoryInModal.isParent && (
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      fontSize: '1.1rem',
+                      fontWeight: '600',
+                      color: COLORS.success,
+                      marginTop: '1rem',
+                      paddingTop: '1rem',
+                      borderTop: `1px solid ${COLORS.primary}`
+                    }}>
+                      <span>
+                        总计: ${(() => {
+                          if (!editingCategoryInModal.children) return '0';
+                          return editingCategoryInModal.children.reduce((sum: number, child: any) => {
+                            const multiplier = child.budgetType === 'weekly' ? 52 : 
+                                             child.budgetType === 'monthly' ? 12 : 1;
+                            return sum + (child.amount * multiplier);
+                          }, 0).toLocaleString();
+                        })()} / 年
+                      </span>
+                      
+                      <button
+                        onClick={() => {
+                          const newChild = {
+                            id: `${editingCategoryInModal.id}_child_${Date.now()}`,
+                            name: '新子分类',
+                            budgetType: 'monthly',
+                            amount: 0
+                          };
+                          const updated = budgetCategories.map((cat: any) => {
+                            if (cat.id === editingCategoryInModal.id) {
+                              return { 
+                                ...cat, 
+                                children: [...(cat.children || []), newChild]
+                              };
+                            }
+                            return cat;
+                          });
+                          setBudgetCategories(updated);
+                          saveBudgetCategories(updated);
+                          setEditingCategoryInModal({
+                            ...editingCategoryInModal,
+                            children: [...(editingCategoryInModal.children || []), newChild]
+                          });
+                        }}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          color: COLORS.text,
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        + 添加子分类
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -8833,7 +8930,7 @@ const FinanceDashboard = () => {
                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                           >
                             <span>➕</span>
-                            <span>新分类</span>
+                            <span>添加新预算</span>
                           </div>
 
                           {/* Category List */}
@@ -8871,29 +8968,27 @@ const FinanceDashboard = () => {
                                   <span>{cat.name}</span>
                                 </div>
                                 
-                                {/* Edit Icon for Parent Categories */}
-                                {cat.isParent && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setShowEditCategoryDropdown(false);
-                                      setEditingCategoryInModal(cat);
-                                    }}
-                                    style={{
-                                      background: 'none',
-                                      border: 'none',
-                                      color: COLORS.textMuted,
-                                      fontSize: '1rem',
-                                      cursor: 'pointer',
-                                      padding: '0.25rem',
-                                      display: 'flex',
-                                      alignItems: 'center'
-                                    }}
-                                    title="管理此分类"
-                                  >
-                                    ✏️
-                                  </button>
-                                )}
+                                {/* Edit Icon for All Categories */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowEditCategoryDropdown(false);
+                                    setEditingCategoryInModal(cat);
+                                  }}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: COLORS.textMuted,
+                                    fontSize: '1rem',
+                                    cursor: 'pointer',
+                                    padding: '0.25rem',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}
+                                  title="管理此分类"
+                                >
+                                  ✏️
+                                </button>
                               </div>
 
                               {/* Child Categories */}
