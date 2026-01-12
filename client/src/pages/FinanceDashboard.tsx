@@ -9420,6 +9420,69 @@ const FinanceDashboard = () => {
 
               {/* Content */}
               <div style={{ padding: '2rem' }}>
+                {/* Current Portfolio Info */}
+                {totalPortfolio > 0 && (
+                  <div style={{
+                    background: `${COLORS.success}20`,
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    marginBottom: '2rem',
+                    border: `1px solid ${COLORS.success}`
+                  }}>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: COLORS.success }}>📊 当前投资组合</h3>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(4, 1fr)',
+                      gap: '1rem',
+                      fontSize: '0.9rem'
+                    }}>
+                      <div>
+                        <div style={{ color: COLORS.textMuted, marginBottom: '0.25rem' }}>总资产</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.text }}>
+                          ${Math.round(totalPortfolio).toLocaleString()}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ color: COLORS.textMuted, marginBottom: '0.25rem' }}>股票</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.stocks }}>
+                          ${Math.round(portfolio.stocks).toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>
+                          {currentAllocation.stocks.toFixed(1)}%
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ color: COLORS.textMuted, marginBottom: '0.25rem' }}>债券</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.bonds }}>
+                          ${Math.round(portfolio.bonds).toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>
+                          {currentAllocation.bonds.toFixed(1)}%
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ color: COLORS.textMuted, marginBottom: '0.25rem' }}>现金</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: '700', color: COLORS.cash }}>
+                          ${Math.round(portfolio.cash).toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: COLORS.textMuted }}>
+                          {currentAllocation.cash.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{
+                      marginTop: '1rem',
+                      padding: '0.75rem',
+                      background: COLORS.card,
+                      borderRadius: '0.5rem',
+                      fontSize: '0.85rem',
+                      color: COLORS.textMuted
+                    }}>
+                      💡 <strong>提示：</strong>点击"使用当前投资组合"按钮可以快速填充初始资产和配置比例
+                    </div>
+                  </div>
+                )}
+
                 {/* Parameter Inputs */}
                 <div style={{
                   background: COLORS.accent,
@@ -9428,6 +9491,34 @@ const FinanceDashboard = () => {
                   marginBottom: '2rem'
                 }}>
                   <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>⚙️ 计算参数</h3>
+                  
+                  {/* Quick Fill Button */}
+                  {totalPortfolio > 0 && (
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <button
+                        onClick={() => {
+                          setRebalanceInitialAssets(Math.round(totalPortfolio));
+                          setRebalanceStockRatio(Math.round(currentAllocation.stocks));
+                          setRebalanceBondRatio(Math.round(currentAllocation.bonds));
+                          setRebalanceCashRatio(Math.round(currentAllocation.cash));
+                          setRebalanceFieldsEdited(prev => new Set(prev).add('initialAssets').add('stockRatio').add('bondRatio').add('cashRatio'));
+                        }}
+                        style={{
+                          background: COLORS.highlight,
+                          color: COLORS.text,
+                          border: 'none',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.5rem',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        ⚡ 使用当前投资组合
+                      </button>
+                    </div>
+                  )}
                   
                   <div style={{
                     display: 'grid',
