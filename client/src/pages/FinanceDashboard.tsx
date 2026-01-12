@@ -10753,6 +10753,7 @@ const FinanceDashboard = () => {
                                   <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初资产</th>
                                   <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年度取款</th>
                                   <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>投资+再平衡后总资产</th>
+                                  <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>实际价值</th>
                                 </tr>
                               ) : (
                                 <>
