@@ -10870,7 +10870,7 @@ const FinanceDashboard = () => {
                                           fontSize: '0.75rem',
                                           fontWeight: '600'
                                         }}>
-                                          {(row.actualStockReturn || 0) >= 0 ? '📈' : '📉'} {row.actualStockReturn?.toFixed(2) || '0.00'}%
+                                          {row.actualStockReturn?.toFixed(2) || '0.00'}%
                                         </td>
                                         <td style={{ 
                                           padding: '0.5rem', 
@@ -10879,7 +10879,7 @@ const FinanceDashboard = () => {
                                           fontSize: '0.75rem',
                                           fontWeight: '600'
                                         }}>
-                                          {(row.actualBondReturn || 0) >= 0 ? '📈' : '📉'} {row.actualBondReturn?.toFixed(2) || '0.00'}%
+                                          {row.actualBondReturn?.toFixed(2) || '0.00'}%
                                         </td>
                                       </>
                                     )}
