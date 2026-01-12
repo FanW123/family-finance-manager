@@ -535,6 +535,13 @@ const FinanceDashboard = () => {
   const [showFireCalculator, setShowFireCalculator] = useState(false);
   const [showStressTest, setShowStressTest] = useState(false);
   const [showCityPlanner, setShowCityPlanner] = useState(false);
+  // Stress test parameters
+  const [stressTestInitialAssets, setStressTestInitialAssets] = useState(0);
+  const [stressTestAnnualWithdrawal, setStressTestAnnualWithdrawal] = useState(0);
+  const [stressTestYears, setStressTestYears] = useState(30);
+  const [stressTestStockRatio, setStressTestStockRatio] = useState(70);
+  const [stressTestBondRatio, setStressTestBondRatio] = useState(20);
+  const [stressTestCashRatio, setStressTestCashRatio] = useState(10);
   const [fireViewMode, setFireViewMode] = useState<'progress' | 'trend'>('progress');
   const [fireTimeRange, setFireTimeRange] = useState<'1week' | '1month' | '1year' | 'ytd' | '5years'>('1year');
   
@@ -11941,18 +11948,19 @@ const FinanceDashboard = () => {
                 </div>
 
                 {(() => {
-                  // Get base values from FIRE calculator or use current portfolio
-                  const baseInitialAssets = calcInitialAssets || totalPortfolio || fireNumber || 0;
-                  const baseAnnualExpenses = calcAnnualExpenses || optimizedAnnualExpenses || 0;
-                  const baseYearsToProject = calcYearsToProject || 30;
-                  const baseInflationRate = calcInflationRate || 3;
+                  // Normalize allocation to sum to 100%
+                  const totalRatio = stressTestStockRatio + stressTestBondRatio + stressTestCashRatio;
                   
-                  // Get current allocation (from portfolio or rebalance simulator defaults)
                   const allocation = {
-                    stock: (currentAllocation.stocks || rebalanceStockRatio || 70) / 100,
-                    bond: (currentAllocation.bonds || rebalanceBondRatio || 20) / 100,
-                    cash: (currentAllocation.cash || rebalanceCashRatio || 10) / 100
+                    stock: totalRatio > 0 ? stressTestStockRatio / totalRatio : 0.7,
+                    bond: totalRatio > 0 ? stressTestBondRatio / totalRatio : 0.2,
+                    cash: totalRatio > 0 ? stressTestCashRatio / totalRatio : 0.1
                   };
+                  
+                  const baseInitialAssets = stressTestInitialAssets;
+                  const baseAnnualExpenses = stressTestAnnualWithdrawal;
+                  const baseYearsToProject = stressTestYears;
+                  const baseInflationRate = calcInflationRate || 3;
                   
                   // Historical scenarios with annual returns
                   const scenarios = [
@@ -12074,6 +12082,203 @@ const FinanceDashboard = () => {
                   
                   return (
                     <div>
+                      {/* Input Parameters */}
+                      <div style={{
+                        background: COLORS.accent,
+                        borderRadius: '0.75rem',
+                        padding: '1.5rem',
+                        marginBottom: '2rem'
+                      }}>
+                        <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>⚙️ 输入参数</h3>
+                        
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(3, 1fr)',
+                          gap: '1.5rem',
+                          marginBottom: '1.5rem'
+                        }}>
+                          <div>
+                            <label style={{
+                              display: 'block',
+                              fontSize: '0.9rem',
+                              color: COLORS.textMuted,
+                              marginBottom: '0.5rem'
+                            }}>
+                              初始资产 ($)
+                            </label>
+                            <input
+                              type="number"
+                              value={stressTestInitialAssets === 0 ? '' : stressTestInitialAssets}
+                              onChange={(e) => setStressTestInitialAssets(e.target.value === '' ? 0 : Number(e.target.value))}
+                              style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                background: COLORS.card,
+                                border: `1px solid ${COLORS.accent}`,
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '1rem',
+                                fontFamily: 'inherit'
+                              }}
+                            />
+                          </div>
+                          
+                          <div>
+                            <label style={{
+                              display: 'block',
+                              fontSize: '0.9rem',
+                              color: COLORS.textMuted,
+                              marginBottom: '0.5rem'
+                            }}>
+                              年度取款 ($)
+                            </label>
+                            <input
+                              type="number"
+                              value={stressTestAnnualWithdrawal === 0 ? '' : stressTestAnnualWithdrawal}
+                              onChange={(e) => setStressTestAnnualWithdrawal(e.target.value === '' ? 0 : Number(e.target.value))}
+                              style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                background: COLORS.card,
+                                border: `1px solid ${COLORS.accent}`,
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '1rem',
+                                fontFamily: 'inherit'
+                              }}
+                            />
+                          </div>
+                          
+                          <div>
+                            <label style={{
+                              display: 'block',
+                              fontSize: '0.9rem',
+                              color: COLORS.textMuted,
+                              marginBottom: '0.5rem'
+                            }}>
+                              模拟年数
+                            </label>
+                            <input
+                              type="number"
+                              value={stressTestYears === 0 ? '' : stressTestYears}
+                              onChange={(e) => setStressTestYears(e.target.value === '' ? 0 : Number(e.target.value))}
+                              min="1"
+                              max="60"
+                              style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                background: COLORS.card,
+                                border: `1px solid ${COLORS.accent}`,
+                                borderRadius: '0.5rem',
+                                color: COLORS.text,
+                                fontSize: '1rem',
+                                fontFamily: 'inherit'
+                              }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>目标资产配置</h4>
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(3, 1fr)',
+                            gap: '1.5rem'
+                          }}>
+                            <div>
+                              <label style={{
+                                display: 'block',
+                                fontSize: '0.9rem',
+                                color: COLORS.textMuted,
+                                marginBottom: '0.5rem'
+                              }}>
+                                股票比例 (%)
+                              </label>
+                              <input
+                                type="number"
+                                value={stressTestStockRatio === 0 ? '' : stressTestStockRatio}
+                                onChange={(e) => setStressTestStockRatio(e.target.value === '' ? 0 : Number(e.target.value))}
+                                min="0"
+                                max="100"
+                                style={{
+                                  width: '100%',
+                                  padding: '0.75rem',
+                                  background: COLORS.card,
+                                  border: `1px solid ${COLORS.accent}`,
+                                  borderRadius: '0.5rem',
+                                  color: COLORS.text,
+                                  fontSize: '1rem',
+                                  fontFamily: 'inherit'
+                                }}
+                              />
+                            </div>
+                            
+                            <div>
+                              <label style={{
+                                display: 'block',
+                                fontSize: '0.9rem',
+                                color: COLORS.textMuted,
+                                marginBottom: '0.5rem'
+                              }}>
+                                债券比例 (%)
+                              </label>
+                              <input
+                                type="number"
+                                value={stressTestBondRatio === 0 ? '' : stressTestBondRatio}
+                                onChange={(e) => setStressTestBondRatio(e.target.value === '' ? 0 : Number(e.target.value))}
+                                min="0"
+                                max="100"
+                                style={{
+                                  width: '100%',
+                                  padding: '0.75rem',
+                                  background: COLORS.card,
+                                  border: `1px solid ${COLORS.accent}`,
+                                  borderRadius: '0.5rem',
+                                  color: COLORS.text,
+                                  fontSize: '1rem',
+                                  fontFamily: 'inherit'
+                                }}
+                              />
+                            </div>
+                            
+                            <div>
+                              <label style={{
+                                display: 'block',
+                                fontSize: '0.9rem',
+                                color: COLORS.textMuted,
+                                marginBottom: '0.5rem'
+                              }}>
+                                现金比例 (%)
+                              </label>
+                              <input
+                                type="number"
+                                value={stressTestCashRatio === 0 ? '' : stressTestCashRatio}
+                                onChange={(e) => setStressTestCashRatio(e.target.value === '' ? 0 : Number(e.target.value))}
+                                min="0"
+                                max="100"
+                                style={{
+                                  width: '100%',
+                                  padding: '0.75rem',
+                                  background: COLORS.card,
+                                  border: `1px solid ${COLORS.accent}`,
+                                  borderRadius: '0.5rem',
+                                  color: COLORS.text,
+                                  fontSize: '1rem',
+                                  fontFamily: 'inherit'
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div style={{
+                            marginTop: '0.5rem',
+                            fontSize: '0.85rem',
+                            color: totalRatio === 100 ? COLORS.success : COLORS.warning
+                          }}>
+                            总和: {totalRatio}% {totalRatio !== 100 && '(建议总和为100%)'}
+                          </div>
+                        </div>
+                      </div>
+                      
                       {/* Results Summary */}
                       <div style={{
                         background: COLORS.card,
