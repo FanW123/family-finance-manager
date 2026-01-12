@@ -6250,10 +6250,6 @@ const FinanceDashboard = () => {
                   // Sort by yearly amount (descending)
                   allItems.sort((a, b) => b.yearlyAmount - a.yearlyAmount);
 
-                  // Separate into fixed and floating
-                  const fixedItems = allItems.filter(item => item.isFixed);
-                  const floatingItems = allItems.filter(item => !item.isFixed);
-
                   // Find max amount for scaling
                   const maxAmount = Math.max(...allItems.map(item => item.yearlyAmount), 1);
 
@@ -6264,113 +6260,52 @@ const FinanceDashboard = () => {
                     }}>
                       <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>预算概览</h2>
                       
-                      {/* Fixed Expenses */}
-                      {fixedItems.length > 0 && (
-                        <div style={{ marginBottom: '2rem' }}>
-                          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', color: COLORS.textMuted }}>
-                            固定开支
-                          </h3>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {fixedItems.map((item, index) => {
-                              const percentage = (item.yearlyAmount / maxAmount) * 100;
-                              return (
-                                <div key={`fixed-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                  <div style={{ 
-                                    minWidth: '200px', 
-                                    fontSize: '0.9rem',
-                                    color: COLORS.text,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.4rem'
-                                  }}>
-                                    {item.icon && <span>{item.icon}</span>}
-                                    <span>{item.fullName}</span>
-                                  </div>
-                                  <div style={{ 
-                                    flex: 1, 
-                                    height: '24px', 
-                                    background: 'transparent', 
-                                    borderRadius: '4px',
-                                    position: 'relative',
-                                    overflow: 'hidden'
-                                  }}>
-                                    <div style={{
-                                      width: `${percentage}%`,
-                                      height: '100%',
-                                      background: COLORS.highlight,
-                                      borderRadius: '4px',
-                                      transition: 'width 0.3s ease'
-                                    }} />
-                                  </div>
-                                  <div style={{ 
-                                    minWidth: '100px', 
-                                    textAlign: 'right',
-                                    fontSize: '0.9rem',
-                                    fontWeight: '600',
-                                    color: COLORS.text
-                                  }}>
-                                    ${item.yearlyAmount.toLocaleString()}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Floating Expenses */}
-                      {floatingItems.length > 0 && (
-                        <div>
-                          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', color: COLORS.textMuted }}>
-                            浮动开支
-                          </h3>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {floatingItems.map((item, index) => {
-                              const percentage = (item.yearlyAmount / maxAmount) * 100;
-                              return (
-                                <div key={`floating-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                  <div style={{ 
-                                    minWidth: '200px', 
-                                    fontSize: '0.9rem',
-                                    color: COLORS.text,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.4rem'
-                                  }}>
-                                    {item.icon && <span>{item.icon}</span>}
-                                    <span>{item.fullName}</span>
-                                  </div>
-                                  <div style={{ 
-                                    flex: 1, 
-                                    height: '24px', 
-                                    background: 'transparent', 
-                                    borderRadius: '4px',
-                                    position: 'relative',
-                                    overflow: 'hidden'
-                                  }}>
-                                    <div style={{
-                                      width: `${percentage}%`,
-                                      height: '100%',
-                                      background: COLORS.success,
-                                      borderRadius: '4px',
-                                      transition: 'width 0.3s ease'
-                                    }} />
-                                  </div>
-                                  <div style={{ 
-                                    minWidth: '100px', 
-                                    textAlign: 'right',
-                                    fontSize: '0.9rem',
-                                    fontWeight: '600',
-                                    color: COLORS.text
-                                  }}>
-                                    ${item.yearlyAmount.toLocaleString()}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
+                      {/* All Items Sorted by Amount */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {allItems.map((item, index) => {
+                          const percentage = (item.yearlyAmount / maxAmount) * 100;
+                          return (
+                            <div key={`item-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <div style={{ 
+                                minWidth: '200px', 
+                                fontSize: '0.9rem',
+                                color: COLORS.text,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem'
+                              }}>
+                                {item.icon && <span>{item.icon}</span>}
+                                <span>{item.fullName}</span>
+                              </div>
+                              <div style={{ 
+                                flex: 1, 
+                                height: '24px', 
+                                background: 'transparent', 
+                                borderRadius: '4px',
+                                position: 'relative',
+                                overflow: 'hidden'
+                              }}>
+                                <div style={{
+                                  width: `${percentage}%`,
+                                  height: '100%',
+                                  background: COLORS.highlight,
+                                  borderRadius: '4px',
+                                  transition: 'width 0.3s ease'
+                                }} />
+                              </div>
+                              <div style={{ 
+                                minWidth: '100px', 
+                                textAlign: 'right',
+                                fontSize: '0.9rem',
+                                fontWeight: '600',
+                                color: COLORS.text
+                              }}>
+                                ${item.yearlyAmount.toLocaleString()}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
                 })()}
