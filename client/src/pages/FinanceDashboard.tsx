@@ -12901,80 +12901,55 @@ const FinanceDashboard = () => {
                               <div style={{ padding: '2rem' }}>
                                 {/* Survival Status */}
                                 <div style={{
-                                  background: scenarioResult.survived ? `${COLORS.success}20` : `${COLORS.warning}20`,
-                                  borderRadius: '0.75rem',
-                                  padding: '1rem',
-                                  marginBottom: '1.5rem',
-                                  textAlign: 'center'
+                                  fontSize: '1.1rem',
+                                  fontWeight: '600',
+                                  color: COLORS.text,
+                                  marginBottom: '1.5rem'
                                 }}>
-                                  <div style={{
-                                    fontSize: '1.2rem',
-                                    fontWeight: '600',
+                                  你的表现: <span style={{
                                     color: scenarioResult.survived ? COLORS.success : COLORS.warning
                                   }}>
-                                    你的表现: {scenarioResult.survived ? '✅ 存活' : '❌ 失败'}
-                                  </div>
+                                    {scenarioResult.survived ? '✅ 存活' : '❌ 失败'}
+                                  </span>
                                   {!scenarioResult.survived && scenarioResult.failedYear && (
-                                    <div style={{
+                                    <span style={{
                                       fontSize: '0.9rem',
                                       color: COLORS.textMuted,
-                                      marginTop: '0.5rem'
+                                      fontWeight: '400',
+                                      marginLeft: '0.5rem'
                                     }}>
-                                      第{scenarioResult.failedYear}年资金耗尽
-                                    </div>
+                                      (第{scenarioResult.failedYear}年资金耗尽)
+                                    </span>
                                   )}
                                 </div>
                                 
                                 {/* Year by Year Simulation */}
                                 {scenarioResult.yearByYear && scenarioResult.yearByYear.length > 0 && (
-                                  <div style={{
-                                    background: COLORS.accent,
-                                    borderRadius: '0.75rem',
-                                    padding: '1.5rem',
-                                    marginBottom: '1.5rem'
-                                  }}>
-                                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>逐年模拟</h3>
+                                  <div style={{ marginBottom: '1.5rem' }}>
+                                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: COLORS.text }}>逐年模拟:</h3>
                                     <div style={{
-                                      background: COLORS.card,
+                                      background: COLORS.accent,
                                       borderRadius: '0.5rem',
                                       padding: '1rem'
                                     }}>
                                       {scenarioResult.yearByYear.slice(0, 10).map((year, idx) => (
                                         <div key={idx} style={{
-                                          display: 'flex',
-                                          justifyContent: 'space-between',
-                                          alignItems: 'center',
-                                          padding: '0.5rem 0',
-                                          borderBottom: idx < Math.min(scenarioResult.yearByYear?.length || 0, 10) - 1 ? `1px solid ${COLORS.accent}` : 'none',
-                                          fontSize: '0.9rem'
+                                          fontSize: '0.9rem',
+                                          color: COLORS.text,
+                                          marginBottom: idx < Math.min(scenarioResult.yearByYear?.length || 0, 10) - 1 ? '0.5rem' : 0,
+                                          fontFamily: 'monospace'
                                         }}>
-                                          <div style={{ color: COLORS.text }}>
-                                            第{year.year}年:
-                                          </div>
-                                          <div style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '1rem'
+                                          {year.year === 1 ? new Date().getFullYear() : new Date().getFullYear() + year.year - 1}年: <span style={{
+                                            color: year.stockReturn >= 0 ? COLORS.success : COLORS.highlight,
+                                            fontWeight: '600'
                                           }}>
-                                            <span style={{
-                                              color: year.stockReturn >= 0 ? COLORS.success : COLORS.highlight,
-                                              fontWeight: '600'
-                                            }}>
-                                              {year.stockReturn >= 0 ? '+' : ''}{year.stockReturn.toFixed(1)}%
-                                            </span>
-                                            <span style={{ color: COLORS.textMuted }}>→</span>
-                                            <span style={{
-                                              color: COLORS.text,
-                                              fontWeight: '600'
-                                            }}>
-                                              ${Math.round(year.portfolio / 10000).toFixed(0)}万
-                                            </span>
-                                          </div>
+                                            {year.stockReturn >= 0 ? '+' : ''}{year.stockReturn.toFixed(1)}%
+                                          </span> → ${Math.round(year.portfolio / 10000).toFixed(0)}万
                                         </div>
                                       ))}
                                       {scenarioResult.yearByYear.length > 10 && (
                                         <div style={{
-                                          padding: '0.5rem 0',
+                                          marginTop: '0.5rem',
                                           fontSize: '0.85rem',
                                           color: COLORS.textMuted,
                                           textAlign: 'center'
@@ -12987,60 +12962,45 @@ const FinanceDashboard = () => {
                                 )}
                                 
                                 {/* Key Metrics */}
-                                <div style={{
-                                  background: COLORS.accent,
-                                  borderRadius: '0.75rem',
-                                  padding: '1.5rem',
-                                  marginBottom: '1.5rem'
-                                }}>
-                                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>关键指标</h3>
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: COLORS.text }}>关键指标:</h3>
                                   <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(2, 1fr)',
-                                    gap: '1rem'
+                                    fontSize: '0.9rem',
+                                    color: COLORS.text,
+                                    lineHeight: '1.8'
                                   }}>
                                     {scenarioResult.maxDrawdown !== undefined && (
                                       <div>
-                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                                          最大回撤
-                                        </div>
-                                        <div style={{ fontSize: '1.1rem', color: COLORS.highlight, fontWeight: '600' }}>
+                                        • 最大回撤: <span style={{ color: COLORS.highlight, fontWeight: '600' }}>
                                           {scenarioResult.maxDrawdown.toFixed(1)}%
-                                        </div>
+                                        </span>
                                       </div>
                                     )}
-                                    {scenarioResult.yearByYear && scenarioResult.yearByYear.length > 0 && (
-                                      <div>
-                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                                          模拟年数
+                                    {scenarioResult.yearByYear && scenarioResult.yearByYear.length > 0 && (() => {
+                                      // Calculate recovery time (when portfolio returns to initial value)
+                                      const initialValue = baseInitialAssets;
+                                      let recoveryYears = null;
+                                      for (let i = 0; i < scenarioResult.yearByYear.length; i++) {
+                                        if (scenarioResult.yearByYear[i].portfolio >= initialValue) {
+                                          recoveryYears = i + 1;
+                                          break;
+                                        }
+                                      }
+                                      return recoveryYears && (
+                                        <div>
+                                          • 恢复时间: <span style={{ fontWeight: '600' }}>{recoveryYears}年</span>
                                         </div>
-                                        <div style={{ fontSize: '1.1rem', color: COLORS.text, fontWeight: '600' }}>
-                                          {scenarioResult.yearByYear.length}年
-                                        </div>
-                                      </div>
-                                    )}
+                                      );
+                                    })()}
                                     {scenarioResult.minPortfolio !== undefined && (
                                       <div>
-                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                                          最低余额
-                                        </div>
-                                        <div style={{ fontSize: '1.1rem', color: COLORS.text, fontWeight: '600' }}>
+                                        • 最低余额: <span style={{ fontWeight: '600' }}>
                                           ${Math.round(scenarioResult.minPortfolio / 10000).toFixed(0)}万
-                                          {scenarioResult.yearByYear && (() => {
-                                            const minYear = scenarioResult.yearByYear.findIndex(y => y.portfolio === scenarioResult.minPortfolio);
-                                            return minYear >= 0 ? ` (第${minYear + 1}年)` : '';
-                                          })()}
-                                        </div>
-                                      </div>
-                                    )}
-                                    {scenarioResult.survived && (
-                                      <div>
-                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
-                                          最终余额
-                                        </div>
-                                        <div style={{ fontSize: '1.1rem', color: COLORS.success, fontWeight: '600' }}>
-                                          ${Math.round(scenarioResult.finalValue / 10000).toFixed(0)}万
-                                        </div>
+                                        </span>
+                                        {scenarioResult.yearByYear && (() => {
+                                          const minYear = scenarioResult.yearByYear.findIndex(y => y.portfolio === scenarioResult.minPortfolio);
+                                          return minYear >= 0 ? ` (第${minYear + 1}年)` : '';
+                                        })()}
                                       </div>
                                     )}
                                   </div>
@@ -13052,21 +13012,30 @@ const FinanceDashboard = () => {
                                   borderRadius: '0.75rem',
                                   padding: '1.5rem'
                                 }}>
-                                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
-                                    💡 场景说明
-                                  </h3>
+                                  <div style={{ marginBottom: '1rem' }}>
+                                    <span style={{
+                                      fontSize: '1rem',
+                                      fontWeight: '600',
+                                      color: COLORS.text
+                                    }}>
+                                      💡 {scenarioResult.scenario.includes('2008') ? '如果你2008年退休会怎样？' : 
+                                          scenarioResult.scenario.includes('2000') ? '如果你2000年退休会怎样？' :
+                                          scenarioResult.scenario.includes('1973') ? '如果你1973年退休会怎样？' :
+                                          '这个场景对你意味着什么？'}
+                                    </span>
+                                  </div>
                                   <p style={{
                                     margin: 0,
                                     fontSize: '0.9rem',
                                     color: COLORS.textMuted,
                                     lineHeight: '1.6'
                                   }}>
-                                    {scenarioResult.description}
-                                    {scenarioResult.survived && (
-                                      <> 即使在这个极端场景下，你的配置（{Math.round(stressTestStockRatio)}/{Math.round(stressTestBondRatio)}/{Math.round(stressTestCashRatio)}）配合{withdrawalRate.toFixed(1)}%取款率也能够安全度过危机。</>
-                                    )}
-                                    {!scenarioResult.survived && (
-                                      <> 在这个场景下，你的配置无法支撑到最后。建议降低取款率或调整资产配置以提高抗风险能力。</>
+                                    这个场景告诉你: {scenarioResult.survived ? (
+                                      <>即使遇到{scenarioResult.scenario.includes('金融危机') ? '大熊市' : 
+                                        scenarioResult.scenario.includes('泡沫') ? '泡沫破裂' :
+                                        scenarioResult.scenario.includes('石油') ? '石油危机' : '极端市场'}，{withdrawalRate.toFixed(1)}%取款率 + {Math.round(stressTestStockRatio)}/{Math.round(stressTestBondRatio)}/{Math.round(stressTestCashRatio)}配置足够安全</>
+                                    ) : (
+                                      <>当前配置（{Math.round(stressTestStockRatio)}/{Math.round(stressTestBondRatio)}/{Math.round(stressTestCashRatio)}）配合{withdrawalRate.toFixed(1)}%取款率无法抵御这个极端场景，建议降低取款率或增加债券比例</>
                                     )}
                                   </p>
                                 </div>
