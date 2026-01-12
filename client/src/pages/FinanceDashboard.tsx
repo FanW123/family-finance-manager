@@ -6276,7 +6276,7 @@ const FinanceDashboard = () => {
                                   <div style={{ 
                                     flex: 1, 
                                     height: '24px', 
-                                    background: COLORS.accent, 
+                                    background: 'transparent', 
                                     borderRadius: '4px',
                                     position: 'relative',
                                     overflow: 'hidden'
@@ -6330,7 +6330,7 @@ const FinanceDashboard = () => {
                                   <div style={{ 
                                     flex: 1, 
                                     height: '24px', 
-                                    background: COLORS.accent, 
+                                    background: 'transparent', 
                                     borderRadius: '4px',
                                     position: 'relative',
                                     overflow: 'hidden'
