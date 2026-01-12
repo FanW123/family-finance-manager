@@ -12111,7 +12111,7 @@ const FinanceDashboard = () => {
                     </div>
 
                     {(() => {
-                  // Normalize allocation to sum to 100%
+                      // Normalize allocation to sum to 100%
                   const totalRatio = stressTestStockRatio + stressTestBondRatio + stressTestCashRatio;
                   
                   const allocation = {
@@ -12756,28 +12756,33 @@ const FinanceDashboard = () => {
                       </div>
                     </div>
                   );
-                })()}
+                    })()}
 
-                {/* Close Button */}
-                <div style={{ marginTop: '2rem' }}>
-                  <button
-                    onClick={() => setShowStressTest(false)}
-                    style={{
-                      width: '100%',
-                      background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
-                      border: 'none',
-                      color: 'white',
-                      padding: '1rem',
-                      borderRadius: '0.5rem',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit'
-                    }}
-                  >
-                    关闭
-                  </button>
-                </div>
+                    {/* Close Button */}
+                    <div style={{ marginTop: '2rem' }}>
+                      <button
+                        onClick={() => {
+                          setShowStressTest(false);
+                          setStressTestView('main');
+                        }}
+                        style={{
+                          width: '100%',
+                          background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                          border: 'none',
+                          color: 'white',
+                          padding: '1rem',
+                          borderRadius: '0.5rem',
+                          fontSize: '1rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        关闭
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
