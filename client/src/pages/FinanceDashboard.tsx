@@ -11916,168 +11916,277 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
 
-                <div style={{
-                  background: COLORS.accent,
-                  borderRadius: '0.75rem',
-                  padding: '1.5rem',
-                  marginBottom: '2rem'
-                }}>
-                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📊 测试场景</h3>
+                {(() => {
+                  // Get base values from FIRE calculator or use current portfolio
+                  const baseInitialAssets = calcInitialAssets || totalPortfolio || fireNumber || 0;
+                  const baseAnnualExpenses = calcAnnualExpenses || optimizedAnnualExpenses || 0;
+                  const baseYearsToProject = calcYearsToProject || 30;
+                  const baseInflationRate = calcInflationRate || 3;
                   
-                  {(() => {
-                    // Get base values from FIRE calculator or use defaults
-                    const baseInitialAssets = calcInitialAssets || fireNumber || 0;
-                    const baseGrowthRate = calcGrowthRate || 0;
-                    const baseAnnualExpenses = calcAnnualExpenses || 0;
-                    const baseYearsToProject = calcYearsToProject || 10;
-                    const baseInflationRate = calcInflationRate || 0;
+                  // Get current allocation (from portfolio or rebalance simulator defaults)
+                  const allocation = {
+                    stock: (currentAllocation.stocks || rebalanceStockRatio || 70) / 100,
+                    bond: (currentAllocation.bonds || rebalanceBondRatio || 20) / 100,
+                    cash: (currentAllocation.cash || rebalanceCashRatio || 10) / 100
+                  };
+                  
+                  // Historical scenarios with annual returns
+                  const scenarios = [
+                    {
+                      name: '2008金融危机',
+                      returns: [-37, 26, 15, 2, 16, 32, 13, 12, 21, 14, 12, 18, 28, 11, 22, 12, 9, 19, 29, 18, 16, 27, 19, 12, 8, 26, 19, 11, 22, 16]
+                    },
+                    {
+                      name: '2000互联网泡沫',
+                      returns: [-9, -12, -22, 28, 11, 5, 15, 5, -37, 26, 15, 2, 16, 32, 13, 12, 21, 14, 12, 18, 28, 11, 22, 12, 9, 19, 29, 18, 16, 27]
+                    },
+                    {
+                      name: '1973石油危机',
+                      returns: [-15, -26, 37, 24, -7, 7, 19, -5, 16, 32, -5, 21, 22, 6, 32, 19, 5, 17, 23, -3, 30, 8, 10, 31, 19, 14, 21, 14, 2, 16]
+                    },
+                    {
+                      name: '退休即熊市（-50%第一年）',
+                      returns: [-50, 26, 15, 2, 16, 32, 13, 12, 21, 14, 12, 18, 28, 11, 22, 12, 9, 19, 29, 18, 16, 27, 19, 12, 8, 26, 19, 11, 22, 16]
+                    }
+                  ];
+                  
+                  // Quick stress test function
+                  const quickStressTest = (assets: number, withdrawal: number, allocation: { stock: number; bond: number; cash: number }, years: number, inflationRate: number) => {
+                    const results: Array<{ scenario: string; survived: boolean; finalValue: number; failedYear?: number }> = [];
                     
-                    // Define stress test scenarios
-                    const scenarios = [
-                      {
-                        name: '基准场景',
-                        description: '使用当前参数，正常市场条件',
-                        growthRate: baseGrowthRate,
-                        inflationRate: baseInflationRate,
-                        color: COLORS.success,
-                        icon: '📈'
-                      },
-                      {
-                        name: '2008金融危机',
-                        description: '股票下跌37%，类似2008年金融危机',
-                        growthRate: baseGrowthRate * 0.63, // 下跌37%
-                        inflationRate: baseInflationRate,
-                        color: COLORS.warning,
-                        icon: '💥'
-                      },
-                      {
-                        name: '通胀飙升',
-                        description: '通胀率上升3%，类似1970年代滞胀',
-                        growthRate: baseGrowthRate,
-                        inflationRate: baseInflationRate + 3,
-                        color: COLORS.highlight,
-                        icon: '📊'
-                      },
-                      {
-                        name: '双重打击',
-                        description: '市场下跌50% + 通胀上升3%',
-                        growthRate: baseGrowthRate * 0.5,
-                        inflationRate: baseInflationRate + 3,
-                        color: '#ef4444',
-                        icon: '⚡'
+                    for (const scenario of scenarios) {
+                      let portfolio = assets;
+                      let survived = true;
+                      let failedYear = 0;
+                      let currentWithdrawal = withdrawal;
+                      
+                      for (let year = 0; year < years && year < scenario.returns.length; year++) {
+                        // Withdraw at beginning of year
+                        portfolio -= currentWithdrawal;
+                        if (portfolio <= 0) {
+                          survived = false;
+                          failedYear = year + 1;
+                          break;
+                        }
+                        
+                        // Calculate portfolio return based on allocation
+                        const stockReturn = scenario.returns[year] / 100;
+                        const bondReturn = 0.04; // 4% average bond return
+                        const cashReturn = 0.02; // 2% average cash return
+                        
+                        const portfolioReturn = 
+                          allocation.stock * stockReturn +
+                          allocation.bond * bondReturn +
+                          allocation.cash * cashReturn;
+                        
+                        // Apply growth
+                        portfolio *= (1 + portfolioReturn);
+                        
+                        // Adjust withdrawal for inflation
+                        currentWithdrawal *= (1 + inflationRate / 100);
                       }
-                    ];
+                      
+                      results.push({ 
+                        scenario: scenario.name, 
+                        survived,
+                        finalValue: portfolio,
+                        failedYear: failedYear || undefined
+                      });
+                    }
                     
-                    return (
-                      <div>
-                        {scenarios.map((scenario, index) => {
-                          // Calculate projection for this scenario
-                          const projectionData = [];
-                          let currentAsset = baseInitialAssets;
-                          const annualGrowthRate = scenario.growthRate / 100;
-                          const inflationRate = scenario.inflationRate / 100;
-                          
-                          for (let year = 1; year <= baseYearsToProject; year++) {
-                            const yearStartAsset = currentAsset;
-                            const yearGrowth = yearStartAsset * annualGrowthRate;
-                            const inflationAdjustedExpenses = baseAnnualExpenses * Math.pow(1 + inflationRate, year - 1);
-                            const yearEndAsset = yearStartAsset + yearGrowth - inflationAdjustedExpenses;
-                            
-                            projectionData.push({
-                              year,
-                              startAsset: yearStartAsset,
-                              growth: yearGrowth,
-                              expenses: inflationAdjustedExpenses,
-                              endAsset: yearEndAsset
-                            });
-                            
-                            currentAsset = yearEndAsset;
-                            if (yearEndAsset <= 0) break;
-                          }
-                          
-                          const finalAsset = projectionData[projectionData.length - 1]?.endAsset || 0;
-                          const isSustainable = finalAsset > 0;
-                          const yearsToDepletion = projectionData.findIndex(row => row.endAsset <= 0) + 1;
-                          
-                          return (
-                            <div key={index} style={{
-                              background: COLORS.card,
-                              borderRadius: '0.5rem',
-                              padding: '1.5rem',
-                              marginBottom: '1rem',
-                              border: `2px solid ${scenario.color}`
-                            }}>
-                              <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                marginBottom: '1rem'
-                              }}>
-                                <div>
-                                  <h4 style={{ margin: 0, fontSize: '1rem', color: scenario.color }}>
-                                    {scenario.icon} {scenario.name}
-                                  </h4>
-                                  <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: COLORS.textMuted }}>
-                                    {scenario.description}
-                                  </p>
-                                </div>
-                                <div style={{
-                                  padding: '0.5rem 1rem',
-                                  background: isSustainable ? `${COLORS.success}20` : `${COLORS.warning}20`,
-                                  borderRadius: '0.5rem',
-                                  color: isSustainable ? COLORS.success : COLORS.warning,
-                                  fontWeight: '600',
-                                  fontSize: '0.9rem'
-                                }}>
-                                  {isSustainable ? (
-                                    <>✅ ${Math.round(finalAsset).toLocaleString()}</>
-                                  ) : (
-                                    <>⚠️ 第{yearsToDepletion}年耗尽</>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(4, 1fr)',
-                                gap: '0.75rem',
-                                fontSize: '0.85rem'
-                              }}>
-                                <div>
-                                  <div style={{ color: COLORS.textMuted, fontSize: '0.75rem' }}>年回报率</div>
-                                  <div style={{ color: COLORS.text, fontWeight: '600' }}>
-                                    {scenario.growthRate.toFixed(1)}%
-                                  </div>
-                                </div>
-                                <div>
-                                  <div style={{ color: COLORS.textMuted, fontSize: '0.75rem' }}>通胀率</div>
-                                  <div style={{ color: COLORS.text, fontWeight: '600' }}>
-                                    {scenario.inflationRate.toFixed(1)}%
-                                  </div>
-                                </div>
-                                <div>
-                                  <div style={{ color: COLORS.textMuted, fontSize: '0.75rem' }}>最终资产</div>
-                                  <div style={{ color: COLORS.text, fontWeight: '600' }}>
-                                    ${Math.round(finalAsset).toLocaleString()}
-                                  </div>
-                                </div>
-                                <div>
-                                  <div style={{ color: COLORS.textMuted, fontSize: '0.75rem' }}>可持续性</div>
-                                  <div style={{ 
-                                    color: isSustainable ? COLORS.success : COLORS.warning, 
-                                    fontWeight: '600' 
-                                  }}>
-                                    {isSustainable ? '可持续' : `第${yearsToDepletion}年耗尽`}
-                                  </div>
-                                </div>
-                              </div>
+                    const survivalRate = results.filter(r => r.survived).length / results.length;
+                    const failedScenarios = results.filter(r => !r.survived).map(r => r.scenario);
+                    
+                    return {
+                      survivalRate,
+                      failedScenarios,
+                      results
+                    };
+                  };
+                  
+                  const testResults = quickStressTest(
+                    baseInitialAssets,
+                    baseAnnualExpenses,
+                    allocation,
+                    baseYearsToProject,
+                    baseInflationRate
+                  );
+                  
+                  // Calculate withdrawal rate
+                  const withdrawalRate = baseInitialAssets > 0 ? (baseAnnualExpenses / baseInitialAssets * 100) : 0;
+                  
+                  // Generate recommendations
+                  const recommendations = [];
+                  if (testResults.survivalRate === 1) {
+                    recommendations.push({
+                      type: 'success',
+                      title: '✅ 你的配置很稳健',
+                      content: `通过所有${scenarios.length}个历史熊市测试，${withdrawalRate.toFixed(1)}%取款率足够保守。`
+                    });
+                  } else {
+                    recommendations.push({
+                      type: 'warning',
+                      title: '⚠️ 需要注意序列风险',
+                      content: `在${testResults.failedScenarios.length}个场景中失败：${testResults.failedScenarios.join('、')}。建议降低取款率或调整资产配置。`
+                    });
+                  }
+                  
+                  if (withdrawalRate > 4) {
+                    recommendations.push({
+                      type: 'warning',
+                      title: '⚠️ 取款率偏高',
+                      content: `当前取款率${withdrawalRate.toFixed(1)}%超过4%安全线，建议降低到3-4%。`
+                    });
+                  }
+                  
+                  // Bond tent strategy recommendation
+                  if (allocation.stock >= 0.6 && allocation.bond <= 0.3) {
+                    recommendations.push({
+                      type: 'info',
+                      title: '💪 推荐策略：债券帐篷',
+                      content: `前5年: 50/40/10 (保守) → 5-10年: 70/20/10 (正常) → 10年后: 80/15/5 (略激进)`
+                    });
+                  }
+                  
+                  return (
+                    <div>
+                      {/* Results Summary */}
+                      <div style={{
+                        background: COLORS.card,
+                        borderRadius: '0.75rem',
+                        padding: '1.5rem',
+                        marginBottom: '1.5rem',
+                        border: `2px solid ${testResults.survivalRate === 1 ? COLORS.success : COLORS.warning}`
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '1rem'
+                        }}>
+                          <h3 style={{ margin: 0, fontSize: '1.2rem' }}>📊 测试结果</h3>
+                          <div style={{
+                            padding: '0.5rem 1rem',
+                            background: testResults.survivalRate === 1 ? `${COLORS.success}20` : `${COLORS.warning}20`,
+                            borderRadius: '0.5rem',
+                            color: testResults.survivalRate === 1 ? COLORS.success : COLORS.warning,
+                            fontWeight: '600',
+                            fontSize: '1rem'
+                          }}>
+                            存活率: {Math.round(testResults.survivalRate * 100)}% {testResults.survivalRate === 1 ? '✅' : '⚠️'}
+                          </div>
+                        </div>
+                        
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gap: '1rem',
+                          fontSize: '0.9rem'
+                        }}>
+                          <div>
+                            <div style={{ color: COLORS.textMuted, fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                              失败场景
                             </div>
-                          );
-                        })}
+                            <div style={{ color: COLORS.text, fontWeight: '600' }}>
+                              {testResults.failedScenarios.length > 0 ? testResults.failedScenarios.join('、') : '无'}
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ color: COLORS.textMuted, fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                              当前配置
+                            </div>
+                            <div style={{ color: COLORS.text, fontWeight: '600' }}>
+                              股票 {Math.round(allocation.stock * 100)}% / 债券 {Math.round(allocation.bond * 100)}% / 现金 {Math.round(allocation.cash * 100)}%
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    );
-                  })()}
-                </div>
+                      
+                      {/* Recommendations */}
+                      <div style={{
+                        background: COLORS.accent,
+                        borderRadius: '0.75rem',
+                        padding: '1.5rem',
+                        marginBottom: '1.5rem'
+                      }}>
+                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>🎯 个人建议</h3>
+                        {recommendations.map((rec, index) => (
+                          <div key={index} style={{
+                            background: COLORS.card,
+                            borderRadius: '0.5rem',
+                            padding: '1rem',
+                            marginBottom: index < recommendations.length - 1 ? '0.75rem' : 0,
+                            borderLeft: `4px solid ${
+                              rec.type === 'success' ? COLORS.success :
+                              rec.type === 'warning' ? COLORS.warning :
+                              COLORS.highlight
+                            }`
+                          }}>
+                            <div style={{
+                              fontWeight: '600',
+                              marginBottom: '0.5rem',
+                              color: COLORS.text
+                            }}>
+                              {rec.title}
+                            </div>
+                            <div style={{
+                              fontSize: '0.9rem',
+                              color: COLORS.textMuted,
+                              lineHeight: '1.5'
+                            }}>
+                              {rec.content}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Detailed Results */}
+                      <div style={{
+                        background: COLORS.accent,
+                        borderRadius: '0.75rem',
+                        padding: '1.5rem'
+                      }}>
+                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📋 详细结果</h3>
+                        {testResults.results.map((result, index) => (
+                          <div key={index} style={{
+                            background: COLORS.card,
+                            borderRadius: '0.5rem',
+                            padding: '1rem',
+                            marginBottom: index < testResults.results.length - 1 ? '0.75rem' : 0,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}>
+                            <div>
+                              <div style={{ fontWeight: '600', color: COLORS.text }}>
+                                {result.scenario}
+                              </div>
+                              {result.failedYear && (
+                                <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                  第{result.failedYear}年耗尽
+                                </div>
+                              )}
+                            </div>
+                            <div style={{
+                              padding: '0.5rem 1rem',
+                              background: result.survived ? `${COLORS.success}20` : `${COLORS.warning}20`,
+                              borderRadius: '0.5rem',
+                              color: result.survived ? COLORS.success : COLORS.warning,
+                              fontWeight: '600',
+                              fontSize: '0.9rem'
+                            }}>
+                              {result.survived ? (
+                                <>✅ ${Math.round(result.finalValue).toLocaleString()}</>
+                              ) : (
+                                <>❌ 失败</>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Close Button */}
                 <div style={{ marginTop: '2rem' }}>
