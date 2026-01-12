@@ -10859,11 +10859,23 @@ const FinanceDashboard = () => {
                                           ${Math.round(rebalancedTotal || 0).toLocaleString()}
                                         </td>
                                         {/* 实际回报率 */}
-                                        <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.stocks, fontSize: '0.75rem' }}>
-                                          {row.actualStockReturn?.toFixed(2) || '0.00'}%
+                                        <td style={{ 
+                                          padding: '0.5rem', 
+                                          textAlign: 'right', 
+                                          color: (row.actualStockReturn || 0) >= 0 ? '#10b981' : '#ef4444', 
+                                          fontSize: '0.75rem',
+                                          fontWeight: '600'
+                                        }}>
+                                          {(row.actualStockReturn || 0) >= 0 ? '📈' : '📉'} {row.actualStockReturn?.toFixed(2) || '0.00'}%
                                         </td>
-                                        <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.bonds, fontSize: '0.75rem' }}>
-                                          {row.actualBondReturn?.toFixed(2) || '0.00'}%
+                                        <td style={{ 
+                                          padding: '0.5rem', 
+                                          textAlign: 'right', 
+                                          color: (row.actualBondReturn || 0) >= 0 ? '#10b981' : '#ef4444', 
+                                          fontSize: '0.75rem',
+                                          fontWeight: '600'
+                                        }}>
+                                          {(row.actualBondReturn || 0) >= 0 ? '📈' : '📉'} {row.actualBondReturn?.toFixed(2) || '0.00'}%
                                         </td>
                                       </>
                                     )}
