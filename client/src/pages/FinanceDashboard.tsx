@@ -480,6 +480,7 @@ const FinanceDashboard = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [viewMode, setViewMode] = useState<'current' | 'trends'>('current');
   const [expensesSubTab, setExpensesSubTab] = useState<'overview' | 'insights' | 'budget'>('overview');
+  const [insightsSubTab, setInsightsSubTab] = useState<'insights' | 'monthly' | 'yearly'>('insights');
   const [expenseFilterCategory, setExpenseFilterCategory] = useState<string>('all');
   const [expenseFilterDate, setExpenseFilterDate] = useState<string>('');
   const [expenseFilterRange, setExpenseFilterRange] = useState<'today' | 'week' | 'month' | 'year' | 'all' | 'custom' | 'single'>('all');
@@ -5044,6 +5045,42 @@ const FinanceDashboard = () => {
             {/* Tab-2: 支出洞察 */}
             {expensesSubTab === 'insights' && (
               <div>
+                {/* Sub-tabs for Insights */}
+                <div style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  marginBottom: '2rem',
+                  borderBottom: `1px solid ${COLORS.accent}`
+                }}>
+                  {([
+                    { id: 'insights', label: '支出洞察' },
+                    { id: 'monthly', label: '月度趋势' },
+                    { id: 'yearly', label: '年度分析' }
+                  ] as const).map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setInsightsSubTab(tab.id)}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        background: 'none',
+                        border: 'none',
+                        borderBottom: insightsSubTab === tab.id ? `2px solid ${COLORS.highlight}` : '2px solid transparent',
+                        color: insightsSubTab === tab.id ? COLORS.text : COLORS.textMuted,
+                        fontSize: '1rem',
+                        fontWeight: insightsSubTab === tab.id ? '600' : '400',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Insights Content */}
+                {insightsSubTab === 'insights' && (
+                  <div>
                 {/* Smart Insights */}
                 {(() => {
                   // Calculate insights
@@ -5552,7 +5589,245 @@ const FinanceDashboard = () => {
                       </div>
                     );
                   })()}
-                </div>
+                  </div>
+                )}
+
+                {/* Monthly Trend Analysis */}
+                {insightsSubTab === 'monthly' && (
+                  <div>
+                    <div style={{
+                      background: COLORS.card,
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                    }}>
+                      <h3 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1.5rem' }}>📊 月度支出趋势</h3>
+                      
+                      {(() => {
+                        // Calculate last 12 months data
+                        const monthlyData = [];
+                        const currentDate = new Date();
+                        
+                        for (let i = 11; i >= 0; i--) {
+                          const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                          const month = targetDate.getMonth() + 1;
+                          const year = targetDate.getFullYear();
+                          
+                          const monthExpenses = expenses.filter(exp => {
+                            const expDate = parseExpenseDate(exp.date);
+                            return expDate.getMonth() + 1 === month && expDate.getFullYear() === year;
+                          });
+                          
+                          const total = monthExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+                          
+                          monthlyData.push({
+                            month: `${year}-${String(month).padStart(2, '0')}`,
+                            label: `${month}月`,
+                            total: total
+                          });
+                        }
+                        
+                        const maxMonthly = Math.max(...monthlyData.map(d => d.total), 1);
+                        const avgMonthly = monthlyData.reduce((sum, d) => sum + d.total, 0) / monthlyData.length;
+                        
+                        return (
+                          <>
+                            {/* Monthly average */}
+                            <div style={{
+                              background: COLORS.accent,
+                              padding: '1rem',
+                              borderRadius: '0.5rem',
+                              marginBottom: '1.5rem'
+                            }}>
+                              <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                                12个月平均支出
+                              </div>
+                              <div style={{ fontSize: '1.8rem', fontWeight: '700', color: COLORS.highlight }}>
+                                ${avgMonthly.toFixed(0).toLocaleString()}
+                              </div>
+                            </div>
+                            
+                            {/* Monthly bars */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                              {monthlyData.map((data, index) => {
+                                const percentage = (data.total / maxMonthly) * 100;
+                                const isCurrentMonth = index === 11;
+                                
+                                return (
+                                  <div key={data.month} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{
+                                      minWidth: '60px',
+                                      fontSize: '0.85rem',
+                                      color: isCurrentMonth ? COLORS.text : COLORS.textMuted,
+                                      fontWeight: isCurrentMonth ? '600' : '400'
+                                    }}>
+                                      {data.label}
+                                    </div>
+                                    <div style={{
+                                      flex: 1,
+                                      height: '32px',
+                                      background: COLORS.accent,
+                                      borderRadius: '4px',
+                                      position: 'relative',
+                                      overflow: 'hidden'
+                                    }}>
+                                      <div style={{
+                                        width: `${percentage}%`,
+                                        height: '100%',
+                                        background: isCurrentMonth 
+                                          ? `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`
+                                          : COLORS.highlight,
+                                        borderRadius: '4px',
+                                        transition: 'width 0.3s ease'
+                                      }} />
+                                    </div>
+                                    <div style={{
+                                      minWidth: '100px',
+                                      textAlign: 'right',
+                                      fontSize: '0.9rem',
+                                      fontWeight: isCurrentMonth ? '700' : '600',
+                                      color: isCurrentMonth ? COLORS.highlight : COLORS.text
+                                    }}>
+                                      ${data.total.toFixed(0).toLocaleString()}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                {/* Yearly Analysis */}
+                {insightsSubTab === 'yearly' && (
+                  <div>
+                    <div style={{
+                      background: COLORS.card,
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                    }}>
+                      <h3 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '1.5rem' }}>📈 年度支出分析</h3>
+                      
+                      {(() => {
+                        // Calculate yearly data by category
+                        const currentYear = new Date().getFullYear();
+                        const yearExpenses = expenses.filter(exp => {
+                          const expDate = parseExpenseDate(exp.date);
+                          return expDate.getFullYear() === currentYear;
+                        });
+                        
+                        // Group by category
+                        const categoryTotals = new Map<string, number>();
+                        yearExpenses.forEach(exp => {
+                          const current = categoryTotals.get(exp.category) || 0;
+                          categoryTotals.set(exp.category, current + exp.amount);
+                        });
+                        
+                        // Convert to array and sort
+                        const sortedCategories = Array.from(categoryTotals.entries())
+                          .map(([category, total]) => ({ category, total }))
+                          .sort((a, b) => b.total - a.total);
+                        
+                        const yearTotal = sortedCategories.reduce((sum, cat) => sum + cat.total, 0);
+                        const maxCategory = Math.max(...sortedCategories.map(c => c.total), 1);
+                        
+                        return (
+                          <>
+                            {/* Yearly total */}
+                            <div style={{
+                              background: COLORS.accent,
+                              padding: '1.5rem',
+                              borderRadius: '0.5rem',
+                              marginBottom: '2rem',
+                              textAlign: 'center'
+                            }}>
+                              <div style={{ fontSize: '0.9rem', color: COLORS.textMuted, marginBottom: '0.5rem' }}>
+                                {currentYear}年总支出
+                              </div>
+                              <div style={{ fontSize: '2.5rem', fontWeight: '700', color: COLORS.highlight }}>
+                                ${yearTotal.toFixed(0).toLocaleString()}
+                              </div>
+                              <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginTop: '0.5rem' }}>
+                                月均 ${(yearTotal / 12).toFixed(0).toLocaleString()}
+                              </div>
+                            </div>
+                            
+                            {/* Category breakdown */}
+                            <h4 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', color: COLORS.textMuted }}>
+                              分类支出排名
+                            </h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                              {sortedCategories.map((cat, index) => {
+                                const percentage = (cat.total / maxCategory) * 100;
+                                const sharePercentage = (cat.total / yearTotal) * 100;
+                                
+                                return (
+                                  <div key={cat.category} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{
+                                      minWidth: '30px',
+                                      fontSize: '0.9rem',
+                                      color: COLORS.textMuted,
+                                      textAlign: 'center',
+                                      fontWeight: '600'
+                                    }}>
+                                      #{index + 1}
+                                    </div>
+                                    <div style={{
+                                      minWidth: '200px',
+                                      fontSize: '0.9rem',
+                                      color: COLORS.text
+                                    }}>
+                                      {cat.category}
+                                    </div>
+                                    <div style={{
+                                      flex: 1,
+                                      height: '32px',
+                                      background: COLORS.accent,
+                                      borderRadius: '4px',
+                                      position: 'relative',
+                                      overflow: 'hidden'
+                                    }}>
+                                      <div style={{
+                                        width: `${percentage}%`,
+                                        height: '100%',
+                                        background: index < 3 
+                                          ? `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`
+                                          : COLORS.highlight,
+                                        borderRadius: '4px',
+                                        transition: 'width 0.3s ease'
+                                      }} />
+                                    </div>
+                                    <div style={{
+                                      minWidth: '120px',
+                                      textAlign: 'right',
+                                      fontSize: '0.9rem',
+                                      fontWeight: '600',
+                                      color: COLORS.text
+                                    }}>
+                                      ${cat.total.toFixed(0).toLocaleString()}
+                                    </div>
+                                    <div style={{
+                                      minWidth: '60px',
+                                      textAlign: 'right',
+                                      fontSize: '0.85rem',
+                                      color: COLORS.textMuted
+                                    }}>
+                                      {sharePercentage.toFixed(1)}%
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -6226,23 +6501,27 @@ const FinanceDashboard = () => {
                       // Determine if fixed based on first child (or majority logic if needed)
                       const isFixed = cat.children.length > 0 && 
                         (cat.children[0].budgetType === 'yearly' || cat.children[0].budgetType === 'monthly');
+                      const icon = cat.name.match(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u)?.[0]; // Extract emoji if present
+                      const nameWithoutIcon = icon ? cat.name.replace(icon, '').trim() : cat.name;
                       allItems.push({
-                        name: cat.name,
+                        name: nameWithoutIcon,
                         yearlyAmount: totalYearlyAmount,
                         isFixed,
-                        icon: cat.name.match(/^[^\s]+/)?.[0], // Extract emoji if present
-                        fullName: cat.name
+                        icon: icon,
+                        fullName: nameWithoutIcon
                       });
                     } else {
                       // Standalone category
                       const yearlyAmount = calculateYearlyAmount(cat);
                       const isFixed = cat.budgetType === 'yearly' || cat.budgetType === 'monthly';
+                      const icon = cat.name.match(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u)?.[0]; // Extract emoji if present
+                      const nameWithoutIcon = icon ? cat.name.replace(icon, '').trim() : cat.name;
                       allItems.push({
-                        name: cat.name,
+                        name: nameWithoutIcon,
                         yearlyAmount,
                         isFixed,
-                        icon: cat.name.match(/^[^\s]+/)?.[0], // Extract emoji if present
-                        fullName: cat.name
+                        icon: icon,
+                        fullName: nameWithoutIcon
                       });
                     }
                   });
