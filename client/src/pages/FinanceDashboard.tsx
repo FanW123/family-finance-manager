@@ -9723,7 +9723,8 @@ const FinanceDashboard = () => {
                       display: 'grid',
                       gridTemplateColumns: 'repeat(4, 1fr)',
                       gap: '1rem',
-                      fontSize: '0.9rem'
+                      fontSize: '0.9rem',
+                      marginBottom: '1rem'
                     }}>
                       <div>
                         <div style={{ color: COLORS.textMuted, marginBottom: '0.25rem' }}>总资产</div>
@@ -9759,8 +9760,28 @@ const FinanceDashboard = () => {
                         </div>
                       </div>
                     </div>
+                    {/* Present Value Calculation */}
                     <div style={{
-                      marginTop: '1rem',
+                      padding: '0.75rem',
+                      background: COLORS.card,
+                      borderRadius: '0.5rem',
+                      fontSize: '0.85rem',
+                      marginBottom: '0.75rem',
+                      border: `1px solid ${COLORS.accent}`
+                    }}>
+                      <div style={{ color: COLORS.textMuted, marginBottom: '0.25rem' }}>💡 现值计算</div>
+                      <div style={{ color: COLORS.text, fontWeight: '600' }}>
+                        20年后的 $10,000,000 相当于现在的 ${(() => {
+                          const inflationRate = rebalanceInflation / 100;
+                          const presentValue = 10000000 / Math.pow(1 + inflationRate, 20);
+                          return Math.round(presentValue).toLocaleString();
+                        })()}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: COLORS.textMuted, marginTop: '0.25rem' }}>
+                        (基于 {rebalanceInflation > 0 ? rebalanceInflation.toFixed(1) : '0'}% 通胀率)
+                      </div>
+                    </div>
+                    <div style={{
                       padding: '0.75rem',
                       background: COLORS.card,
                       borderRadius: '0.5rem',
@@ -10630,62 +10651,111 @@ const FinanceDashboard = () => {
                               zIndex: 1
                             }}>
                               <tr>
-                                <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年份</th>
-                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初总计</th>
-                                {rebalanceUseVolatility && (
-                                  <>
-                                    <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>股票回报</th>
-                                    <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>债券回报</th>
-                                  </>
-                                )}
-                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年末总计</th>
-                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>取款</th>
-                                <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>再平衡后</th>
+                                <th rowSpan={2} style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, verticalAlign: 'middle' }}>年份</th>
+                                <th colSpan={4} style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>年初资产</th>
+                                <th colSpan={4} style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>投资后资产</th>
+                                <th rowSpan={2} style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, verticalAlign: 'middle' }}>年度取款</th>
+                                <th colSpan={4} style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>取款后资产</th>
+                                <th colSpan={4} style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}` }}>再平衡后资产</th>
+                              </tr>
+                              <tr>
+                                {/* 年初资产 */}
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>股票</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>债券</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>现金</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>总计</th>
+                                {/* 投资后资产 */}
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>股票</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>债券</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>现金</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>总计</th>
+                                {/* 取款后资产 */}
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>股票</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>债券</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>现金</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>总计</th>
+                                {/* 再平衡后资产 */}
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem', background: `${COLORS.success}30` }}>股票</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>债券</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>现金</th>
+                                <th style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', borderBottom: `1px solid ${COLORS.accent}`, fontSize: '0.75rem' }}>总计</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {simulationData.map((row, index) => (
-                                <tr key={row.year} style={{
-                                  background: index % 2 === 0 ? COLORS.card : `${COLORS.accent}50`,
-                                  borderBottom: `1px solid ${COLORS.accent}`
-                                }}>
-                                  <td style={{ padding: '0.75rem', textAlign: 'center', color: COLORS.text }}>
-                                    {row.year}
-                                  </td>
-                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.text, fontWeight: '600' }}>
-                                    ${row.yearStartTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                  </td>
-                                  {rebalanceUseVolatility && (
-                                    <>
-                                      <td style={{
-                                        padding: '0.75rem',
-                                        textAlign: 'right',
-                                        color: row.actualStockReturn >= 0 ? COLORS.success : COLORS.highlight,
-                                        fontWeight: '600'
-                                      }}>
-                                        {row.actualStockReturn >= 0 ? '+' : ''}{row.actualStockReturn.toFixed(1)}%
-                                      </td>
-                                      <td style={{
-                                        padding: '0.75rem',
-                                        textAlign: 'right',
-                                        color: row.actualBondReturn >= 0 ? COLORS.success : COLORS.highlight,
-                                        fontWeight: '600'
-                                      }}>
-                                        {row.actualBondReturn >= 0 ? '+' : ''}{row.actualBondReturn.toFixed(1)}%
-                                      </td>
-                                    </>
-                                  )}
-                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.success }}>
-                                    ${row.yearEndTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                  </td>
-                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.highlight }}>
-                                    -${row.withdrawal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                  </td>
-                                  <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.text, fontWeight: '600' }}>
-                                    ${row.afterWithdrawalTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                  </td>
-                                </tr>
-                              ))}
+                              {simulationData.map((row, index) => {
+                                // Calculate after withdrawal values
+                                const afterWithdrawalStocks = row.yearEndStocks - (row.yearEndStocks / row.yearEndTotal * row.withdrawal);
+                                const afterWithdrawalBonds = row.yearEndBonds - (row.yearEndBonds / row.yearEndTotal * row.withdrawal);
+                                const afterWithdrawalCash = row.yearEndCash - (row.yearEndCash / row.yearEndTotal * row.withdrawal);
+                                const rebalancedTotal = row.rebalancedStocks + row.rebalancedBonds + row.rebalancedCash;
+                                
+                                return (
+                                  <tr key={row.year} style={{
+                                    background: index % 2 === 0 ? COLORS.card : `${COLORS.accent}50`,
+                                    borderBottom: `1px solid ${COLORS.accent}`
+                                  }}>
+                                    <td style={{ padding: '0.75rem', textAlign: 'center', color: COLORS.text, fontWeight: '600' }}>
+                                      {row.year}
+                                    </td>
+                                    {/* 年初资产 */}
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.stocks, fontSize: '0.75rem' }}>
+                                      ${Math.round(row.yearStartStocks).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.bonds, fontSize: '0.75rem' }}>
+                                      ${Math.round(row.yearStartBonds).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.cash, fontSize: '0.75rem' }}>
+                                      ${Math.round(row.yearStartCash).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.text, fontWeight: '600', fontSize: '0.75rem' }}>
+                                      ${Math.round(row.yearStartTotal).toLocaleString()}
+                                    </td>
+                                    {/* 投资后资产 */}
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.stocks, fontSize: '0.75rem' }}>
+                                      ${Math.round(row.yearEndStocks).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.bonds, fontSize: '0.75rem' }}>
+                                      ${Math.round(row.yearEndBonds).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.cash, fontSize: '0.75rem' }}>
+                                      ${Math.round(row.yearEndCash).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.success, fontWeight: '600', fontSize: '0.75rem' }}>
+                                      ${Math.round(row.yearEndTotal).toLocaleString()}
+                                    </td>
+                                    {/* 年度取款 */}
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.highlight, fontWeight: '600', fontSize: '0.75rem' }}>
+                                      -${Math.round(row.withdrawal).toLocaleString()}
+                                    </td>
+                                    {/* 取款后资产 */}
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.stocks, fontSize: '0.75rem' }}>
+                                      ${Math.round(afterWithdrawalStocks).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.bonds, fontSize: '0.75rem' }}>
+                                      ${Math.round(afterWithdrawalBonds).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.cash, fontSize: '0.75rem' }}>
+                                      ${Math.round(afterWithdrawalCash).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.text, fontWeight: '600', fontSize: '0.75rem' }}>
+                                      ${Math.round(row.afterWithdrawalTotal).toLocaleString()}
+                                    </td>
+                                    {/* 再平衡后资产 */}
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.stocks, fontWeight: '600', fontSize: '0.75rem', background: `${COLORS.success}20` }}>
+                                      ${Math.round(row.rebalancedStocks).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.bonds, fontSize: '0.75rem' }}>
+                                      ${Math.round(row.rebalancedBonds).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.cash, fontSize: '0.75rem' }}>
+                                      ${Math.round(row.rebalancedCash).toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem', textAlign: 'right', color: COLORS.text, fontWeight: '600', fontSize: '0.75rem' }}>
+                                      ${Math.round(rebalancedTotal).toLocaleString()}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
