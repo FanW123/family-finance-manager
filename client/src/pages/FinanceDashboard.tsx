@@ -472,6 +472,9 @@ const FinanceDashboard = () => {
   const [expensesSubTab, setExpensesSubTab] = useState<'overview' | 'insights' | 'budget'>('overview');
   const [expenseFilterCategory, setExpenseFilterCategory] = useState<string>('all');
   const [expenseFilterDate, setExpenseFilterDate] = useState<string>('');
+  const [expenseFilterRange, setExpenseFilterRange] = useState<'today' | 'week' | 'month' | 'year' | 'all' | 'custom' | 'single'>('all');
+  const [expenseStartDate, setExpenseStartDate] = useState<string>('');
+  const [expenseEndDate, setExpenseEndDate] = useState<string>('');
   const [budgetTrackingTab, setBudgetTrackingTab] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [budgetMonth, setBudgetMonth] = useState(new Date().getMonth() + 1);
   const [budgetYear, setBudgetYear] = useState(new Date().getFullYear());
@@ -4659,78 +4662,193 @@ const FinanceDashboard = () => {
                         <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: `1px solid ${COLORS.accent}` }}>
                           <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem' }}>支出明细</h4>
 
-                          {/* 筛选：日期 / 大类 */}
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                            <input
-                              type="date"
-                              value={expenseFilterDate}
-                              onChange={(e) => setExpenseFilterDate(e.target.value)}
-                              style={{
-                                padding: '0.45rem 0.65rem',
-                                borderRadius: '0.4rem',
-                                border: `1px solid ${COLORS.accent}`,
-                                background: COLORS.card,
-                                color: COLORS.text,
-                                fontFamily: 'inherit'
-                              }}
-                            />
-                            <select
-                              value={expenseFilterCategory}
-                              onChange={(e) => setExpenseFilterCategory(e.target.value)}
-                              style={{
-                                padding: '0.45rem 0.65rem',
-                                borderRadius: '0.4rem',
-                                border: `1px solid ${COLORS.accent}`,
-                                background: COLORS.card,
-                                color: COLORS.text,
-                                fontFamily: 'inherit'
-                              }}
-                            >
-                              <option value="all">全部类别</option>
-                              {budgetCategories?.map((cat: any) => (
-                                <option key={cat.id} value={cat.name}>{cat.name}</option>
-                              ))}
-                            </select>
-                            <button
-                              onClick={() => {
-                                setExpenseFilterDate('');
-                                setExpenseFilterCategory('all');
-                              }}
-                              style={{
-                                padding: '0.45rem 0.75rem',
-                                borderRadius: '0.4rem',
-                                border: `1px solid ${COLORS.accent}`,
-                                background: COLORS.card,
-                                color: COLORS.text,
-                                fontFamily: 'inherit',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              重置
-                            </button>
+                          {/* 筛选：时间范围 / 类别 */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                            {/* 第一行：时间范围选择器 */}
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                              <select
+                                value={expenseFilterRange}
+                                onChange={(e) => {
+                                  const value = e.target.value as typeof expenseFilterRange;
+                                  setExpenseFilterRange(value);
+                                  // 清空其他日期字段
+                                  if (value !== 'single') setExpenseFilterDate('');
+                                  if (value !== 'custom') {
+                                    setExpenseStartDate('');
+                                    setExpenseEndDate('');
+                                  }
+                                }}
+                                style={{
+                                  padding: '0.45rem 0.65rem',
+                                  borderRadius: '0.4rem',
+                                  border: `1px solid ${COLORS.accent}`,
+                                  background: COLORS.card,
+                                  color: COLORS.text,
+                                  fontFamily: 'inherit',
+                                  minWidth: '120px'
+                                }}
+                              >
+                                <option value="all">全部时间</option>
+                                <option value="today">今天</option>
+                                <option value="week">本周</option>
+                                <option value="month">本月</option>
+                                <option value="year">本年</option>
+                                <option value="single">单选日期</option>
+                                <option value="custom">自定义范围</option>
+                              </select>
+
+                              {/* 单选日期 */}
+                              {expenseFilterRange === 'single' && (
+                                <input
+                                  type="date"
+                                  value={expenseFilterDate}
+                                  onChange={(e) => setExpenseFilterDate(e.target.value)}
+                                  style={{
+                                    padding: '0.45rem 0.65rem',
+                                    borderRadius: '0.4rem',
+                                    border: `1px solid ${COLORS.accent}`,
+                                    background: COLORS.card,
+                                    color: COLORS.text,
+                                    fontFamily: 'inherit'
+                                  }}
+                                />
+                              )}
+
+                              {/* 自定义日期范围 */}
+                              {expenseFilterRange === 'custom' && (
+                                <>
+                                  <input
+                                    type="date"
+                                    value={expenseStartDate}
+                                    onChange={(e) => setExpenseStartDate(e.target.value)}
+                                    placeholder="开始日期"
+                                    style={{
+                                      padding: '0.45rem 0.65rem',
+                                      borderRadius: '0.4rem',
+                                      border: `1px solid ${COLORS.accent}`,
+                                      background: COLORS.card,
+                                      color: COLORS.text,
+                                      fontFamily: 'inherit'
+                                    }}
+                                  />
+                                  <span style={{ color: COLORS.textMuted }}>至</span>
+                                  <input
+                                    type="date"
+                                    value={expenseEndDate}
+                                    onChange={(e) => setExpenseEndDate(e.target.value)}
+                                    placeholder="结束日期"
+                                    style={{
+                                      padding: '0.45rem 0.65rem',
+                                      borderRadius: '0.4rem',
+                                      border: `1px solid ${COLORS.accent}`,
+                                      background: COLORS.card,
+                                      color: COLORS.text,
+                                      fontFamily: 'inherit'
+                                    }}
+                                  />
+                                </>
+                              )}
+
+                              <select
+                                value={expenseFilterCategory}
+                                onChange={(e) => setExpenseFilterCategory(e.target.value)}
+                                style={{
+                                  padding: '0.45rem 0.65rem',
+                                  borderRadius: '0.4rem',
+                                  border: `1px solid ${COLORS.accent}`,
+                                  background: COLORS.card,
+                                  color: COLORS.text,
+                                  fontFamily: 'inherit'
+                                }}
+                              >
+                                <option value="all">全部类别</option>
+                                {budgetCategories?.map((cat: any) => (
+                                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                ))}
+                              </select>
+
+                              <button
+                                onClick={() => {
+                                  setExpenseFilterRange('all');
+                                  setExpenseFilterDate('');
+                                  setExpenseStartDate('');
+                                  setExpenseEndDate('');
+                                  setExpenseFilterCategory('all');
+                                }}
+                                style={{
+                                  padding: '0.45rem 0.75rem',
+                                  borderRadius: '0.4rem',
+                                  border: `1px solid ${COLORS.accent}`,
+                                  background: COLORS.card,
+                                  color: COLORS.text,
+                                  fontFamily: 'inherit',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                🔄 重置
+                              </button>
+                            </div>
                           </div>
 
                           {filteredExpenses.length > 0 ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', maxHeight: '420px', overflowY: 'auto' }}>
                               {filteredExpenses
                                 .filter((expense) => {
-                                  // 日期过滤
-                                  if (expenseFilterDate) {
-                                    let expStr = '';
-                                    if (typeof expense.date === 'string') {
-                                      expStr = expense.date;
-                                    } else if (expense.date) {
-                                      const d = new Date(expense.date);
-                                      expStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                                    }
-                                    if (expStr !== expenseFilterDate) return false;
+                                  // 获取支出日期
+                                  let expenseDate: Date;
+                                  if (typeof expense.date === 'string') {
+                                    expenseDate = new Date(expense.date);
+                                  } else {
+                                    expenseDate = new Date(expense.date);
                                   }
+
+                                  // 时间范围过滤
+                                  if (expenseFilterRange !== 'all') {
+                                    const now = new Date();
+                                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                                    
+                                    if (expenseFilterRange === 'today') {
+                                      const expDay = new Date(expenseDate.getFullYear(), expenseDate.getMonth(), expenseDate.getDate());
+                                      if (expDay.getTime() !== today.getTime()) return false;
+                                    } else if (expenseFilterRange === 'week') {
+                                      // 本周（周日到今天）
+                                      const weekStart = new Date(today);
+                                      weekStart.setDate(today.getDate() - today.getDay());
+                                      if (expenseDate < weekStart || expenseDate > now) return false;
+                                    } else if (expenseFilterRange === 'month') {
+                                      // 本月
+                                      if (expenseDate.getFullYear() !== now.getFullYear() || 
+                                          expenseDate.getMonth() !== now.getMonth()) return false;
+                                    } else if (expenseFilterRange === 'year') {
+                                      // 本年
+                                      if (expenseDate.getFullYear() !== now.getFullYear()) return false;
+                                    } else if (expenseFilterRange === 'single') {
+                                      // 单选日期
+                                      if (expenseFilterDate) {
+                                        const expStr = `${expenseDate.getFullYear()}-${String(expenseDate.getMonth() + 1).padStart(2, '0')}-${String(expenseDate.getDate()).padStart(2, '0')}`;
+                                        if (expStr !== expenseFilterDate) return false;
+                                      }
+                                    } else if (expenseFilterRange === 'custom') {
+                                      // 自定义范围
+                                      if (expenseStartDate) {
+                                        const startDate = new Date(expenseStartDate);
+                                        if (expenseDate < startDate) return false;
+                                      }
+                                      if (expenseEndDate) {
+                                        const endDate = new Date(expenseEndDate);
+                                        endDate.setHours(23, 59, 59, 999); // 包含结束日期整天
+                                        if (expenseDate > endDate) return false;
+                                      }
+                                    }
+                                  }
+
                                   // 类别过滤（按大类）
                                   if (expenseFilterCategory !== 'all') {
                                     const rawName = expense.category || '未分类';
                                     const parentName = rawName.includes(' - ') ? rawName.split(' - ')[0] : rawName;
                                     if (parentName !== expenseFilterCategory) return false;
                                   }
+                                  
                                   return true;
                                 })
                                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
