@@ -10802,7 +10802,7 @@ const FinanceDashboard = () => {
                                     </td>
                                     {rebalanceViewMode === 'simple' ? (
                                       <>
-                                        {/* 简版：只显示三列 */}
+                                        {/* 简版：只显示四列 */}
                                         <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.text, fontWeight: '600', fontSize: '0.9rem' }}>
                                           ${Math.round(row.yearStartTotal).toLocaleString()}
                                         </td>
@@ -10811,6 +10811,9 @@ const FinanceDashboard = () => {
                                         </td>
                                         <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.success, fontWeight: '600', fontSize: '0.9rem' }}>
                                           ${Math.round(rebalancedTotal || 0).toLocaleString()}
+                                        </td>
+                                        <td style={{ padding: '0.75rem', textAlign: 'right', color: COLORS.textMuted, fontWeight: '600', fontSize: '0.9rem' }}>
+                                          ${Math.round((rebalancedTotal || 0) / Math.pow(1 + (rebalanceInflation / 100), row.year)).toLocaleString()}
                                         </td>
                                       </>
                                     ) : (
