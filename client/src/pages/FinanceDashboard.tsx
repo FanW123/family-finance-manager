@@ -543,6 +543,7 @@ const FinanceDashboard = () => {
   const [stressTestBondRatio, setStressTestBondRatio] = useState(20);
   const [stressTestCashRatio, setStressTestCashRatio] = useState(10);
   const [stressTestView, setStressTestView] = useState<'main' | 'quick' | 'full'>('main');
+  const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
   const [fireViewMode, setFireViewMode] = useState<'progress' | 'trend'>('progress');
   const [fireTimeRange, setFireTimeRange] = useState<'1week' | '1month' | '1year' | 'ytd' | '5years'>('1year');
   
