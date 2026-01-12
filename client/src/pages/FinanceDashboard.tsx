@@ -2138,7 +2138,6 @@ const FinanceDashboard = () => {
                         }
                         
                         // Estimate monthly growth rate (assume 5% annual return + monthly savings)
-                        const monthlyGrowthRate = (monthlySavings * 12) / (totalPortfolio || 1) / 12;
                         const estimatedMonthlyReturn = 0.05 / 12; // 5% annual return
                         
                         for (let i = 0; i <= dataPoints; i++) {
