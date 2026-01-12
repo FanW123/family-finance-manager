@@ -8007,13 +8007,21 @@ const FinanceDashboard = () => {
             }}>
               {/* Header */}
               <div style={{
-                padding: '1.5rem',
-                borderBottom: `1px solid ${COLORS.accent}`,
+                padding: '1.5rem 1.5rem 1rem',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: '700' }}>添加新分类</h3>
+                <div style={{ 
+                  fontSize: '0.8rem', 
+                  color: COLORS.textMuted, 
+                  background: COLORS.accent,
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: '0.5rem',
+                  fontWeight: '600'
+                }}>
+                  NEW
+                </div>
                 <button
                   onClick={() => {
                     setShowQuickAddCategory(false);
@@ -8022,81 +8030,63 @@ const FinanceDashboard = () => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: COLORS.text,
-                    fontSize: '1.3rem',
+                    color: COLORS.danger,
+                    fontSize: '1.2rem',
                     cursor: 'pointer',
-                    padding: '0.5rem'
+                    padding: '0'
                   }}
                 >
-                  ✕
+                  🗑️
                 </button>
               </div>
 
-              {/* Form Content */}
-              <div style={{ padding: '1.5rem' }}>
-                {/* Icon */}
+              {/* Form Content - Matching budget management card style */}
+              <div style={{ 
+                padding: '0 1.5rem 1.5rem',
+                background: COLORS.accent,
+                borderRadius: '0 0 1rem 1rem'
+              }}>
+                {/* Category Name Input */}
                 <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
-                    图标 (Emoji)
-                  </label>
                   <input
                     type="text"
-                    value={quickNewCategory.icon}
-                    onChange={(e) => setQuickNewCategory({ ...quickNewCategory, icon: e.target.value })}
-                    placeholder="📝"
-                    maxLength={2}
+                    value={`${quickNewCategory.icon} ${quickNewCategory.name}`}
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      // Try to extract emoji and name
+                      const match = text.match(/^([\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}])\s*(.*)$/u);
+                      if (match) {
+                        setQuickNewCategory({ ...quickNewCategory, icon: match[1], name: match[2] });
+                      } else {
+                        setQuickNewCategory({ ...quickNewCategory, name: text });
+                      }
+                    }}
+                    placeholder="🆕 新分类"
                     style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      background: COLORS.accent,
+                      background: 'none',
                       border: 'none',
-                      borderRadius: '0.5rem',
                       color: COLORS.text,
-                      fontSize: '1rem',
-                      fontFamily: 'inherit'
+                      fontSize: '1.2rem',
+                      fontWeight: '600',
+                      fontFamily: 'inherit',
+                      width: '100%',
+                      outline: 'none'
                     }}
                   />
                 </div>
 
-                {/* Name */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
-                    类别名称
-                  </label>
-                  <input
-                    type="text"
-                    value={quickNewCategory.name}
-                    onChange={(e) => setQuickNewCategory({ ...quickNewCategory, name: e.target.value })}
-                    placeholder="例如：餐饮、交通..."
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      background: COLORS.accent,
-                      border: 'none',
-                      borderRadius: '0.5rem',
-                      color: COLORS.text,
-                      fontSize: '1rem',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-                </div>
-
-                {/* Budget Type */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
-                    预算周期
-                  </label>
+                {/* Budget Type and Amount - Same layout as budget management */}
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <select
                     value={quickNewCategory.budgetType}
                     onChange={(e) => setQuickNewCategory({ ...quickNewCategory, budgetType: e.target.value as any })}
                     style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      background: COLORS.accent,
+                      padding: '0.5rem',
+                      background: COLORS.card,
                       border: 'none',
                       borderRadius: '0.5rem',
                       color: COLORS.text,
-                      fontSize: '1rem',
+                      fontSize: '0.9rem',
                       fontFamily: 'inherit',
                       cursor: 'pointer'
                     }}
@@ -8105,33 +8095,57 @@ const FinanceDashboard = () => {
                     <option value="monthly">月预算</option>
                     <option value="yearly">年预算</option>
                   </select>
-                </div>
 
-                {/* Amount */}
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: COLORS.textMuted }}>
-                    预算金额 (USD)
-                  </label>
                   <input
                     type="number"
                     value={quickNewCategory.amount}
                     onChange={(e) => setQuickNewCategory({ ...quickNewCategory, amount: e.target.value })}
                     placeholder="0"
+                    onFocus={(e) => {
+                      if (!quickNewCategory.amount || quickNewCategory.amount === '0') {
+                        setTimeout(() => e.target.select(), 0);
+                      }
+                    }}
                     style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      background: COLORS.accent,
+                      flex: 1,
+                      padding: '0.5rem',
+                      background: COLORS.card,
                       border: 'none',
                       borderRadius: '0.5rem',
                       color: COLORS.text,
                       fontSize: '1rem',
-                      fontFamily: 'inherit'
+                      fontFamily: 'inherit',
+                      outline: 'none'
                     }}
                   />
+                  <span style={{ fontSize: '0.9rem', color: COLORS.textMuted }}>
+                    /{quickNewCategory.budgetType === 'weekly' ? '周' : quickNewCategory.budgetType === 'monthly' ? '月' : '年'}
+                  </span>
+                </div>
+
+                {/* Yearly amount display */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  color: COLORS.success,
+                  marginTop: '0.5rem',
+                  marginBottom: '1rem'
+                }}>
+                  <span>
+                    → ${(() => {
+                      const amount = parseFloat(quickNewCategory.amount) || 0;
+                      const multiplier = quickNewCategory.budgetType === 'weekly' ? 52 : 
+                                       quickNewCategory.budgetType === 'monthly' ? 12 : 1;
+                      return (amount * multiplier).toLocaleString();
+                    })()} / 年
+                  </span>
                 </div>
 
                 {/* Action Buttons */}
-                <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
                   <button
                     onClick={() => {
                       setShowQuickAddCategory(false);
@@ -8140,11 +8154,11 @@ const FinanceDashboard = () => {
                     style={{
                       flex: 1,
                       padding: '0.75rem',
-                      background: COLORS.accent,
-                      border: 'none',
+                      background: COLORS.card,
+                      border: `1px solid ${COLORS.accent}`,
                       borderRadius: '0.5rem',
                       color: COLORS.text,
-                      fontSize: '1rem',
+                      fontSize: '0.9rem',
                       fontWeight: '600',
                       cursor: 'pointer',
                       fontFamily: 'inherit'
@@ -8154,7 +8168,7 @@ const FinanceDashboard = () => {
                   </button>
                   <button
                     onClick={async () => {
-                      if (!quickNewCategory.name.trim()) {
+                      if (!quickNewCategory.name.trim() && !quickNewCategory.icon) {
                         alert('请输入类别名称');
                         return;
                       }
@@ -8164,7 +8178,7 @@ const FinanceDashboard = () => {
                       // Create new category
                       const newCategory = {
                         id: `custom_${Date.now()}`,
-                        name: `${quickNewCategory.icon} ${quickNewCategory.name}`,
+                        name: quickNewCategory.icon ? `${quickNewCategory.icon} ${quickNewCategory.name}` : quickNewCategory.name || '🆕 新分类',
                         budgetType: quickNewCategory.budgetType,
                         amount: amount,
                         isParent: false
@@ -8186,20 +8200,16 @@ const FinanceDashboard = () => {
                       setShowQuickAddCategory(false);
                       setQuickNewCategory({ name: '', icon: '📝', budgetType: 'monthly', amount: '' });
                     }}
-                    disabled={!quickNewCategory.name.trim()}
                     style={{
                       flex: 1,
                       padding: '0.75rem',
-                      background: !quickNewCategory.name.trim()
-                        ? COLORS.accent
-                        : `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
+                      background: `linear-gradient(135deg, ${COLORS.highlight} 0%, ${COLORS.success} 100%)`,
                       border: 'none',
                       borderRadius: '0.5rem',
                       color: COLORS.text,
-                      fontSize: '1rem',
+                      fontSize: '0.9rem',
                       fontWeight: '600',
-                      cursor: !quickNewCategory.name.trim() ? 'not-allowed' : 'pointer',
-                      opacity: !quickNewCategory.name.trim() ? 0.5 : 1,
+                      cursor: 'pointer',
                       fontFamily: 'inherit'
                     }}
                   >
