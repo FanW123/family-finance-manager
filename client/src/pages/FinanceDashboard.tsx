@@ -533,6 +533,7 @@ const FinanceDashboard = () => {
   const [showCashCalculator, setShowCashCalculator] = useState(false);
   const [showFireOptimization, setShowFireOptimization] = useState(false);
   const [showFireCalculator, setShowFireCalculator] = useState(false);
+  const [showStressTest, setShowStressTest] = useState(false);
   const [showCityPlanner, setShowCityPlanner] = useState(false);
   const [fireViewMode, setFireViewMode] = useState<'progress' | 'trend'>('progress');
   const [fireTimeRange, setFireTimeRange] = useState<'1week' | '1month' | '1year' | 'ytd' | '5years'>('1year');
@@ -2434,6 +2435,52 @@ const FinanceDashboard = () => {
                   }}
                 >
                   再平衡模拟
+                </button>
+                
+                <button
+                  onClick={() => {
+                    // Load saved stress test values or use FIRE calculator values as defaults
+                    const savedStressTest = localStorage.getItem(getUserStorageKey('stressTest'));
+                    if (savedStressTest) {
+                      try {
+                        const parsed = JSON.parse(savedStressTest);
+                        // Use saved values if available
+                      } catch (e) {
+                        console.error('Failed to parse saved stress test values:', e);
+                      }
+                    }
+                    // If no saved values, try to use FIRE calculator values
+                    const savedCalc = localStorage.getItem(getUserStorageKey('fireCalculator'));
+                    if (savedCalc) {
+                      try {
+                        const parsed = JSON.parse(savedCalc);
+                        // These will be used as defaults in the stress test
+                      } catch (e) {
+                        console.error('Failed to parse saved calculator values:', e);
+                      }
+                    }
+                    setShowStressTest(true);
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: COLORS.card,
+                    border: `1px solid ${COLORS.warning}`,
+                    borderRadius: '0.5rem',
+                    color: COLORS.text,
+                    fontSize: '0.9rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = `${COLORS.warning}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = COLORS.card;
+                  }}
+                >
+                  压力测试
                 </button>
               </div>
             </div>
@@ -9630,8 +9677,33 @@ const FinanceDashboard = () => {
                   })()}
                 </div>
 
+                {/* Quick Action: Stress Test */}
+                <div style={{ marginTop: '2rem', marginBottom: '1rem' }}>
+                  <button
+                    onClick={() => {
+                      setShowFireCalculator(false);
+                      // Use current calculator values for stress test
+                      setShowStressTest(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      background: COLORS.warning,
+                      border: 'none',
+                      color: 'white',
+                      padding: '0.75rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    🔥 压力测试
+                  </button>
+                </div>
+
                 {/* Close Button */}
-                <div style={{ marginTop: '2rem' }}>
+                <div style={{ marginTop: '1rem' }}>
                   <button
                     onClick={() => setShowFireCalculator(false)}
                     style={{
@@ -11751,6 +11823,248 @@ const FinanceDashboard = () => {
                     }}
                   >
                     完成
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stress Test Modal */}
+        {showStressTest && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: COLORS.card,
+              borderRadius: '1rem',
+              maxWidth: '1000px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '2rem',
+                borderBottom: `1px solid ${COLORS.accent}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                position: 'sticky',
+                top: 0,
+                background: COLORS.card,
+                zIndex: 1
+              }}>
+                <h2 style={{ margin: 0, fontSize: '1.5rem' }}>🔥 压力测试</h2>
+                <button
+                  onClick={() => setShowStressTest(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: COLORS.textMuted,
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem',
+                    lineHeight: 1
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: '2rem' }}>
+                <div style={{
+                  background: COLORS.accent,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  marginBottom: '2rem'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📊 测试场景</h3>
+                  <p style={{ margin: '0 0 1.5rem 0', color: COLORS.textMuted, fontSize: '0.9rem' }}>
+                    压力测试将模拟不同市场条件下的资产表现，帮助你了解投资组合的抗风险能力。
+                  </p>
+                  
+                  {(() => {
+                    // Get base values from FIRE calculator or use defaults
+                    const baseInitialAssets = calcInitialAssets || fireNumber || 0;
+                    const baseGrowthRate = calcGrowthRate || 0;
+                    const baseAnnualExpenses = calcAnnualExpenses || 0;
+                    const baseYearsToProject = calcYearsToProject || 10;
+                    const baseInflationRate = calcInflationRate || 0;
+                    
+                    // Define stress test scenarios
+                    const scenarios = [
+                      {
+                        name: '基准场景',
+                        description: '使用当前参数',
+                        growthRate: baseGrowthRate,
+                        inflationRate: baseInflationRate,
+                        color: COLORS.success
+                      },
+                      {
+                        name: '市场下跌',
+                        description: '投资回报率降低50%',
+                        growthRate: baseGrowthRate * 0.5,
+                        inflationRate: baseInflationRate,
+                        color: COLORS.warning
+                      },
+                      {
+                        name: '通胀上升',
+                        description: '通胀率增加2%',
+                        growthRate: baseGrowthRate,
+                        inflationRate: baseInflationRate + 2,
+                        color: COLORS.highlight
+                      },
+                      {
+                        name: '双重打击',
+                        description: '市场下跌50% + 通胀上升2%',
+                        growthRate: baseGrowthRate * 0.5,
+                        inflationRate: baseInflationRate + 2,
+                        color: '#ef4444'
+                      }
+                    ];
+                    
+                    return (
+                      <div>
+                        {scenarios.map((scenario, index) => {
+                          // Calculate projection for this scenario
+                          const projectionData = [];
+                          let currentAsset = baseInitialAssets;
+                          const annualGrowthRate = scenario.growthRate / 100;
+                          const inflationRate = scenario.inflationRate / 100;
+                          
+                          for (let year = 1; year <= baseYearsToProject; year++) {
+                            const yearStartAsset = currentAsset;
+                            const yearGrowth = yearStartAsset * annualGrowthRate;
+                            const inflationAdjustedExpenses = baseAnnualExpenses * Math.pow(1 + inflationRate, year - 1);
+                            const yearEndAsset = yearStartAsset + yearGrowth - inflationAdjustedExpenses;
+                            
+                            projectionData.push({
+                              year,
+                              startAsset: yearStartAsset,
+                              growth: yearGrowth,
+                              expenses: inflationAdjustedExpenses,
+                              endAsset: yearEndAsset
+                            });
+                            
+                            currentAsset = yearEndAsset;
+                            if (yearEndAsset <= 0) break;
+                          }
+                          
+                          const finalAsset = projectionData[projectionData.length - 1]?.endAsset || 0;
+                          const isSustainable = finalAsset > 0;
+                          const yearsToDepletion = projectionData.findIndex(row => row.endAsset <= 0) + 1;
+                          
+                          return (
+                            <div key={index} style={{
+                              background: COLORS.card,
+                              borderRadius: '0.5rem',
+                              padding: '1.5rem',
+                              marginBottom: '1rem',
+                              border: `2px solid ${scenario.color}`
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '1rem'
+                              }}>
+                                <div>
+                                  <h4 style={{ margin: 0, fontSize: '1rem', color: scenario.color }}>
+                                    {scenario.name}
+                                  </h4>
+                                  <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: COLORS.textMuted }}>
+                                    {scenario.description}
+                                  </p>
+                                </div>
+                                <div style={{
+                                  padding: '0.5rem 1rem',
+                                  background: isSustainable ? `${COLORS.success}20` : `${COLORS.warning}20`,
+                                  borderRadius: '0.5rem',
+                                  color: isSustainable ? COLORS.success : COLORS.warning,
+                                  fontWeight: '600',
+                                  fontSize: '0.9rem'
+                                }}>
+                                  {isSustainable ? (
+                                    <>✅ ${Math.round(finalAsset).toLocaleString()}</>
+                                  ) : (
+                                    <>⚠️ 第{yearsToDepletion}年耗尽</>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(4, 1fr)',
+                                gap: '0.75rem',
+                                fontSize: '0.85rem'
+                              }}>
+                                <div>
+                                  <div style={{ color: COLORS.textMuted, fontSize: '0.75rem' }}>年回报率</div>
+                                  <div style={{ color: COLORS.text, fontWeight: '600' }}>
+                                    {scenario.growthRate.toFixed(1)}%
+                                  </div>
+                                </div>
+                                <div>
+                                  <div style={{ color: COLORS.textMuted, fontSize: '0.75rem' }}>通胀率</div>
+                                  <div style={{ color: COLORS.text, fontWeight: '600' }}>
+                                    {scenario.inflationRate.toFixed(1)}%
+                                  </div>
+                                </div>
+                                <div>
+                                  <div style={{ color: COLORS.textMuted, fontSize: '0.75rem' }}>最终资产</div>
+                                  <div style={{ color: COLORS.text, fontWeight: '600' }}>
+                                    ${Math.round(finalAsset).toLocaleString()}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div style={{ color: COLORS.textMuted, fontSize: '0.75rem' }}>可持续性</div>
+                                  <div style={{ 
+                                    color: isSustainable ? COLORS.success : COLORS.warning, 
+                                    fontWeight: '600' 
+                                  }}>
+                                    {isSustainable ? '可持续' : `第${yearsToDepletion}年耗尽`}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Close Button */}
+                <div style={{ marginTop: '2rem' }}>
+                  <button
+                    onClick={() => setShowStressTest(false)}
+                    style={{
+                      width: '100%',
+                      background: `linear-gradient(135deg, ${COLORS.success} 0%, ${COLORS.highlight} 100%)`,
+                      border: 'none',
+                      color: 'white',
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    关闭
                   </button>
                 </div>
               </div>
