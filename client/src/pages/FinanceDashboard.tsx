@@ -534,6 +534,8 @@ const FinanceDashboard = () => {
   const [showFireOptimization, setShowFireOptimization] = useState(false);
   const [showFireCalculator, setShowFireCalculator] = useState(false);
   const [showCityPlanner, setShowCityPlanner] = useState(false);
+  const [fireViewMode, setFireViewMode] = useState<'progress' | 'trend'>('progress');
+  const [fireTimeRange, setFireTimeRange] = useState<'1week' | '1month' | '1year' | 'ytd' | '5years'>('1year');
   
   // 预算追踪展开状态：记录哪些大类是展开的
   const [expandedWeeklyCategories, setExpandedWeeklyCategories] = useState<Set<string>>(new Set());
@@ -1918,88 +1920,336 @@ const FinanceDashboard = () => {
               position: 'relative',
               overflow: 'visible' // Ensure button is not clipped
             }}>
-              {/* Current Total Assets - Top Left */}
-              <div style={{ 
-                fontSize: '2rem',
-                fontWeight: '700', 
-                marginBottom: '1.5rem',
-                color: COLORS.text // White text for label
+              {/* Header with Toggle */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem'
               }}>
-                当前总资产: <span style={{ color: COLORS.success }}>${Math.round(totalPortfolio).toLocaleString()}</span>
-              </div>
-              
-              {/* FIRE Progress Section */}
-              <div style={{ marginBottom: '4rem' }}> {/* Increased margin to make room for button */}
-                {/* FIRE Progress and Target - Above the progress bar */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '0.5rem'
+                {/* Current Total Assets - Top Left */}
+                <div style={{ 
+                  fontSize: '2rem',
+                  fontWeight: '700', 
+                  color: COLORS.text
                 }}>
-                  {/* FIRE Progress on the left */}
-                  <div style={{
-                    fontSize: '1rem',
-                    color: COLORS.text,
-                    fontWeight: '600'
-                  }}>
-                    FIRE 进度: {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
-                  </div>
-                  
-                  {/* FIRE Target on the right */}
-                  <div style={{
-                    fontSize: '1rem',
-                    color: COLORS.text,
-                    fontWeight: '600'
-                  }}>
-                    FIRE目标: ${Math.round(fireNumber).toLocaleString()}
-                  </div>
+                  当前总资产: <span style={{ color: COLORS.success }}>${Math.round(totalPortfolio).toLocaleString()}</span>
                 </div>
                 
-                {/* Progress Bar Container */}
+                {/* Toggle Buttons */}
                 <div style={{
-                  position: 'relative',
-                  marginBottom: '1rem'
+                  display: 'flex',
+                  gap: '0.5rem',
+                  background: COLORS.accent,
+                  borderRadius: '0.5rem',
+                  padding: '0.25rem'
                 }}>
-                  {/* Progress Bar */}
-                  <div style={{
-                    background: COLORS.accent,
-                    borderRadius: '0.5rem',
-                    height: '2.5rem',
-                    position: 'relative',
-                    overflow: 'visible',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}>
-                    {/* Progress Bar Fill - Gradient from light blue to cyan */}
-                    <div style={{
-                      background: `linear-gradient(90deg, ${COLORS.success} 0%, #00ffff 100%)`, // Gradient from light blue to cyan
-                      height: '100%',
-                      width: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
-                      transition: 'width 0.3s ease',
-                      borderRadius: '0.5rem 0 0 0.5rem',
-                      position: 'relative',
-                      zIndex: 1
-                    }} />
-                    
-                    {/* Remaining Amount - Centered in the unfilled portion, only show if < 100% */}
-                    {totalPortfolio < fireNumber && (totalPortfolio / fireNumber) * 100 < 100 && (
-                      <div style={{
-                        position: 'absolute',
-                        left: 0,
-                        bottom: '-1.8rem',
-                        textAlign: 'left',
-                        fontSize: '0.9rem',
-                        color: COLORS.warning,
-                        fontWeight: '600',
-                        zIndex: 2,
-                        pointerEvents: 'none'
-                      }}>
-                        距离目标还差: <span style={{ color: COLORS.warning }}>${Math.round(fireNumber - totalPortfolio).toLocaleString()}</span>
-                      </div>
-                    )}
-                  </div>
+                  <button
+                    onClick={() => setFireViewMode('progress')}
+                    style={{
+                      background: fireViewMode === 'progress' ? COLORS.highlight : 'transparent',
+                      color: COLORS.text,
+                      border: 'none',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '0.375rem',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      fontFamily: 'inherit',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <span>📊</span> 进度条
+                  </button>
+                  <button
+                    onClick={() => setFireViewMode('trend')}
+                    style={{
+                      background: fireViewMode === 'trend' ? COLORS.highlight : 'transparent',
+                      color: COLORS.text,
+                      border: 'none',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '0.375rem',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      fontFamily: 'inherit',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <span>📈</span> 趋势图
+                  </button>
                 </div>
+              </div>
+              
+              {/* Time Range Selector (only show for trend view) */}
+              {fireViewMode === 'trend' && (
+                <div style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  marginBottom: '1.5rem',
+                  flexWrap: 'wrap'
+                }}>
+                  {(['1week', '1month', '1year', 'ytd', '5years'] as const).map(range => (
+                    <button
+                      key={range}
+                      onClick={() => setFireTimeRange(range)}
+                      style={{
+                        background: fireTimeRange === range ? COLORS.success : COLORS.accent,
+                        color: COLORS.text,
+                        border: `1px solid ${fireTimeRange === range ? COLORS.success : COLORS.accent}`,
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        fontFamily: 'inherit',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {range === '1week' ? '过去1周' : 
+                       range === '1month' ? '过去1个月' : 
+                       range === '1year' ? '过去1年' : 
+                       range === 'ytd' ? '年初至今' : 
+                       '过去5年'}
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {/* FIRE Progress Section */}
+              <div style={{ marginBottom: '4rem' }}>
+                {fireViewMode === 'progress' ? (
+                  <>
+                    {/* FIRE Progress and Target - Above the progress bar */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem'
+                    }}>
+                      {/* FIRE Progress on the left */}
+                      <div style={{
+                        fontSize: '1rem',
+                        color: COLORS.text,
+                        fontWeight: '600'
+                      }}>
+                        FIRE 进度: {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
+                      </div>
+                      
+                      {/* FIRE Target on the right */}
+                      <div style={{
+                        fontSize: '1rem',
+                        color: COLORS.text,
+                        fontWeight: '600'
+                      }}>
+                        FIRE目标: ${Math.round(fireNumber).toLocaleString()}
+                      </div>
+                    </div>
+                    
+                    {/* Progress Bar Container */}
+                    <div style={{
+                      position: 'relative',
+                      marginBottom: '1rem'
+                    }}>
+                      {/* Progress Bar */}
+                      <div style={{
+                        background: COLORS.accent,
+                        borderRadius: '0.5rem',
+                        height: '2.5rem',
+                        position: 'relative',
+                        overflow: 'visible',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}>
+                        {/* Progress Bar Fill - Gradient from light blue to cyan */}
+                        <div style={{
+                          background: `linear-gradient(90deg, ${COLORS.success} 0%, #00ffff 100%)`,
+                          height: '100%',
+                          width: `${Math.min(Math.max((totalPortfolio / fireNumber) * 100, 0.5), 100)}%`,
+                          transition: 'width 0.3s ease',
+                          borderRadius: '0.5rem 0 0 0.5rem',
+                          position: 'relative',
+                          zIndex: 1
+                        }} />
+                        
+                        {/* Remaining Amount - Centered in the unfilled portion, only show if < 100% */}
+                        {totalPortfolio < fireNumber && (totalPortfolio / fireNumber) * 100 < 100 && (
+                          <div style={{
+                            position: 'absolute',
+                            left: 0,
+                            bottom: '-1.8rem',
+                            textAlign: 'left',
+                            fontSize: '0.9rem',
+                            color: COLORS.warning,
+                            fontWeight: '600',
+                            zIndex: 2,
+                            pointerEvents: 'none'
+                          }}>
+                            距离目标还差: <span style={{ color: COLORS.warning }}>${Math.round(fireNumber - totalPortfolio).toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Trend Chart */}
+                    {(() => {
+                      // Generate historical data based on time range
+                      const generateTrendData = () => {
+                        const data: Array<{ date: string; currentAssets: number; fireTarget: number }> = [];
+                        const now = new Date();
+                        let startDate = new Date();
+                        let intervalDays = 1;
+                        let dataPoints = 30;
+                        
+                        switch (fireTimeRange) {
+                          case '1week':
+                            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            intervalDays = 1;
+                            dataPoints = 7;
+                            break;
+                          case '1month':
+                            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            intervalDays = 1;
+                            dataPoints = 30;
+                            break;
+                          case '1year':
+                            startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+                            intervalDays = 14;
+                            dataPoints = 26;
+                            break;
+                          case 'ytd':
+                            startDate = new Date(now.getFullYear(), 0, 1);
+                            intervalDays = Math.ceil((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000) / 30);
+                            dataPoints = Math.ceil((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000) / intervalDays);
+                            break;
+                          case '5years':
+                            startDate = new Date(now.getTime() - 5 * 365 * 24 * 60 * 60 * 1000);
+                            intervalDays = 30;
+                            dataPoints = 60;
+                            break;
+                        }
+                        
+                        // Estimate monthly growth rate (assume 5% annual return + monthly savings)
+                        const monthlyGrowthRate = (monthlySavings * 12) / (totalPortfolio || 1) / 12;
+                        const estimatedMonthlyReturn = 0.05 / 12; // 5% annual return
+                        
+                        for (let i = 0; i <= dataPoints; i++) {
+                          const date = new Date(startDate.getTime() + i * intervalDays * 24 * 60 * 60 * 1000);
+                          const monthsFromStart = (date.getTime() - startDate.getTime()) / (30 * 24 * 60 * 60 * 1000);
+                          
+                          // Calculate estimated current assets (compound growth + savings)
+                          let estimatedAssets = totalPortfolio;
+                          if (monthsFromStart > 0) {
+                            // Project backwards: current = past * (1 + r)^n + savings * ((1 + r)^n - 1) / r
+                            const growthFactor = Math.pow(1 + estimatedMonthlyReturn, -monthsFromStart);
+                            estimatedAssets = totalPortfolio * growthFactor - monthlySavings * ((growthFactor - 1) / estimatedMonthlyReturn);
+                            estimatedAssets = Math.max(estimatedAssets, totalPortfolio * 0.1); // Don't go below 10% of current
+                          } else if (monthsFromStart < 0) {
+                            // Project forwards
+                            const growthFactor = Math.pow(1 + estimatedMonthlyReturn, Math.abs(monthsFromStart));
+                            estimatedAssets = totalPortfolio * growthFactor + monthlySavings * ((growthFactor - 1) / estimatedMonthlyReturn);
+                          }
+                          
+                          // FIRE target remains constant (or adjust for inflation if needed)
+                          const targetValue = fireNumber;
+                          
+                          const dateStr = fireTimeRange === '1week' || fireTimeRange === '1month' 
+                            ? `${date.getMonth() + 1}/${date.getDate()}`
+                            : fireTimeRange === '1year'
+                            ? `${date.getMonth() + 1}/${date.getDate()}`
+                            : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                          
+                          data.push({
+                            date: dateStr,
+                            currentAssets: Math.round(estimatedAssets),
+                            fireTarget: Math.round(targetValue)
+                          });
+                        }
+                        
+                        return data;
+                      };
+                      
+                      const trendData = generateTrendData();
+                      
+                      return (
+                        <div style={{ height: '300px', marginBottom: '1rem' }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={trendData}>
+                              <XAxis 
+                                dataKey="date" 
+                                stroke={COLORS.textMuted}
+                                style={{ fontSize: '0.75rem' }}
+                              />
+                              <YAxis 
+                                stroke={COLORS.textMuted}
+                                style={{ fontSize: '0.75rem' }}
+                                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                              />
+                              <Tooltip 
+                                contentStyle={{ 
+                                  background: COLORS.card, 
+                                  border: `1px solid ${COLORS.accent}`, 
+                                  borderRadius: '0.5rem',
+                                  color: COLORS.text
+                                }}
+                                formatter={(value: any) => `$${Math.round(value).toLocaleString()}`}
+                              />
+                              <Legend />
+                              <Line 
+                                type="monotone" 
+                                dataKey="currentAssets" 
+                                stroke={COLORS.success} 
+                                strokeWidth={2}
+                                name="当前资产"
+                                dot={false}
+                              />
+                              <Line 
+                                type="monotone" 
+                                dataKey="fireTarget" 
+                                stroke={COLORS.warning} 
+                                strokeWidth={2}
+                                strokeDasharray="5 5"
+                                name="FIRE目标"
+                                dot={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      );
+                    })()}
+                    
+                    {/* FIRE Progress and Target Info */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginTop: '1rem'
+                    }}>
+                      <div style={{
+                        fontSize: '1rem',
+                        color: COLORS.text,
+                        fontWeight: '600'
+                      }}>
+                        FIRE 进度: {totalPortfolio > 0 && fireNumber > 0 ? `${((totalPortfolio / fireNumber) * 100).toFixed(0)}%` : '0%'}
+                      </div>
+                      <div style={{
+                        fontSize: '1rem',
+                        color: COLORS.text,
+                        fontWeight: '600'
+                      }}>
+                        FIRE目标: ${Math.round(fireNumber).toLocaleString()}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
               
               {/* Action Buttons - Bottom Right */}
