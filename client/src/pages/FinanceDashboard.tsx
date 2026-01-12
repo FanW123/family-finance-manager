@@ -2300,14 +2300,15 @@ const FinanceDashboard = () => {
                 )}
               </div>
               
-              {/* Action Buttons - Below Progress Section */}
-              <div style={{
-                display: 'flex',
-                gap: '1rem',
-                justifyContent: 'center',
-                marginTop: '1rem',
-                marginBottom: '2rem'
-              }}>
+              {/* Action Buttons - Below Progress Section (only show in progress mode) */}
+              {fireViewMode === 'progress' && (
+                <div style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  justifyContent: 'center',
+                  marginTop: '1rem',
+                  marginBottom: '2rem'
+                }}>
                 <button
                   onClick={() => {
                     // Load saved calculator values or use defaults
@@ -2516,6 +2517,7 @@ const FinanceDashboard = () => {
                   </span>
                 </button>
               </div>
+              )}
             </div>
 
             {/* KPI Cards - 4 columns in a row */}
