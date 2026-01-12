@@ -12785,18 +12785,30 @@ const FinanceDashboard = () => {
                       }}>
                         <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>📋 详细结果</h3>
                         {testResults.results.map((result, index) => (
-                          <div key={index} style={{
-                            background: COLORS.card,
-                            borderRadius: '0.5rem',
-                            padding: '1rem',
-                            marginBottom: index < testResults.results.length - 1 ? '0.75rem' : 0,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}>
+                          <div 
+                            key={index} 
+                            onClick={() => setSelectedScenario(result.scenario)}
+                            style={{
+                              background: COLORS.card,
+                              borderRadius: '0.5rem',
+                              padding: '1rem',
+                              marginBottom: index < testResults.results.length - 1 ? '0.75rem' : 0,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = `${COLORS.accent}80`;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = COLORS.card;
+                            }}
+                          >
                             <div>
                               <div style={{ fontWeight: '600', color: COLORS.text }}>
-                                {result.scenario}
+                                {result.icon} {result.scenario}
                               </div>
                               {result.failedYear && (
                                 <div style={{ fontSize: '0.85rem', color: COLORS.textMuted }}>
@@ -12821,6 +12833,248 @@ const FinanceDashboard = () => {
                           </div>
                         ))}
                       </div>
+                      
+                      {/* Scenario Detail Modal */}
+                      {selectedScenario && (() => {
+                        const scenarioResult = testResults.results.find(r => r.scenario === selectedScenario);
+                        if (!scenarioResult) return null;
+                        
+                        return (
+                          <div style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: 'rgba(0, 0, 0, 0.85)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 2000,
+                            padding: '2rem'
+                          }} onClick={() => setSelectedScenario(null)}>
+                            <div 
+                              style={{
+                                background: COLORS.card,
+                                borderRadius: '1rem',
+                                maxWidth: '800px',
+                                width: '100%',
+                                maxHeight: '90vh',
+                                overflow: 'auto',
+                                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {/* Header */}
+                              <div style={{
+                                padding: '1.5rem',
+                                borderBottom: `1px solid ${COLORS.accent}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '1rem',
+                                position: 'sticky',
+                                top: 0,
+                                background: COLORS.card,
+                                zIndex: 1
+                              }}>
+                                <button
+                                  onClick={() => setSelectedScenario(null)}
+                                  style={{
+                                    background: 'transparent',
+                                    border: `1px solid ${COLORS.accent}`,
+                                    color: COLORS.text,
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '0.5rem',
+                                    fontSize: '0.9rem',
+                                    cursor: 'pointer',
+                                    fontFamily: 'inherit'
+                                  }}
+                                >
+                                  ← 返回
+                                </button>
+                                <h2 style={{ margin: 0, fontSize: '1.3rem', flex: 1 }}>
+                                  {scenarioResult.icon} {scenarioResult.scenario}
+                                </h2>
+                              </div>
+                              
+                              {/* Content */}
+                              <div style={{ padding: '2rem' }}>
+                                {/* Survival Status */}
+                                <div style={{
+                                  background: scenarioResult.survived ? `${COLORS.success}20` : `${COLORS.warning}20`,
+                                  borderRadius: '0.75rem',
+                                  padding: '1rem',
+                                  marginBottom: '1.5rem',
+                                  textAlign: 'center'
+                                }}>
+                                  <div style={{
+                                    fontSize: '1.2rem',
+                                    fontWeight: '600',
+                                    color: scenarioResult.survived ? COLORS.success : COLORS.warning
+                                  }}>
+                                    你的表现: {scenarioResult.survived ? '✅ 存活' : '❌ 失败'}
+                                  </div>
+                                  {!scenarioResult.survived && scenarioResult.failedYear && (
+                                    <div style={{
+                                      fontSize: '0.9rem',
+                                      color: COLORS.textMuted,
+                                      marginTop: '0.5rem'
+                                    }}>
+                                      第{scenarioResult.failedYear}年资金耗尽
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Year by Year Simulation */}
+                                {scenarioResult.yearByYear && scenarioResult.yearByYear.length > 0 && (
+                                  <div style={{
+                                    background: COLORS.accent,
+                                    borderRadius: '0.75rem',
+                                    padding: '1.5rem',
+                                    marginBottom: '1.5rem'
+                                  }}>
+                                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>逐年模拟</h3>
+                                    <div style={{
+                                      background: COLORS.card,
+                                      borderRadius: '0.5rem',
+                                      padding: '1rem'
+                                    }}>
+                                      {scenarioResult.yearByYear.slice(0, 10).map((year, idx) => (
+                                        <div key={idx} style={{
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
+                                          padding: '0.5rem 0',
+                                          borderBottom: idx < Math.min(scenarioResult.yearByYear?.length || 0, 10) - 1 ? `1px solid ${COLORS.accent}` : 'none',
+                                          fontSize: '0.9rem'
+                                        }}>
+                                          <div style={{ color: COLORS.text }}>
+                                            第{year.year}年:
+                                          </div>
+                                          <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '1rem'
+                                          }}>
+                                            <span style={{
+                                              color: year.stockReturn >= 0 ? COLORS.success : COLORS.highlight,
+                                              fontWeight: '600'
+                                            }}>
+                                              {year.stockReturn >= 0 ? '+' : ''}{year.stockReturn.toFixed(1)}%
+                                            </span>
+                                            <span style={{ color: COLORS.textMuted }}>→</span>
+                                            <span style={{
+                                              color: COLORS.text,
+                                              fontWeight: '600'
+                                            }}>
+                                              ${Math.round(year.portfolio / 10000).toFixed(0)}万
+                                            </span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      {scenarioResult.yearByYear.length > 10 && (
+                                        <div style={{
+                                          padding: '0.5rem 0',
+                                          fontSize: '0.85rem',
+                                          color: COLORS.textMuted,
+                                          textAlign: 'center'
+                                        }}>
+                                          ... 还有 {scenarioResult.yearByYear.length - 10} 年数据
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Key Metrics */}
+                                <div style={{
+                                  background: COLORS.accent,
+                                  borderRadius: '0.75rem',
+                                  padding: '1.5rem',
+                                  marginBottom: '1.5rem'
+                                }}>
+                                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>关键指标</h3>
+                                  <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(2, 1fr)',
+                                    gap: '1rem'
+                                  }}>
+                                    {scenarioResult.maxDrawdown !== undefined && (
+                                      <div>
+                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                                          最大回撤
+                                        </div>
+                                        <div style={{ fontSize: '1.1rem', color: COLORS.highlight, fontWeight: '600' }}>
+                                          {scenarioResult.maxDrawdown.toFixed(1)}%
+                                        </div>
+                                      </div>
+                                    )}
+                                    {scenarioResult.yearByYear && scenarioResult.yearByYear.length > 0 && (
+                                      <div>
+                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                                          模拟年数
+                                        </div>
+                                        <div style={{ fontSize: '1.1rem', color: COLORS.text, fontWeight: '600' }}>
+                                          {scenarioResult.yearByYear.length}年
+                                        </div>
+                                      </div>
+                                    )}
+                                    {scenarioResult.minPortfolio !== undefined && (
+                                      <div>
+                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                                          最低余额
+                                        </div>
+                                        <div style={{ fontSize: '1.1rem', color: COLORS.text, fontWeight: '600' }}>
+                                          ${Math.round(scenarioResult.minPortfolio / 10000).toFixed(0)}万
+                                          {scenarioResult.yearByYear && (() => {
+                                            const minYear = scenarioResult.yearByYear.findIndex(y => y.portfolio === scenarioResult.minPortfolio);
+                                            return minYear >= 0 ? ` (第${minYear + 1}年)` : '';
+                                          })()}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {scenarioResult.survived && (
+                                      <div>
+                                        <div style={{ fontSize: '0.85rem', color: COLORS.textMuted, marginBottom: '0.25rem' }}>
+                                          最终余额
+                                        </div>
+                                        <div style={{ fontSize: '1.1rem', color: COLORS.success, fontWeight: '600' }}>
+                                          ${Math.round(scenarioResult.finalValue / 10000).toFixed(0)}万
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {/* Scenario Insights */}
+                                <div style={{
+                                  background: COLORS.accent,
+                                  borderRadius: '0.75rem',
+                                  padding: '1.5rem'
+                                }}>
+                                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
+                                    💡 场景说明
+                                  </h3>
+                                  <p style={{
+                                    margin: 0,
+                                    fontSize: '0.9rem',
+                                    color: COLORS.textMuted,
+                                    lineHeight: '1.6'
+                                  }}>
+                                    {scenarioResult.description}
+                                    {scenarioResult.survived && (
+                                      <> 即使在这个极端场景下，你的配置（{Math.round(stressTestStockRatio)}/{Math.round(stressTestBondRatio)}/{Math.round(stressTestCashRatio)}）配合{withdrawalRate.toFixed(1)}%取款率也能够安全度过危机。</>
+                                    )}
+                                    {!scenarioResult.survived && (
+                                      <> 在这个场景下，你的配置无法支撑到最后。建议降低取款率或调整资产配置以提高抗风险能力。</>
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                     })()}
