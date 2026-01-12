@@ -6174,11 +6174,8 @@ const FinanceDashboard = () => {
 
                   return (
                     <div style={{
-                      background: COLORS.card,
-                      borderRadius: '1rem',
-                      padding: '2rem',
-                      marginBottom: '2rem',
-                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                      padding: '1rem 0',
+                      marginBottom: '2rem'
                     }}>
                       <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>预算概览</h2>
                       
